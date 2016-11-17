@@ -1,8 +1,8 @@
-"""
+"""@docstring
+@brief Install script for building all modules in package
 @author Nathan A. Mahynski
 @date 03/11/2016
 @filename install.py
-@brief Install script for building all modules in package
 """
 
 import __init__ as ii
