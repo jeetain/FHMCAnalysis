@@ -326,7 +326,7 @@ class window (object):
 	
 	Also contains methods to perform basic manipulations.	
 
-	""""
+	"""
 
 	def __init__ (self, lnPI_fname, mom_fname, ehist_fname, pkhist_prefix, offset=2, smooth=False, op_name="N_{tot}"):
 		"""
