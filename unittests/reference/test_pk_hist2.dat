@@ -1,0 +1,16 @@
+# <P(N_2)> as a function of N_tot.
+# Number of species: 2
+# species_total_upper_bound: 22
+# species_total_lower_bound: 19
+# volume: 729
+# Bin widths for each species index 
+1	1	1	1
+# Bin lower bound for each species index 
+0	0	0	0
+# Bin upper bound for each species index 
+3	3	3	4
+# Normalized histogram for each species index 
+0.91	0.08	0.005	0.005
+0.9	0.09	0.005	0.005
+0.4	0.3	0.2	0.1
+0.05	0.05	0.2	0.3	0.4

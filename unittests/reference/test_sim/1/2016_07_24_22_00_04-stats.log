@@ -1,0 +1,10 @@
+ ---------- Move Statistics --------- 
+ Move	% Success
+insert0 (from M = 0)	56.2558
+delete0 (from M = 0)	56.2252
+translate0 (from M = 0)	70.4678
+swap0_1 (from M = 0)	6.47989
+insert1 (from M = 0)	4.58103
+delete1 (from M = 0)	4.58377
+translate1 (from M = 0)	4.39077
+
