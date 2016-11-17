@@ -1,6 +1,6 @@
 # Flat Histogram Monte Carlo Analysis
 
-> Nathan A. Mahynski
+> Author: Nathan A. Mahynski
 
 ---
 
@@ -13,8 +13,8 @@ Status
 Installation:
 
 1. Clone repo
-2.  `$ cd FHMCAnalysis`
-    `$ python install.py`
+2. `$ cd FHMCAnalysis`
+3. `$ python install.py`
 
 ---
 
