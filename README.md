@@ -2,3 +2,6 @@
 ----
 
 > Nathan A. Mahynski
+
+To install:
+`$ python install.py`
