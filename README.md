@@ -4,6 +4,12 @@
 
 ---
 
+Status
+
+[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis)
+
+---
+
 Installation:
 
 1. Clone repo
