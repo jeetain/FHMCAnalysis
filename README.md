@@ -20,6 +20,8 @@ Installation:
 
 Dependencies
 
+Also see requirements.txt
+
 1. netCDF4 (http://unidata.github.io/netcdf4-python/)
 
 ---
