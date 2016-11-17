@@ -22,8 +22,9 @@ Dependencies
 
 Also see requirements.txt
 
-1. netCDF4 (http://unidata.github.io/netcdf4-python/)
-2. Cython (http://cython.org/)
+1. h5py (http://www.h5py.org/)
+2. netCDF4 (http://unidata.github.io/netcdf4-python/)
+3. Cython (http://cython.org/)
 
 ---
 
