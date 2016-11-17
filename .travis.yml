@@ -3,9 +3,6 @@ python:
   - "2.7"
 cache: pip
 install:
-  - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
-  - yes 'Y' | bash Miniconda2-latest-Linux-x86_64.sh
-  - conda install netcdf4
   - pip install -r requirements.txt
 script: 
-  - python install.py
+  - python
