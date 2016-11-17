@@ -26,6 +26,8 @@ Also see requirements.txt
 2. netCDF4 (http://unidata.github.io/netcdf4-python/)
 3. Cython (http://cython.org/)
 
+Alternatively, I highly recommend simply installing anaconda python.
+
 ---
 
 netCDF4 file format
