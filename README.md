@@ -18,15 +18,20 @@ Installation:
 
 ---
 
-Dependencies
+Unittesting
 
-Also see requirements.txt
+1. `$ cd unittests`
+2. `$ python run_tests.py`
+
+---
+
+Dependencies
 
 1. h5py (http://www.h5py.org/)
 2. netCDF4 (http://unidata.github.io/netcdf4-python/)
 3. Cython (http://cython.org/)
 
-Alternatively, I highly recommend simply installing anaconda python.
+Alternatively, I highly recommend simply installing anaconda python, and installing netCDF4 and Cython libraries through conda.
 
 ---
 
