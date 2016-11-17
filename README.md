@@ -6,7 +6,7 @@
 
 Status
 
-[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis)
+[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/)        
 
 ---
 
