@@ -3,5 +3,8 @@
 
 > Nathan A. Mahynski
 
-To install:
-`$ python install.py`
+Installation:
+
+* Clone repo
+`$ cd FHMCAnalysis
+$ python install.py`
