@@ -7,9 +7,9 @@
 
 import unittest, sys
 sys.path.append('../../')
-import fhmc, copy, os
+import FHMCAnalysis, copy, os
 import numpy as np
-import fhmc.moments.histogram.two_dim.joint_hist as jH
+import FHMCAnalysis.moments.histogram.two_dim.joint_hist as jH
 
 class test_joint_hist(unittest.TestCase):
 	def setUp(self):

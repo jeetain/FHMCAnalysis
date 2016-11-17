@@ -7,9 +7,9 @@
 
 import unittest, sys
 sys.path.append('../../')
-import fhmc, copy, os
+import FHMCAnalysis, copy, os
 import numpy as np
-import fhmc.moments.histogram.one_dim.ntot.gc_hist as oneDH
+import FHMCAnalysis.moments.histogram.one_dim.ntot.gc_hist as oneDH
 
 class test_histogram(unittest.TestCase):
 	def setUp(self):

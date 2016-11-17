@@ -7,10 +7,10 @@
 
 import unittest, sys
 sys.path.append('../../')
-import fhmc, copy, os
+import FHMCAnalysis, copy, os
 import numpy as np
-import fhmc.moments.win_patch.omcs_patch as wP
-import fhmc.moments.win_patch.omcs_equil as eQ
+import FHMCAnalysis.moments.win_patch.omcs_patch as wP
+import FHMCAnalysis.moments.win_patch.omcs_equil as eQ
 
 class test_window_equil(unittest.TestCase):
 	def setUp(self):
