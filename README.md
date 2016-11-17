@@ -1,6 +1,6 @@
 # Flat Histogram Monte Carlo Analysis
 
-> Author: Nathan A. Mahynski
+Nathan A. Mahynski
 
 ---
 
@@ -18,13 +18,6 @@ Installation:
 
 ---
 
-Unittesting
-
-1. `$ cd unittests`
-2. `$ python run_tests.py`
-
----
-
 Dependencies
 
 1. h5py (http://www.h5py.org/)
@@ -35,4 +28,11 @@ Alternatively, I highly recommend simply installing anaconda python, and install
 
 ---
 
-netCDF4 file format
+Unittesting
+
+1. `$ cd unittests`
+2. `$ python run_tests.py`
+
+---
+
+Expected netCDF4 file format
