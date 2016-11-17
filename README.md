@@ -5,6 +5,7 @@
 
 Installation:
 
-* Clone repo
-`$ cd FHMCAnalysis
-$ python install.py`
+1. Clone repo
+2. ```$ cd FHMCAnalysis
+
+$ python install.py```
