@@ -25,6 +25,7 @@ $ python install.py
 1. h5py (http://www.h5py.org/)
 2. netCDF4 (http://unidata.github.io/netcdf4-python/)
 3. Cython (http://cython.org/)
+4. Numpy (http://www.numpy.org/)
 
 Alternatively, I highly recommend simply installing anaconda python (https://www.continuum.io/downloads), and installing netCDF4 and Cython libraries through conda. For example:
 
@@ -48,5 +49,3 @@ $ python run_tests.py
 ### Expected netCDF4 file format
 
 1. N_tot
-
- 
