@@ -13,7 +13,7 @@ Status
 ### Installation:
 
 ```
-$ git clone https://github.com/mahynski/FHMCAnalysis.git`
+$ git clone https://github.com/mahynski/FHMCAnalysis.git
 $ cd FHMCAnalysis
 $ python install.py
 ```
@@ -47,4 +47,6 @@ $ python run_tests.py
 
 ### Expected netCDF4 file format
 
-$$I = \int \rho R^{2} dV$$
+1. N_tot
+
+ 
