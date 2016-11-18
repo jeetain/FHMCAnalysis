@@ -10,29 +10,41 @@ Status
 
 ---
 
-Installation:
+### Installation:
 
-1. Clone repo
-2. `$ cd FHMCAnalysis`
-3. `$ python install.py`
+```
+$ git clone https://github.com/mahynski/FHMCAnalysis.git`
+$ cd FHMCAnalysis
+$ python install.py
+```
 
 ---
 
-Dependencies
+### Dependencies
 
 1. h5py (http://www.h5py.org/)
 2. netCDF4 (http://unidata.github.io/netcdf4-python/)
 3. Cython (http://cython.org/)
 
-Alternatively, I highly recommend simply installing anaconda python, and installing netCDF4 and Cython libraries through conda.
+Alternatively, I highly recommend simply installing anaconda python (https://www.continuum.io/downloads), and installing netCDF4 and Cython libraries through conda. For example:
+
+```
+$ cd ~/Downloads/
+$ wget https://repo.continuum.io/archive/Anaconda2-4.2.0-MacOSX-x86_64.pkg
+$ bash Anaconda2-4.2.0-MacOSX-x86_64.sh
+```
 
 ---
 
-Unittesting
+### Unittesting
 
-1. `$ cd unittests`
-2. `$ python run_tests.py`
+```
+$ cd unittests
+$ python run_tests.py
+```
 
 ---
 
-Expected netCDF4 file format
+### Expected netCDF4 file format
+
+$$I = \int \rho R^{2} dV$$
