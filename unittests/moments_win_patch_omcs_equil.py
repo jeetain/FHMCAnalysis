@@ -12,14 +12,23 @@ import numpy as np
 import FHMCAnalysis.moments.win_patch.omcs_patch as wP
 import FHMCAnalysis.moments.win_patch.omcs_equil as eQ
 
-class test_window_equil(unittest.TestCase):
+class TestWindowEquil(unittest.TestCase):
+	"""
+	Test window equilibration estimation
+	"""
+
 	def setUp(self):
+		"""
+		Set up class
+		"""
+
 		self.source = 'reference/test_sim/'
 	
-	"""
-	Check that we can get a sequence of windows from a file tree of varying complexity
-	"""	
 	def test_find_windows(self):
+		"""
+		Check that we can get a sequence of windows from a file tree of varying complexity
+		"""	
+	
 		fail = False
 		try:
 			windows, nebr_set = eQ.find_windows(self.source)
@@ -31,10 +40,11 @@ class test_window_equil(unittest.TestCase):
 		self.assertTrue(np.all(windows == [1,2]))
 		self.assertTrue(np.all(nebr_set == [(1,2)]))
 	
-	"""
-	Check neighbor window convergence test
-	"""	
 	def test_nebr_win_conv(self):
+		"""
+		Check neighbor window convergence test
+		"""	
+	
 		match, uerr, nerr = eQ.test_window_match(self.source+'1/', self.source+'2/', 1.0)
 		self.assertTrue(not match) # too stringent of convergence criterion
 		match, uerr, nerr = eQ.test_window_match(self.source+'1/', self.source+'2/', 10.0)
@@ -42,10 +52,11 @@ class test_window_equil(unittest.TestCase):
 		self.assertTrue(np.abs(uerr - 4.31410893236) < 1.0e-8)
 		self.assertTrue(np.abs(nerr - 8.04638999443) < 1.0e-8)
 	
-	"""
-	Check neighbor sequence convergence test
-	"""	
 	def test_nebr_seq_conv(self):
+		"""
+		Check neighbor sequence convergence test
+		"""	
+	
 		seq = wP.get_patch_sequence(self.source)
 		match, uerr, nerr = eQ.test_nebr_match(seq[0], seq[1], 1.0)
 		self.assertTrue(not match) # too stringent of convergence criterion
@@ -54,10 +65,11 @@ class test_window_equil(unittest.TestCase):
 		self.assertTrue(np.abs(uerr - 4.31410893236) < 1.0e-8)
 		self.assertTrue(np.abs(nerr - 8.04638999443) < 1.0e-8)	
 	
-	"""
-	Check neighbor convergence workflow
-	"""	
 	def test_nebr_equil(self):
+		"""
+		Check neighbor convergence workflow
+		"""	
+	
 		seq = wP.get_patch_sequence(self.source)
 		
 		# too conservative, none converged
