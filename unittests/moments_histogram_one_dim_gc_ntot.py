@@ -371,7 +371,7 @@ class TestHistogram(unittest.TestCase):
 			fail = True
 		self.assertTrue(fail)
 
-	def test_dMu2_extrap_1(self):
+	def test_dmu2_extrap_1(self):
 		"""
 		Test first order dMu extrapolation with 2 components
 		"""
@@ -399,7 +399,7 @@ class TestHistogram(unittest.TestCase):
 		
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 
-	def test_dMu2_extrap_2(self):
+	def test_dmu2_extrap_2(self):
 		"""
 		Test second order dMu extrapolation with 2 components
 		"""
@@ -433,7 +433,7 @@ class TestHistogram(unittest.TestCase):
 		
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 
-	def test_temp_dMu2_extrap_1(self):
+	def test_temp_dmu2_extrap_1(self):
 		"""
 		Test first order T+dMu extrapolation with 2 components
 		"""
@@ -464,7 +464,7 @@ class TestHistogram(unittest.TestCase):
 
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)		
 	
-	def testTempDMu2Extrap2(self):
+	def test_temp_dmu2_extrap_2(self):
 		"""
 		Test second order T+dMu extrapolation with 2 components
 		"""
@@ -517,7 +517,7 @@ class TestHistogram(unittest.TestCase):
 		check -= np.log(np.sum(np.exp(check)))
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 	
-	def test_temp_extrap_1_ke(self):
+	def test_temp_extrap_1_ke (self):
 		"""
 		Test first order temperature extrapolation when KE contributions are present. This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
 		"""
@@ -589,7 +589,7 @@ class TestHistogram(unittest.TestCase):
 			fail = True
 		self.assertTrue(fail)
 
-	def testTempDMu2Extrap2KE(self):
+	def test_temp_dmu2_extrap_2_ke(self):
 		"""
 		Test second order T+dMu extrapolation with 2 components when KE contributions are present. This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
 		"""
@@ -644,7 +644,7 @@ class TestHistogram(unittest.TestCase):
 		check -= np.log(np.sum(np.exp(check)))
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 
-	def testDlnPI1KE(self):
+	def test_dlnpi_1_ke(self):
 		"""
 		Test the differences between first order derivatives of lnPI with KE is/not used
 		"""
@@ -657,7 +657,7 @@ class TestHistogram(unittest.TestCase):
 
 		self.assertTrue(np.all(np.abs(dlnPI_dB_ke-dlnPI_dB_pe)) < 1.0e-12)
 
-	def testDlnPI2KE(self):
+	def test_dlnpi_2_ke(self):
 		"""
 		Test the differences between first order derivatives of lnPI with KE is/not used
 		"""
@@ -671,7 +671,7 @@ class TestHistogram(unittest.TestCase):
 		ave_ntot = np.sum(np.exp(hist_pe.data['ln(PI)'])*hist_pe.data['ntot'])/np.sum(np.exp(hist_pe.data['ln(PI)']))
 		self.assertTrue(np.all(np.abs((dlnPI_dB_ke-dlnPI_dB_pe) - (1.5/self.beta_ref/self.beta_ref*(hist_pe.data['ntot']-ave_ntot)))) < 1.0e-12)
 
-	def testSgDXKE(self):
+	def test_sg_dx_ke(self):
 		"""
 		Test the differences between first order derivatives of extensive properties with KE is/not used (semigrand ensemble)
 		"""
@@ -718,7 +718,7 @@ class TestHistogram(unittest.TestCase):
 		d_pe = hist_pe._sg_dX_dB([0,1,1,1,0],0)
 		self.assertTrue(np.all(np.abs((d_pe-d_ke))) < 1.0e-12)
 
-	def testGcDXKE(self):
+	def test_gc_dx_ke(self):
 		"""
 		Test the differences between first order derivatives of extensive properties with KE is/not used (grand canonical ensemble)
 		"""
@@ -774,7 +774,7 @@ class TestHistogram(unittest.TestCase):
 		d_pe = hist_pe._gc_dX_dB([0,1,1,1,0],1)
 		self.assertTrue(np.abs((d_pe-d_ke)) < 1.0e-12)
 
-	def testSgD2XKE(self):
+	def test_sg_d2x_ke(self):
 		"""
 		Test the differences between second order derivatives of extensive properties with KE is/not used (semigrand ensemble)
 		"""
@@ -826,7 +826,7 @@ class TestHistogram(unittest.TestCase):
 		d_pe = hist_pe._sg_d2X_dB2([0,1,1,1,0],1)
 		self.assertTrue(np.all(np.abs((d_pe-d_ke))) < 1.0e-12)
 
-	def testGcD2XKE(self):
+	def test_gc_d2x_ke(self):
 		"""
 		Test the differences between second order derivatives of extensive properties with KE is/not used (grand canonical ensemble)
 		"""
@@ -836,45 +836,45 @@ class TestHistogram(unittest.TestCase):
 
 		# energy should be affected by KE - try different X's containing U
 		idx, n = [0,0,0,0,1],0
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,0,0,1],0
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,0,1,1],0
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [1,1,0,1,1],0
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [1,1,0,1,1],1
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 		
 		# pk number unaffected by KE
 
 		idx, n = [0,1,0,0,0],0
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,0,1,0],0
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,1,1,0],0
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,1,1,0],1
-		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
 
-def compareGcD2X(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
+def compare_gc_d2_x(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
 	"""
 	Compare semigrand second derivative when using kinetic contributions.
 
