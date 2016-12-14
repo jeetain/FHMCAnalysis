@@ -11,27 +11,37 @@ import FHMCAnalysis, copy, os
 import numpy as np
 import FHMCAnalysis.moments.win_patch.omcs_patch as wP
 
-class test_local_n_hist(unittest.TestCase):
+class TestLocalNHist(unittest.TestCase):
+	"""
+	Test local N histogram
+	"""
+
 	def setUp(self):
+		"""
+		Set up the class
+		"""
+
 		self.fname = 'reference/test_pk_hist.dat'
 		self.fname2 = 'reference/test_pk_hist2.dat'
 		self.fname3 = 'reference/test_pk_hist3.dat'
 
-	"""
-	Test it loads correctly
-	"""
 	def test_load(self):
+		"""
+		Test it loads correctly
+		"""
+
 		fail = False
 		try:
 			lh = wP.local_hist(self.fname)
 		except:
 			fail = True
 		self.assertTrue(not fail)
-		
-	"""
-	Test it clears correctly
-	"""
+	
 	def test_clear(self):
+		"""
+		Test it clears correctly
+		"""
+	
 		lh = wP.local_hist(self.fname)
 		lh.clear()
 		self.assertEqual(len(lh.lb), 0)
@@ -41,10 +51,11 @@ class test_local_n_hist(unittest.TestCase):
 		self.assertEqual(lh.win_start, 0)
 		self.assertEqual(lh.win_end, 0)
 		
-	"""
-	Merge two histograms and overwrite the lower one (other)
-	"""
 	def test_merge_ov_lower(self):
+		"""
+		Merge two histograms and overwrite the lower one (other)
+		"""
+		
 		lh1 = wP.local_hist(self.fname)
 		lh2 = wP.local_hist(self.fname2)
 		fail = False
@@ -64,10 +75,11 @@ class test_local_n_hist(unittest.TestCase):
 		self.assertTrue (np.all(lh2.h[21] == [0.4,0.3,0.2,0.1]))
 		self.assertTrue (np.all(lh2.h[22] == [0.05,0.05,0.2,0.3,0.4]))
 		
-	"""
-	Merge two histograms and overwrite the upper one (self)
-	"""
 	def test_merge_ov_upper(self):
+		"""
+		Merge two histograms and overwrite the upper one (self)
+		"""
+		
 		lh1 = wP.local_hist(self.fname)
 		lh2 = wP.local_hist(self.fname2)
 		fail = False
@@ -85,10 +97,11 @@ class test_local_n_hist(unittest.TestCase):
 		self.assertTrue (np.all(lh2.h[21] == [0.4,0.3,0.2,0.1]))
 		self.assertTrue (np.all(lh2.h[22] == [0.05,0.05,0.2,0.3,0.4]))
 		
-	"""
-	Merge two histograms and average the two
-	"""
 	def test_merge_ave(self):
+		"""
+		Merge two histograms and average the two
+		"""
+		
 		lh1 = wP.local_hist(self.fname)
 		lh2 = wP.local_hist(self.fname2)
 		fail = False
@@ -108,10 +121,11 @@ class test_local_n_hist(unittest.TestCase):
 		self.assertTrue (np.all(lh2.h[21] == [0.4,0.3,0.2,0.1]))
 		self.assertTrue (np.all(lh2.h[22] == [0.05,0.05,0.2,0.3,0.4]))
 	
-	"""
-	Merge two histograms and average the two for another case
-	"""
 	def test_merge_ave2(self):
+		"""
+		Merge two histograms and average the two for another case
+		"""
+		
 		lh1 = wP.local_hist(self.fname)
 		lh2 = wP.local_hist(self.fname3)
 		fail = False
@@ -131,10 +145,11 @@ class test_local_n_hist(unittest.TestCase):
 		self.assertTrue (np.all(lh2.h[21] == [0.4,0.3,0.2,0.1]))
 		self.assertTrue (np.all(lh2.h[22] == [0.05,0.05,0.2,0.3,0.4]))
 
-	"""
-	Merge two histograms and average the two, then renormalizes each histogram
-	"""
 	def test_merge_renorm(self):
+		"""
+		Merge two histograms and average the two, then renormalizes each histogram
+		"""
+
 		lh1 = wP.local_hist(self.fname)
 		lh2 = wP.local_hist(self.fname2)
 		fail = False
@@ -161,15 +176,20 @@ class test_local_n_hist(unittest.TestCase):
 		for l in lh2.h:
 			self.assertTrue(abs((np.sum(l) - 1.0) < 1.0e-8))
 		
-class test_local_e_hist(unittest.TestCase):
+class TestLocalEHist(unittest.TestCase):
+	"""
+	Test local E histogram
+	"""
+
 	def setUp(self):
 		self.fname = 'reference/test_e_hist.dat'
 		self.fname2 = 'reference/test_e_hist2.dat'
 
-	"""
-	Test it loads correctly
-	"""
 	def test_load(self):
+		"""
+		Test it loads correctly
+		"""
+
 		fail = False
 		try:
 			lh = wP.local_hist(self.fname)
@@ -177,10 +197,11 @@ class test_local_e_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 		
-	"""
-	Test it clears correctly
-	"""
 	def test_clear(self):
+		"""
+		Test it clears correctly
+		"""
+		
 		lh = wP.local_hist(self.fname)
 		lh.clear()
 		self.assertEqual(len(lh.lb), 0)
@@ -190,10 +211,11 @@ class test_local_e_hist(unittest.TestCase):
 		self.assertEqual(lh.win_start, 0)
 		self.assertEqual(lh.win_end, 0)
 		
-	"""
-	Merge two histograms and overwrite the lower one (other)
-	"""
 	def test_merge_ov_lower(self):
+		"""
+		Merge two histograms and overwrite the lower one (other)
+		"""
+		
 		lh1 = wP.local_hist(self.fname)
 		lh2 = wP.local_hist(self.fname2)
 		fail = False
@@ -212,10 +234,11 @@ class test_local_e_hist(unittest.TestCase):
 		self.assertTrue (np.all(np.abs([lh2.h[20][x] for x in xrange(len(lh2.h[20])) if x!= 1]) < 1.0e-8))
 		self.assertTrue (np.all(lh2.h[21] == [0.1,0.1,0.1,0.4,0.3]))
 		
-	"""
-	Merge two histograms and overwrite the upper one (self)
-	"""
 	def test_merge_ov_upper(self):
+		"""
+		Merge two histograms and overwrite the upper one (self)
+		"""
+		
 		lh1 = wP.local_hist(self.fname)
 		lh2 = wP.local_hist(self.fname2)
 		fail = False
@@ -232,10 +255,11 @@ class test_local_e_hist(unittest.TestCase):
 
 		self.assertTrue (np.all(lh2.h[21] == [0.1,0.1,0.1,0.4,0.3]))
 		
-	"""
-	Merge two histograms and average the two
-	"""
 	def test_merge_ave(self):
+		"""
+		Merge two histograms and average the two
+		"""
+		
 		lh1 = wP.local_hist(self.fname)
 		lh2 = wP.local_hist(self.fname2)
 		fail = False
@@ -256,14 +280,19 @@ class test_local_e_hist(unittest.TestCase):
 		self.assertTrue (np.all(np.abs(a-b) < 1.0e-8))
 		self.assertTrue (np.all(lh2.h[21] == [0.1,0.1,0.1,0.4,0.3]))
 
-class test_window(unittest.TestCase):
+class TestWindow(unittest.TestCase):
+	"""
+	Test window behavior
+	"""
+
 	def setUp(self):
 		self.source = 'reference/test_sim/'
 	
-	"""
-	Check that we can get a sequence from a source tree of varying complexity
-	"""	
 	def test_get_seq(self):
+		"""
+		Check that we can get a sequence from a source tree of varying complexity
+		"""		
+	
 		fail = False
 		try:
 			seq = wP.get_patch_sequence(self.source)
@@ -272,10 +301,11 @@ class test_window(unittest.TestCase):
 			fail = True
 		self.assertTrue (not fail)
 
-	"""
-	Initialize a window for patching
-	"""
 	def test_init(self):
+		"""
+		Initialize a window for patching
+		"""
+
 		seq = wP.get_patch_sequence(self.source)
 		fail = False
 		try:
@@ -285,19 +315,21 @@ class test_window(unittest.TestCase):
 			print e
 		self.assertTrue(not fail)
 		
-	"""
-	Check self-representation
-	"""
 	def test_repr(self):
+		"""
+		Check self-representation
+		"""
+		
 		seq = wP.get_patch_sequence(self.source)
 		wh = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 2, False)
 		a = seq[0][0]+"::"+seq[0][1]+"::"+seq[0][2]+"::"+seq[0][3]+"-[0,20]"
 		self.assertTrue(a == str(wh))
 		
-	"""
-	Check ability to clear all data from window
-	"""
 	def test_clear(self):
+		"""
+		Check ability to clear all data from window
+		"""
+		
 		seq = wP.get_patch_sequence(self.source)
 		wh = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 2, False)
 		self.assertTrue (len(wh.lnPI) != 0)
@@ -306,10 +338,11 @@ class test_window(unittest.TestCase):
 		self.assertTrue (len(wh.lnPI) == 0)
 		self.assertTrue (wh.nspec == 0)
 		
-	"""
-	Check information loaded correctly at init
-	"""
 	def test_load_info(self):
+		"""
+		Check information loaded correctly at init
+		"""
+		
 		seq = wP.get_patch_sequence(self.source)
 		wh = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 2, False)
 		a = np.array([0.0, 11.5792872, 22.55514816, 33.16632265, 43.53878289, 53.80927566, 63.94826804, 73.97895064, 83.96576198, 93.94840544, 103.8773032, 113.77306514, 123.71227577, 133.68404802, 143.69837309, 153.86625598, 164.18813354, 174.70527468, 185.3787788, 196.24217909, 207.27150728])
@@ -351,10 +384,10 @@ class test_window(unittest.TestCase):
 		self.assertTrue(np.all(np.abs(wh.e_hist.h[3] - np.array([0.00907625393757033,0.0185828627062264,0.248847389827399,0.723493493528804])) < 1.0e-8))
 		self.assertTrue(len(wh.pk_hist) == 2)
 	
-	"""
-	Check lnPI merging properly without smoothing
-	"""	
 	def test_merge_no_smooth_lnPI(self):
+		"""
+		Check lnPI merging properly without smoothing
+		"""		
 		seq = wP.get_patch_sequence(self.source)
 		wh1 = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 1, False)
 		wh2 = wP.window (seq[1][0], seq[1][1], seq[1][2], seq[1][3], 1, False)
@@ -375,10 +408,11 @@ class test_window(unittest.TestCase):
 		# above the overlap, just use larger lnPI
 		self.assertTrue (np.all(np.abs(wh2.lnPI[20:] - (ref_lnPI[4:]+shift)) < 1.0e-6))
 	
-	"""
-	Check moments merging properly without smoothing
-	"""	
 	def test_merge_no_smooth_mom(self):
+		"""
+		Check moments merging properly without smoothing
+		"""		
+
 		seq = wP.get_patch_sequence(self.source)
 		wh1 = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 1, False)
 		wh2 = wP.window (seq[1][0], seq[1][1], seq[1][2], seq[1][3], 1, False)
@@ -401,10 +435,11 @@ class test_window(unittest.TestCase):
 		# above the overlap, just use larger nn_mom
 		self.assertTrue(np.all(np.abs(wh2.mom[:,20:] - ref_mom[:,4:]) < 1.0e-6))
 
-	"""
-	Check lnPI merging properly with smoothing
-	"""	
 	def test_merge_with_smooth_lnPI(self):
+		"""
+		Check lnPI merging properly with smoothing
+		"""	
+
 		seq = wP.get_patch_sequence(self.source)
 		wh1 = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 1, True)
 		wh2 = wP.window (seq[1][0], seq[1][1], seq[1][2], seq[1][3], 1, True)
@@ -425,10 +460,11 @@ class test_window(unittest.TestCase):
 		# above the overlap, just use larger lnPI
 		self.assertTrue (np.all(np.abs(wh2.lnPI[20:] - (ref_lnPI[4:]+shift)) < 1.0e-6))
 		
-	"""
-	Check nn moments merging properly with smoothing
-	"""	
 	def test_merge_with_smooth_mom(self):
+		"""
+		Check nn moments merging properly with smoothing
+		"""	
+		
 		seq = wP.get_patch_sequence(self.source)
 		wh1 = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 1, True)
 		wh2 = wP.window (seq[1][0], seq[1][1], seq[1][2], seq[1][3], 1, True)
@@ -449,10 +485,11 @@ class test_window(unittest.TestCase):
 		# above the overlap, just use larger nn_mom
 		self.assertTrue(np.all(np.abs(wh2.mom[:,20:] - ref_mom[:,4:]) < 1.0e-6))
 			
-	"""
-	Check print to netCDF4 function
-	"""
 	def test_to_nc(self):
+		"""
+		Check print to netCDF4 function
+		"""
+		
 		seq = wP.get_patch_sequence(self.source)
 		wh1 = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 1, True)
 		wh2 = wP.window (seq[1][0], seq[1][1], seq[1][2], seq[1][3], 1, True)
@@ -479,10 +516,11 @@ class test_window(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 		
-	"""
-	Test complete window patching of a directory
-	"""
 	def test_patch_all(self):
+		"""
+		Test complete window patching of a directory
+		"""
+		
 		fail = False
 		try:
 			seq = wP.get_patch_sequence(self.source)
