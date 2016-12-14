@@ -11,7 +11,7 @@ import FHMCAnalysis, copy, os
 import numpy as np
 import FHMCAnalysis.moments.histogram.one_dim.ntot.gc_hist as oneDH
 
-class testHistogram(unittest.TestCase):
+class TestHistogram(unittest.TestCase):
 	def setUp(self):
 		"""
 		Set up the class 
@@ -22,7 +22,7 @@ class testHistogram(unittest.TestCase):
 		self.mu_ref = [5, 0]
 		self.smooth = 1
 		
-	def testInit(self):
+	def test_init(self):
 		"""
 		Test it initializes correctly
 		"""
@@ -39,7 +39,7 @@ class testHistogram(unittest.TestCase):
 		self.assertTrue(hist.metadata['smooth'] == self.smooth)
 		self.assertTrue(hist.metadata['fname'] == self.fname)
 		
-	def testLoad(self):
+	def test_load(self):
 		"""
 		Test it loads data correctly
 		"""
