@@ -11,15 +11,24 @@ import FHMCAnalysis, copy, os
 import numpy as np
 import FHMCAnalysis.moments.histogram.two_dim.joint_hist as jH
 
-class test_joint_hist(unittest.TestCase):
+class TestJointHist(unittest.TestCase):
+	"""
+	Test a joint histogram
+	"""
+
 	def setUp(self):
+		"""
+		Set up the class
+		"""
+
 		self.hist = jH.joint_hist()
 		self.fname = 'reference/joint_test.json'
 
-	"""
-	Test entry init
-	"""
 	def test_entry(self):
+		"""
+		Test entry init
+		"""
+
 		fail = False
 		try:
 			e = self.hist.entry()
@@ -28,10 +37,11 @@ class test_joint_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)	
 	
-	"""
-	Test entry set lnPI
-	"""
 	def test_entry_set_lnPI(self):
+		"""
+		Test entry set lnPI
+		"""
+	
 		lnpi = np.array([1,2,3])
 		ntot = np.array([0,1,2])
 		en = self.hist.entry()
@@ -43,10 +53,11 @@ class test_joint_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 		
-	"""
-	Test entry set properties 
-	"""
 	def test_entry_set_props(self):
+		"""
+		Test entry set properties 
+		"""
+
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4,8])}
 		en = self.hist.entry()
 		fail = False
@@ -58,10 +69,11 @@ class test_joint_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 	
-	"""
-	Test entry set all
-	"""
 	def test_entry_set(self):
+		"""
+		Test entry set all
+		"""
+	
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4,8])}
 		lnpi = np.array([1,2,3])
 		ntot = np.array([0,1,2])
@@ -73,11 +85,12 @@ class test_joint_hist(unittest.TestCase):
 			print e
 			fail = True
 		self.assertTrue(not fail)
-	
-	"""
-	Test bad set due to bad property
-	"""		
+		
 	def test_bad_set_props(self):
+		"""
+		Test bad set due to bad property
+		"""	
+	
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4])}
 		lnpi = np.array([1,2,3])
 		ntot = np.array([0,1,2])
@@ -89,10 +102,11 @@ class test_joint_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(fail)
 		
-	"""
-	Test bad set due to ln(PI)
-	"""		
 	def test_bad_set_lnPI1(self):
+		"""
+		Test bad set due to ln(PI)
+		"""	
+	
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4, 8])}
 		lnpi = np.array([1,2])
 		ntot = np.array([0,1])
@@ -104,10 +118,11 @@ class test_joint_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(fail)	
 		
-	"""
-	Test bad set due to ln(PI)
-	"""		
 	def test_bad_set_lnPI2(self):
+		"""
+		Test bad set due to ln(PI)
+		"""		
+		
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4, 8])}
 		lnpi = np.array([1,2,3])
 		ntot = np.array([0,1])
@@ -119,10 +134,11 @@ class test_joint_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(fail)
 	
-	"""
-	Add an entry to the histogram
-	"""
 	def test_enter(self):
+		"""
+		Add an entry to the histogram
+		"""
+	
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4,8])}
 		lnpi = np.array([1,2,3])
 		ntot = np.array([0,1,2])
@@ -135,10 +151,11 @@ class test_joint_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 		
-	"""
-	Add an entry to the histogram and make surface
-	"""
 	def test_single_make(self):
+		"""
+		Add an entry to the histogram and make surface
+		"""
+		
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4,8])}
 		lnpi = np.array([1,2,3])
 		ntot = np.array([0,1,2])
@@ -154,10 +171,11 @@ class test_joint_hist(unittest.TestCase):
 		
 		self.assertTrue(np.all(self.hist.data['ln(PI)'] == [[1,2,3]]))
 	
-	"""
-	Add double entries to the histogram and make surface
-	"""
 	def test_double_make(self):
+		"""
+		Add double entries to the histogram and make surface
+		"""
+	
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4,8])}
 		lnpi = np.array([1,2,3])
 		ntot = np.array([0,1,2])
@@ -174,10 +192,11 @@ class test_joint_hist(unittest.TestCase):
 		
 		self.assertTrue(np.all(self.hist.data['ln(PI)'] == [[2,4,6],[1,2,3]]))		
 	
-	"""
-	Test surface is created when entries vary in size
-	"""
 	def test_make_vary(self):
+		"""
+		Test surface is created when entries vary in size
+		"""
+	
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4,8])}
 		self.hist.enter(1, np.array([1,2,3]), np.array([0,1,2]), props)
 		props = {'U':np.array([5,5,5,5]), 'N2':np.array([1,4,8,12])}
@@ -193,10 +212,11 @@ class test_joint_hist(unittest.TestCase):
 		
 		self.assertTrue(np.all(self.hist.data['ln(PI)'] == [[1,2,3,-np.inf],[1,2,3,4]]))	
 	
-	"""
-	Test surface is created when entries vary in size
-	"""
 	def test_make_vary2(self):
+		"""
+		Test surface is created when entries vary in size
+		"""
+	
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4,8])}
 		self.hist.enter(1, np.array([1,2,3]), np.array([1,2,3]), props)
 		props = {'U':np.array([5,5,5,5,5]), 'N2':np.array([1,1,1,1,1])}
@@ -215,10 +235,11 @@ class test_joint_hist(unittest.TestCase):
 		self.assertTrue(np.all(self.hist.data['op_2'] == [0,1,2,3,4]))
 		self.assertTrue(np.all(self.hist.data['bounds_idx'] == [[1,3],[0,4]]))	
 	
-	"""
-	Test printing to json file
-	"""
 	def test_to_json(self):
+		"""
+		Test printing to json file
+		"""
+	
 		props = {'U':np.array([5,5,5]), 'N2':np.array([1,4,8])}
 		self.hist.enter(1, np.array([1,2,3]), np.array([1,2,3]), props)
 		props = {'U':np.array([5,5,5,5,5]), 'N2':np.array([1,1,1,1,1])}
@@ -233,10 +254,11 @@ class test_joint_hist(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 	
-	"""
-	Test reading from json file
-	"""
 	def test_from_json(self):
+		"""
+		Test reading from json file
+		"""
+	
 		fail = False
 		try:
 			self.hist.from_json(self.fname)
