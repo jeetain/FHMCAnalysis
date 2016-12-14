@@ -11,7 +11,7 @@ import FHMCAnalysis, copy, os
 import numpy as np
 import FHMCAnalysis.moments.histogram.one_dim.ntot.gc_hist as oneDH
 
-class test_histogram(unittest.TestCase):
+class testHistogram(unittest.TestCase):
 	def setUp(self):
 		self.fname = 'reference/test.nc'
 		self.beta_ref = 1.0
@@ -21,7 +21,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test it initializes correctly
 	"""
-	def test_init(self):
+	def testInit(self):
 		fail = False
 		try:
 			hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
@@ -37,7 +37,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test it loads data correctly
 	"""
-	def test_load(self):
+	def testLoad(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		self.assertTrue(hist.data['ln(PI)'].shape == (31,))
 		self.assertTrue(hist.data['max_order'] == 2)
@@ -58,7 +58,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test data is cleared
 	"""
-	def test_clear(self):
+	def testClear(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		fail = False
 		try:
@@ -72,7 +72,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test normalization
 	"""
-	def test_norm(self):
+	def testNorm(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		lnPI_1 = copy.copy(hist.data['ln(PI)'])
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'])) - 1.0) > 1.0e-6)
@@ -88,7 +88,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test reweighting
 	"""
-	def test_rew(self):
+	def testRew(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		lnPI_1 = copy.copy(hist.data['ln(PI)'])
 		
@@ -136,7 +136,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test surface identification of local max/min
 	"""
-	def test_relextrema(self):
+	def testRelextrema(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['ln(PI)'] = np.array([1,2,3,2,1,2,3,4,5])
 		
@@ -186,7 +186,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test thermo calculations for phases
 	"""	
-	def test_thermo(self):
+	def testThermo(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
@@ -224,7 +224,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test thermo calculations for complete lnPI surface
 	"""	
-	def test_thermo_complete(self):
+	def testThermoComplete(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
@@ -253,7 +253,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test check that thermo calculations are safe
 	"""	
-	def test_is_safe(self):
+	def testIsSafe(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
@@ -276,7 +276,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test phase equilibrium at this temperature
 	"""
-	def test_phase_eq(self):
+	def testPhaseEq(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
 	
@@ -292,7 +292,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test first order temperature extrapolation
 	"""	
-	def test_temp_extrap1(self):
+	def testTempExtrap1(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
@@ -342,7 +342,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test second order temperature extrapolation
 	"""
-	def test_temp_extrap2(self):
+	def testTempExtrap2(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		beta = 2.0*self.beta_ref
 		
@@ -358,7 +358,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test first order dMu extrapolation with 2 components
 	"""
-	def test_dMu2_extrap1(self):
+	def testDMu2Extrap1(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		target_dmu = np.array([-4.0]) # mu = [5.0, 0.0] so dMu2 = -5.0 originally
 
@@ -385,7 +385,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test second order dMu extrapolation with 2 components
 	"""
-	def test_dMu2_extrap2(self):
+	def testDMu2Extrap2(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		target_dmu = np.array([-4.0]) # mu = [5.0, 0.0] so dMu2 = -5.0 originally
 
@@ -418,7 +418,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test first order T+dMu extrapolation with 2 components
 	"""
-	def test_temp_dMu2_extrap1(self):
+	def testTempDMu2Extrap1(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		target_dmu = np.array([-4.0]) # mu = [5.0, 0.0] so dMu2 = -5.0 originally
 		target_beta = 2.0*hist.data['curr_beta']
@@ -448,7 +448,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test second order T+dMu extrapolation with 2 components
 	"""
-	def test_temp_dMu2_extrap2(self):
+	def testTempDMu2Extrap2(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		target_dmu = np.array([-4.0]) # mu = [5.0, 0.0] so dMu2 = -5.0 originally
 		target_beta = 2.0*hist.data['curr_beta']
@@ -501,7 +501,7 @@ class test_histogram(unittest.TestCase):
 	Test first order temperature extrapolation when KE contributions are present
 	This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
 	"""	
-	def test_temp_extrap1_ke(self):
+	def testTempExtrap1KE(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		self.assertTrue(hist.metadata['used_ke'])
 
@@ -554,7 +554,7 @@ class test_histogram(unittest.TestCase):
 	Test second order temperature extrapolation when KE contributions are present
 	This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
 	"""
-	def test_temp_extrap2_ke(self):
+	def testTempExtrap2KE(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		beta = 2.0*self.beta_ref
 		
@@ -573,7 +573,7 @@ class test_histogram(unittest.TestCase):
 	Test second order T+dMu extrapolation with 2 components when KE contributions are present
 	This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
 	"""
-	def test_temp_dMu2_extrap2_ke(self):
+	def testTempDMu2Extrap2KE(self):
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		target_dmu = np.array([-4.0]) # mu = [5.0, 0.0] so dMu2 = -5.0 originally
 		target_beta = 2.0*hist.data['curr_beta']
@@ -627,7 +627,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test the differences between first order derivatives of lnPI with KE is/not used
 	"""
-	def test_dlnPI_1_ke(self):
+	def testDlnPI1KE(self):
 		hist_ke = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		hist_pe = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, False)
 
@@ -639,7 +639,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test the differences between first order derivatives of lnPI with KE is/not used
 	"""
-	def test_dlnPI_2_ke(self):
+	def testDlnPI2KE(self):
 		hist_ke = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		hist_pe = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, False)
 
@@ -652,7 +652,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test the differences between first order derivatives of extensive properties with KE is/not used (semigrand ensemble)
 	"""
-	def test_sg_dX_ke(self):
+	def testSgDXKE(self):
 		hist_ke = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		hist_pe = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, False)
 
@@ -698,7 +698,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test the differences between first order derivatives of extensive properties with KE is/not used (grand canonical ensemble)
 	"""
-	def test_gc_dX_ke(self):
+	def testGcDXKE(self):
 		hist_ke = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		hist_pe = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, False)
 
@@ -753,7 +753,7 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test the differences between second order derivatives of extensive properties with KE is/not used (semigrand ensemble)
 	"""
-	def test_sg_d2X_ke(self):
+	def testSgD2XKE(self):
 		fname = 'reference/test2.nc'
 		hist_ke = oneDH.histogram(fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		hist_pe = oneDH.histogram(fname, self.beta_ref, self.mu_ref, self.smooth, False)
@@ -804,51 +804,51 @@ class test_histogram(unittest.TestCase):
 	"""
 	Test the differences between second order derivatives of extensive properties with KE is/not used (grand canonical ensemble)
 	"""
-	def test_gc_d2X_ke(self):
+	def testGcD2XKE(self):
 		hist_ke = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		hist_pe = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, False)
 
 		# energy should be affected by KE - try different X's containing U
 		idx, n = [0,0,0,0,1],0
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,0,0,1],0
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,0,1,1],0
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [1,1,0,1,1],0
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [1,1,0,1,1],1
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
 		
 		# pk number unaffected by KE
 
 		idx, n = [0,1,0,0,0],0
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,0,1,0],0
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,1,1,0],0
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
 		idx, n = [0,1,1,1,0],1
-		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
+		d_pe, d_ke, x, d1, d2, d3 = compareGcD2X(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
 
-def compare_gc_d2X(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
+def compareGcD2X(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
 	idx_s = copy.copy(idx)
 	idx_s[4] -= 1
 	d_ke = hist_ke._gc_d2X_dB2(idx,n)
