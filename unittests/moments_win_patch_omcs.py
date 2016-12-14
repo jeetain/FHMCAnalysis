@@ -384,7 +384,7 @@ class TestWindow(unittest.TestCase):
 		self.assertTrue(np.all(np.abs(wh.e_hist.h[3] - np.array([0.00907625393757033,0.0185828627062264,0.248847389827399,0.723493493528804])) < 1.0e-8))
 		self.assertTrue(len(wh.pk_hist) == 2)
 	
-	def test_merge_no_smooth_lnPI(self):
+	def test_merge_no_smooth_lnpi(self):
 		"""
 		Check lnPI merging properly without smoothing
 		"""		
