@@ -6,7 +6,7 @@ Nathan A. Mahynski
 
 Status
 
-[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/)        
+[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/) [![Code Issues](https://www.quantifiedcode.com/api/v1/project/fe2f9564d3e84213a5ecae6e84c6f1d0/badge.svg)](https://www.quantifiedcode.com/app/project/fe2f9564d3e84213a5ecae6e84c6f1d0)
 
 ---
 
