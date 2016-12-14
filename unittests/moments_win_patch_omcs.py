@@ -391,7 +391,7 @@ class TestWindow(unittest.TestCase):
 		seq = wP.get_patch_sequence(self.source)
 		wh1 = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 1, False)
 		wh2 = wP.window (seq[1][0], seq[1][1], seq[1][2], seq[1][3], 1, False)
-		ref_lnPI = copy.deepcopy(wh2.lnPI)
+		ref_lnpi = copy.deepcopy(wh2.lnPI)
 		
 		fail = False
 		try:
@@ -406,7 +406,7 @@ class TestWindow(unittest.TestCase):
 		# in overlapping region (less offset = 1), just use lower lnPI
 		self.assertTrue (np.all(np.abs(wh2.lnPI[16+1:21-1] - wh1.lnPI[16+1:21-1]) < 1.0e-6))
 		# above the overlap, just use larger lnPI
-		self.assertTrue (np.all(np.abs(wh2.lnPI[20:] - (ref_lnPI[4:]+shift)) < 1.0e-6))
+		self.assertTrue (np.all(np.abs(wh2.lnPI[20:] - (ref_lnpi[4:]+shift)) < 1.0e-6))
 	
 	def test_merge_no_smooth_mom(self):
 		"""
@@ -443,7 +443,7 @@ class TestWindow(unittest.TestCase):
 		seq = wP.get_patch_sequence(self.source)
 		wh1 = wP.window (seq[0][0], seq[0][1], seq[0][2], seq[0][3], 1, True)
 		wh2 = wP.window (seq[1][0], seq[1][1], seq[1][2], seq[1][3], 1, True)
-		ref_lnPI = copy.deepcopy(wh2.lnPI)
+		ref_lnpi = copy.deepcopy(wh2.lnPI)
 		
 		fail = False
 		try:
@@ -458,7 +458,7 @@ class TestWindow(unittest.TestCase):
 		# in overlapping region (less offset = 1), average the lnPI, check that answer is close to average
 		self.assertTrue (np.all(np.abs((wh2.lnPI[16+1:21-1]-wh1.lnPI[16+1:21-1])/(0.5*(wh2.lnPI[16+1:21-1]+wh1.lnPI[16+1:21-1]))) < 1.0e-3))
 		# above the overlap, just use larger lnPI
-		self.assertTrue (np.all(np.abs(wh2.lnPI[20:] - (ref_lnPI[4:]+shift)) < 1.0e-6))
+		self.assertTrue (np.all(np.abs(wh2.lnPI[20:] - (ref_lnpi[4:]+shift)) < 1.0e-6))
 		
 	def test_merge_with_smooth_mom(self):
 		"""
