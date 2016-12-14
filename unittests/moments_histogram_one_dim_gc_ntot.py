@@ -12,6 +12,10 @@ import numpy as np
 import FHMCAnalysis.moments.histogram.one_dim.ntot.gc_hist as oneDH
 
 class TestHistogram(unittest.TestCase):
+	"""
+	Test histogram setup, calculations, and properties
+	"""
+
 	def setUp(self):
 		"""
 		Set up the class 
@@ -82,7 +86,7 @@ class TestHistogram(unittest.TestCase):
 		"""
 	
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
-		lnPI_1 = copy.copy(hist.data['ln(PI)'])
+		lnpi_1 = copy.copy(hist.data['ln(PI)'])
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'])) - 1.0) > 1.0e-6)
 		fail = False
 		try:
@@ -99,7 +103,7 @@ class TestHistogram(unittest.TestCase):
 		"""
 
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
-		lnPI_1 = copy.copy(hist.data['ln(PI)'])
+		lnpi_1 = copy.copy(hist.data['ln(PI)'])
 		
 		# initial reweight
 		fail = False
@@ -109,11 +113,11 @@ class TestHistogram(unittest.TestCase):
 			print e
 			fail = True
 		self.assertTrue(not fail)
-		lnPI_2 = copy.copy(hist.data['ln(PI)'])
+		lnpi_2 = copy.copy(hist.data['ln(PI)'])
 		
-		x = lnPI_1+np.arange(0,31)*self.beta_ref*(0.0-self.mu_ref[0])
+		x = lnpi_1+np.arange(0,31)*self.beta_ref*(0.0-self.mu_ref[0])
 		x -= np.log(np.sum(np.exp(x)))
-		self.assertTrue(np.all(np.abs(lnPI_2-x) < 1.0e-12))
+		self.assertTrue(np.all(np.abs(lnpi_2-x) < 1.0e-12))
 		
 		# reweight again with the modified data
 		fail = False
@@ -123,16 +127,16 @@ class TestHistogram(unittest.TestCase):
 			print e
 			fail = True
 		self.assertTrue(not fail)
-		lnPI_3 = copy.copy(hist.data['ln(PI)'])
+		lnpi_3 = copy.copy(hist.data['ln(PI)'])
 		
-		x = lnPI_1+np.arange(0,31)*self.beta_ref*(-5.0-self.mu_ref[0])
+		x = lnpi_1+np.arange(0,31)*self.beta_ref*(-5.0-self.mu_ref[0])
 		x -= np.log(np.sum(np.exp(x)))
-		self.assertTrue(np.all(np.abs(lnPI_3-x) < 1.0e-12))
+		self.assertTrue(np.all(np.abs(lnpi_3-x) < 1.0e-12))
 
 		# start over and reweight to check consistenccy
 		hist.clear()
 		hist.reload()
-		self.assertTrue(np.all(np.abs(hist.data['ln(PI)'] - lnPI_1)) < 1.0e-12)
+		self.assertTrue(np.all(np.abs(hist.data['ln(PI)'] - lnpi_1)) < 1.0e-12)
 		fail = False
 		try:
 			hist.reweight(-5.0)
@@ -140,7 +144,7 @@ class TestHistogram(unittest.TestCase):
 			print e
 			fail = True
 		self.assertTrue(not fail)
-		self.assertTrue(np.all(np.abs(hist.data['ln(PI)']-lnPI_3) < 1.0e-12))
+		self.assertTrue(np.all(np.abs(hist.data['ln(PI)']-lnpi_3) < 1.0e-12))
 	
 	def test_relextrema(self):
 		"""
@@ -325,7 +329,7 @@ class TestHistogram(unittest.TestCase):
 		beta = 2.0*hist.data['curr_beta']
 		
 		hist.normalize()
-		lnPI_orig = copy.copy(hist.data['ln(PI)'])
+		lnpi_orig = copy.copy(hist.data['ln(PI)'])
 		mom = copy.copy(hist.data['mom'])
 		
 		f_n1n2 = hist.data['mom'][0,1,1,1,0] - hist.data['mom'][0,1,1,0,0]*hist.data['mom'][0,0,1,1,0]
@@ -346,8 +350,8 @@ class TestHistogram(unittest.TestCase):
 		ave_ntot = 30.2994823331
 		ave_u = 1.0
 		
-		dlnPI = hist.data['curr_mu'][0]*(np.arange(0,31) - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(np.arange(0,31)*2 - ave_n2) - (np.ones(31, dtype=np.float64) - ave_u)
-		ans = lnPI_orig + dlnPI*(beta - hist.data['curr_beta'])
+		dlnpi = hist.data['curr_mu'][0]*(np.arange(0,31) - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(np.arange(0,31)*2 - ave_n2) - (np.ones(31, dtype=np.float64) - ave_u)
+		ans = lnpi_orig + dlnpi*(beta - hist.data['curr_beta'])
 		ans -= np.log(np.sum(np.exp(ans)))
 		new_hist = hist.temp_extrap(beta, 1, 10.0, True, True, True)
 		
@@ -458,8 +462,8 @@ class TestHistogram(unittest.TestCase):
 		ave_u = np.sum(np.exp(hist.data['ln(PI)'])*hist.data['mom'][0,0,0,0,1])/np.sum(np.exp(hist.data['ln(PI)']))
 
 		check = hist.data['ln(PI)'] + (hist.data['curr_beta']*(hist.data['mom'][1,1,0,0,0]-ave_n2)*1.0)
-		dlnPI = hist.data['curr_mu'][0]*(hist.data['ntot'] - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(hist.data['mom'][1,1,0,0,0] - ave_n2) - (hist.data['mom'][0,0,0,0,1] - ave_u)
-		check += dlnPI*(target_beta - hist.data['curr_beta'])
+		dlnpi = hist.data['curr_mu'][0]*(hist.data['ntot'] - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(hist.data['mom'][1,1,0,0,0] - ave_n2) - (hist.data['mom'][0,0,0,0,1] - ave_u)
+		check += dlnpi*(target_beta - hist.data['curr_beta'])
 		check -= np.log(np.sum(np.exp(check)))
 
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)		
@@ -490,8 +494,8 @@ class TestHistogram(unittest.TestCase):
 		ave_u = np.sum(np.exp(hist.data['ln(PI)'])*hist.data['mom'][0,0,0,0,1])/np.sum(np.exp(hist.data['ln(PI)']))
 
 		check = hist.data['ln(PI)'] + (hist.data['curr_beta']*(hist.data['mom'][1,1,0,0,0]-ave_n2)*1.0)
-		dlnPI = hist.data['curr_mu'][0]*(hist.data['ntot'] - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(hist.data['mom'][1,1,0,0,0] - ave_n2) - (hist.data['mom'][0,0,0,0,1] - ave_u)
-		check += dlnPI*(target_beta - hist.data['curr_beta'])
+		dlnpi = hist.data['curr_mu'][0]*(hist.data['ntot'] - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(hist.data['mom'][1,1,0,0,0] - ave_n2) - (hist.data['mom'][0,0,0,0,1] - ave_u)
+		check += dlnpi*(target_beta - hist.data['curr_beta'])
 
 		# second order corrections
 		H = np.zeros((2,2,len(hist.data['ntot'])), dtype=np.float64)
@@ -519,7 +523,7 @@ class TestHistogram(unittest.TestCase):
 	
 	def test_temp_extrap_1_ke (self):
 		"""
-		Test first order temperature extrapolation when KE contributions are present. This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
+		Test first order temperature extrapolation when KE contributions are present. This should be identical to the case when we say no KE present since dlnpi_dB is structurally the same
 		"""
 
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
@@ -541,7 +545,7 @@ class TestHistogram(unittest.TestCase):
 		beta = 2.0*hist.data['curr_beta']
 		
 		hist.normalize()
-		lnPI_orig = copy.copy(hist.data['ln(PI)'])
+		lnpi_orig = copy.copy(hist.data['ln(PI)'])
 		mom = copy.copy(hist.data['mom'])
 		
 		f_n1n2 = hist.data['mom'][0,1,1,1,0] - hist.data['mom'][0,1,1,0,0]*hist.data['mom'][0,0,1,1,0]
@@ -562,8 +566,8 @@ class TestHistogram(unittest.TestCase):
 		ave_ntot = 30.2994823331
 		ave_u = 1.0
 		
-		dlnPI = hist.data['curr_mu'][0]*(np.arange(0,31) - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(np.arange(0,31)*2 - ave_n2) - (np.ones(31, dtype=np.float64) - ave_u)
-		ans = lnPI_orig + dlnPI*(beta - hist.data['curr_beta'])
+		dlnpi = hist.data['curr_mu'][0]*(np.arange(0,31) - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(np.arange(0,31)*2 - ave_n2) - (np.ones(31, dtype=np.float64) - ave_u)
+		ans = lnpi_orig + dlnpi*(beta - hist.data['curr_beta'])
 		ans -= np.log(np.sum(np.exp(ans)))
 		new_hist = hist.temp_extrap(beta, 1, 10.0, True, True, True)
 		
@@ -572,7 +576,7 @@ class TestHistogram(unittest.TestCase):
 
 	def test_temp_extrap_2_ke(self):
 		"""
-		Test second order temperature extrapolation when KE contributions are present.  This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
+		Test second order temperature extrapolation when KE contributions are present.  This should be identical to the case when we say no KE present since dlnpi_dB is structurally the same
 		"""
 
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
@@ -591,7 +595,7 @@ class TestHistogram(unittest.TestCase):
 
 	def test_temp_dmu2_extrap_2_ke(self):
 		"""
-		Test second order T+dMu extrapolation with 2 components when KE contributions are present. This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
+		Test second order T+dMu extrapolation with 2 components when KE contributions are present. This should be identical to the case when we say no KE present since dlnpi_dB is structurally the same
 		"""
 
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
@@ -617,8 +621,8 @@ class TestHistogram(unittest.TestCase):
 		ave_u = np.sum(np.exp(hist.data['ln(PI)'])*hist.data['mom'][0,0,0,0,1])/np.sum(np.exp(hist.data['ln(PI)']))
 
 		check = hist.data['ln(PI)'] + (hist.data['curr_beta']*(hist.data['mom'][1,1,0,0,0]-ave_n2)*1.0)
-		dlnPI = hist.data['curr_mu'][0]*(hist.data['ntot'] - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(hist.data['mom'][1,1,0,0,0] - ave_n2) - (hist.data['mom'][0,0,0,0,1] - ave_u)
-		check += dlnPI*(target_beta - hist.data['curr_beta'])
+		dlnpi = hist.data['curr_mu'][0]*(hist.data['ntot'] - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(hist.data['mom'][1,1,0,0,0] - ave_n2) - (hist.data['mom'][0,0,0,0,1] - ave_u)
+		check += dlnpi*(target_beta - hist.data['curr_beta'])
 
 		# second order corrections
 		H = np.zeros((2,2,len(hist.data['ntot'])), dtype=np.float64)
@@ -652,10 +656,10 @@ class TestHistogram(unittest.TestCase):
 		hist_ke = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		hist_pe = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, False)
 
-		dlnPI_dB_ke, dm_dB_ke = hist_ke._dB()
-		dlnPI_dB_pe, dm_dB_pe = hist_pe._dB()
+		dlnpi_dB_ke, dm_dB_ke = hist_ke._dB()
+		dlnpi_dB_pe, dm_dB_pe = hist_pe._dB()
 
-		self.assertTrue(np.all(np.abs(dlnPI_dB_ke-dlnPI_dB_pe)) < 1.0e-12)
+		self.assertTrue(np.all(np.abs(dlnpi_dB_ke-dlnpi_dB_pe)) < 1.0e-12)
 
 	def test_dlnpi_2_ke(self):
 		"""
@@ -665,11 +669,11 @@ class TestHistogram(unittest.TestCase):
 		hist_ke = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		hist_pe = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, False)
 
-		dlnPI_dB_ke, dm_dB_ke = hist_ke._dB2()
-		dlnPI_dB_pe, dm_dB_pe = hist_pe._dB2()
+		dlnpi_dB_ke, dm_dB_ke = hist_ke._dB2()
+		dlnpi_dB_pe, dm_dB_pe = hist_pe._dB2()
 
 		ave_ntot = np.sum(np.exp(hist_pe.data['ln(PI)'])*hist_pe.data['ntot'])/np.sum(np.exp(hist_pe.data['ln(PI)']))
-		self.assertTrue(np.all(np.abs((dlnPI_dB_ke-dlnPI_dB_pe) - (1.5/self.beta_ref/self.beta_ref*(hist_pe.data['ntot']-ave_ntot)))) < 1.0e-12)
+		self.assertTrue(np.all(np.abs((dlnpi_dB_ke-dlnpi_dB_pe) - (1.5/self.beta_ref/self.beta_ref*(hist_pe.data['ntot']-ave_ntot)))) < 1.0e-12)
 
 	def test_sg_dx_ke(self):
 		"""
