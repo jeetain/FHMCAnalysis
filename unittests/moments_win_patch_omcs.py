@@ -435,7 +435,7 @@ class TestWindow(unittest.TestCase):
 		# above the overlap, just use larger nn_mom
 		self.assertTrue(np.all(np.abs(wh2.mom[:,20:] - ref_mom[:,4:]) < 1.0e-6))
 
-	def test_merge_with_smooth_lnPI(self):
+	def test_merge_with_smooth_lnpi(self):
 		"""
 		Check lnPI merging properly with smoothing
 		"""	
