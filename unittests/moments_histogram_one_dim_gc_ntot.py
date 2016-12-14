@@ -61,7 +61,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(hist.data['e_hist']['bw'].shape == (31,))
 		self.assertTrue(hist.data['mom'].shape == (2,3,2,3,3,31))
 	
-	def testClear(self):
+	def test_clear(self):
 		"""
 		Test data is cleared
 		"""
@@ -76,7 +76,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(len(hist.data) == 0)
 		self.assertTrue(len(hist.metadata) != 0)
 	
-	def testNorm(self):
+	def test_norm(self):
 		"""
 		Test normalization
 		"""
@@ -93,7 +93,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(not fail)
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'])) - 1.0) < 1.0e-6)
 	
-	def testRew(self):
+	def test_rew(self):
 		"""
 		Test reweighting
 		"""
@@ -142,7 +142,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(not fail)
 		self.assertTrue(np.all(np.abs(hist.data['ln(PI)']-lnPI_3) < 1.0e-12))
 	
-	def testRelextrema(self):
+	def test_relextrema(self):
 		"""
 		Test surface identification of local max/min
 		"""
@@ -193,7 +193,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.all(hist.data['ln(PI)_maxima_idx'] == [0,3]))
 		self.assertTrue(np.all(hist.data['ln(PI)_minima_idx'] == [1,5]))
 		
-	def testThermo(self):
+	def test_thermo(self):
 		"""
 		Test thermo calculations for phases
 		"""
@@ -232,7 +232,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.abs(hist.data['thermo'][1]['x1'] - 25./75.) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][1]['x2'] - 50./75.) < 1.0e-6)
 		
-	def testThermoComplete(self):
+	def test_thermo_complete(self):
 		"""
 		Test thermo calculations for complete lnPI surface
 		"""
@@ -262,7 +262,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.abs(hist.data['thermo'][0]['x1'] - 10.0998274444/30.2994823331) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][0]['x2'] - 20.1996548887/30.2994823331) < 1.0e-6)
 	
-	def testIsSafe(self):
+	def test_is_safe(self):
 		"""
 		Test check that thermo calculations are safe
 		"""	
@@ -286,7 +286,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(hist.is_safe(10.0, True))
 		self.assertTrue(not hist.is_safe(10.1, True))
 				 
-	def testPhaseEq(self):
+	def test_phase_eq(self):
 		"""
 		Test phase equilibrium at this temperature
 		"""
@@ -303,7 +303,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(not fail)
 		self.assertTrue(np.abs(eq_hist.data['thermo'][0]['F.E./kT']-eq_hist.data['thermo'][1]['F.E./kT']) < 0.001)
 	
-	def testTempExtrap1(self):
+	def test_temp_extrap_1(self):
 		"""
 		Test first order temperature extrapolation
 		"""	
@@ -354,7 +354,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.all(np.abs(ans - new_hist.data['ln(PI)']) < 1.0e-12))
 		self.assertTrue(np.all(np.abs(beta - new_hist.data['curr_beta']) < 1.0e-12))
 	
-	def testTempExtrap2(self):
+	def test_temp_extrap_2(self):
 		"""
 		Test second order temperature extrapolation
 		"""
@@ -371,7 +371,7 @@ class TestHistogram(unittest.TestCase):
 			fail = True
 		self.assertTrue(fail)
 
-	def testDMu2Extrap1(self):
+	def test_dMu2_extrap_1(self):
 		"""
 		Test first order dMu extrapolation with 2 components
 		"""
@@ -399,7 +399,7 @@ class TestHistogram(unittest.TestCase):
 		
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 
-	def testDMu2Extrap2(self):
+	def test_dMu2_extrap_2(self):
 		"""
 		Test second order dMu extrapolation with 2 components
 		"""
@@ -433,7 +433,7 @@ class TestHistogram(unittest.TestCase):
 		
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 
-	def testTempDMu2Extrap1(self):
+	def test_temp_dMu2_extrap_1(self):
 		"""
 		Test first order T+dMu extrapolation with 2 components
 		"""
@@ -517,7 +517,7 @@ class TestHistogram(unittest.TestCase):
 		check -= np.log(np.sum(np.exp(check)))
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 	
-	def testTempExtrap1KE(self):
+	def test_temp_extrap_1_ke(self):
 		"""
 		Test first order temperature extrapolation when KE contributions are present. This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
 		"""
@@ -570,7 +570,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.all(np.abs(ans - new_hist.data['ln(PI)']) < 1.0e-12))
 		self.assertTrue(np.all(np.abs(beta - new_hist.data['curr_beta']) < 1.0e-12))
 
-	def testTempExtrap2KE(self):
+	def test_temp_extrap_2_ke(self):
 		"""
 		Test second order temperature extrapolation when KE contributions are present.  This should be identical to the case when we say no KE present since dlnPI_dB is structurally the same
 		"""
