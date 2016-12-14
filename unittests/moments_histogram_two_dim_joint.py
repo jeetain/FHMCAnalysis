@@ -37,9 +37,9 @@ class TestJointHist(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)	
 	
-	def test_entry_set_lnPI(self):
+	def test_entry_set_lnpi(self):
 		"""
-		Test entry set lnPI
+		Test entry set lnpi
 		"""
 	
 		lnpi = np.array([1,2,3])
@@ -47,7 +47,7 @@ class TestJointHist(unittest.TestCase):
 		en = self.hist.entry()
 		fail = False
 		try:
-			en.set_lnPI(lnpi, ntot)
+			en.set_lnpi(lnpi, ntot)
 		except Exception as e:
 			print e
 			fail = True
@@ -102,7 +102,7 @@ class TestJointHist(unittest.TestCase):
 			fail = True
 		self.assertTrue(fail)
 		
-	def test_bad_set_lnPI1(self):
+	def test_bad_set_lnpi_1(self):
 		"""
 		Test bad set due to ln(PI)
 		"""	
@@ -118,7 +118,7 @@ class TestJointHist(unittest.TestCase):
 			fail = True
 		self.assertTrue(fail)	
 		
-	def test_bad_set_lnPI2(self):
+	def test_bad_set_lnpi_2(self):
 		"""
 		Test bad set due to ln(PI)
 		"""		
