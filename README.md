@@ -58,7 +58,7 @@ seq = we.test_nebr_equil(seq)
 wp.patch_all_windows(seq)
 ```
 
-+ Then Use histogram modules to perform reweighting, phase behavior calculations, etc. on the composite result.nc file.  See, e.g. moments.histogram.one_dim.ntot.gc_hist for simulations performed where N_{tot} was used as the order parameter. 
++ Then use histogram modules to perform reweighting, phase behavior calculations, etc. on the composite result.nc file.  See, e.g. moments.histogram.one_dim.ntot.gc_hist for simulations performed where N_{tot} was used as the order parameter. 
 
 ```
 mu_ref = [0.0, 0.0]
