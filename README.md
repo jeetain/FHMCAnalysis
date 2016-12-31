@@ -67,6 +67,8 @@ hist.reweight(1.0)
 equil_hist = hist.find_phase_eq(lnZ_tol, mu_guess, beta, dMu)
 ```
 
++ See example/ for examples implemented in jupyter/ipython. 
+
 ### netCDF4 file format
 
 + N_tot
