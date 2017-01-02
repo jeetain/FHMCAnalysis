@@ -1,1 +1,1 @@
-__all__ = ['binary', 'histogram', 'pure', 'moments']
+__all__ = ['moments']
