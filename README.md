@@ -64,10 +64,12 @@ wp.patch_all_windows(seq, composite)
 + Then use histogram modules to perform reweighting, phase behavior calculations, etc. on the resulting composite.nc file.  See, e.g. moments.histogram.one_dim.ntot.gc_hist for simulations performed where N_{tot} was used as the order parameter. See example/ntot for a more detailed example.
 
 ```
+import FHMCAnalysis.moments.histogram.one_dim.ntot.gc_hist as hist
+
 mu_ref = [0.0] # chemical potentials used during the simulations
 beta_ref = 1.0 # 1/T simulations performed at
 smooth = 10 # number of points in space to smooth lnPI over
-hist = histogram (composite, beta_ref, mu_ref, smooth) # create histogram
+hist = hist.histogram (composite, beta_ref, mu_ref, smooth) # create histogram
 
 # Reweight and compute thermodynamic properties
 hist.reweight(1.234) # reweight the histogram to some other mu_1
