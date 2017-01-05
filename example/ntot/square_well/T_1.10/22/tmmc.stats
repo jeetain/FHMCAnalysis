@@ -1,0 +1,35 @@
+Time: 05/01/2017 01:55:58
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	0.00685507
+delete0 (from M = 0)	0.0068548
+translate0 (from M = 0)	15.7679
+------------------------------------ 
+Time: 05/01/2017 04:20:02
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	0.00692368
+delete0 (from M = 0)	0.00692405
+translate0 (from M = 0)	15.7933
+------------------------------------ 
+Time: 05/01/2017 06:01:16
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	0.00685301
+delete0 (from M = 0)	0.00685328
+translate0 (from M = 0)	15.7631
+------------------------------------ 
+Time: 05/01/2017 08:03:13
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	0.00690449
+delete0 (from M = 0)	0.00690435
+translate0 (from M = 0)	15.7751
+------------------------------------ 
+Time: 05/01/2017 09:56:12
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	0.00691025
+delete0 (from M = 0)	0.00690999
+translate0 (from M = 0)	15.7783
+------------------------------------ 

@@ -1,0 +1,108 @@
+04/01/2017 10:45:07 : Beginning simulation
+04/01/2017 10:45:07 : Parsed JSON file input.json
+04/01/2017 10:45:07 : Setting up cell list for interactions between type 0 and 0
+04/01/2017 10:45:07 : Creating Cell list with r_cut = 1.5
+04/01/2017 10:45:07 : System from input.json passed bounds checks
+04/01/2017 10:45:07 : No barriers to initialize
+04/01/2017 10:45:07 : Successfully read valid parameters from input.json
+04/01/2017 10:45:07 : Parsed JSON file input.json
+04/01/2017 10:45:07 : Automatically generating the initial configuration
+04/01/2017 10:45:07 : Setting up cell list for interactions between type 0 and 0
+04/01/2017 10:45:07 : Creating Cell list with r_cut = 1.5
+04/01/2017 10:45:07 : No barriers to initialize
+04/01/2017 10:45:07 : Initializing species 0 configurations
+04/01/2017 10:45:07 : Added translation moves for initialization of species 0
+04/01/2017 10:45:07 : Target number = 580 for species 1
+04/01/2017 10:45:14 : Reading initial configuration from auto-init.xyz
+04/01/2017 10:45:14 : Successfully loaded initial configuration from auto-init.xyz
+04/01/2017 10:45:14 : Beginning Wang-Landau
+04/01/2017 10:45:14 : Initial lnF = 1
+04/01/2017 10:45:14 : Starting from 0 moves
+04/01/2017 10:51:55 : Wang-Landau is now flat, new lnF = 0.5
+04/01/2017 10:54:43 : Wang-Landau is now flat, new lnF = 0.25
+04/01/2017 11:03:06 : Wang-Landau is now flat, new lnF = 0.125
+04/01/2017 11:17:38 : Wang-Landau is now flat, new lnF = 0.0625
+04/01/2017 11:29:15 : Wang-Landau is now flat, new lnF = 0.03125
+04/01/2017 11:38:11 : Wang-Landau is now flat, new lnF = 0.015625
+04/01/2017 11:52:35 : Wang-Landau is now flat, new lnF = 0.0078125
+04/01/2017 12:07:33 : Wang-Landau is now flat, new lnF = 0.00390625
+04/01/2017 12:22:13 : Wang-Landau is now flat, new lnF = 0.001953125
+04/01/2017 12:32:17 : Wang-Landau is now flat, new lnF = 0.0009765625
+04/01/2017 12:49:32 : Wang-Landau is now flat, new lnF = 0.00048828125
+04/01/2017 13:04:07 : Wang-Landau is now flat, new lnF = 0.000244140625
+04/01/2017 13:13:15 : Wang-Landau is now flat, new lnF = 0.0001220703125
+04/01/2017 13:25:11 : Wang-Landau is now flat, new lnF = 6.103515625e-05
+04/01/2017 13:35:40 : Wang-Landau is now flat, new lnF = 3.0517578125e-05
+04/01/2017 13:45:27 : Wang-Landau is now flat, new lnF = 1.52587890625e-05
+04/01/2017 13:54:37 : Wang-Landau is now flat, new lnF = 7.62939453125e-06
+04/01/2017 14:04:50 : Wang-Landau is now flat, new lnF = 3.814697265625e-06
+04/01/2017 14:14:52 : Wang-Landau is now flat, new lnF = 1.9073486328125e-06
+04/01/2017 14:35:23 : Wang-Landau is now flat, new lnF = 9.5367431640625e-07
+04/01/2017 14:48:05 : Wang-Landau is now flat, new lnF = 4.76837158203125e-07
+04/01/2017 15:05:02 : Wang-Landau is now flat, new lnF = 2.38418579101562e-07
+04/01/2017 15:29:53 : Wang-Landau is now flat, new lnF = 1.19209289550781e-07
+04/01/2017 15:42:16 : Wang-Landau is now flat, new lnF = 5.96046447753906e-08
+04/01/2017 16:23:34 : Wang-Landau is now flat, new lnF = 2.98023223876953e-08
+04/01/2017 16:52:45 : Wang-Landau is now flat, new lnF = 1.49011611938477e-08
+04/01/2017 17:16:30 : Wang-Landau is now flat, new lnF = 7.45058059692383e-09
+04/01/2017 17:16:30 : Passed number of species present check
+04/01/2017 17:16:30 : Passed sum of atoms consistency check with total counter
+04/01/2017 17:16:30 : Passed expanded ensemble state check for all atoms
+04/01/2017 17:16:30 : Passed, final scratch energy - incremental = 0
+04/01/2017 17:16:30 : Completed 10465000000 total MC steps as part of Wang-Landau stage
+04/01/2017 17:16:30 : Total MC steps taken in simulation: 10465000000
+04/01/2017 17:16:30 : Crossing over to build TMMC matrix
+04/01/2017 17:16:30 : Starting from lnF = 7.45058059692383e-09
+04/01/2017 17:16:30 : Starting from 0 moves in current sweep
+04/01/2017 17:16:30 : Starting from 0 out of 100 sweeps
+04/01/2017 17:44:37 : Times C fully visited = 1
+04/01/2017 18:05:38 : Times C fully visited = 2
+04/01/2017 18:30:19 : Times C fully visited = 3
+04/01/2017 18:58:28 : Times C fully visited = 4
+04/01/2017 19:22:12 : Times C fully visited = 5
+04/01/2017 19:50:40 : Times C fully visited = 6
+04/01/2017 20:21:05 : Wang-Landau is now flat, new lnF = 3.72529029846191e-09
+04/01/2017 20:29:17 : Times C fully visited = 7
+04/01/2017 20:49:05 : Times C fully visited = 8
+04/01/2017 21:08:04 : Times C fully visited = 9
+04/01/2017 21:47:05 : Wang-Landau is now flat, new lnF = 1.86264514923096e-09
+04/01/2017 21:53:16 : Times C fully visited = 10
+04/01/2017 22:16:39 : Times C fully visited = 11
+04/01/2017 22:38:28 : Times C fully visited = 12
+04/01/2017 23:12:06 : Times C fully visited = 13
+04/01/2017 23:30:07 : Wang-Landau is now flat, new lnF = 9.31322574615479e-10
+04/01/2017 23:43:23 : Times C fully visited = 14
+05/01/2017 00:08:03 : Times C fully visited = 15
+05/01/2017 00:08:16 : Wang-Landau is now flat, new lnF = 4.65661287307739e-10
+05/01/2017 00:28:32 : Times C fully visited = 16
+05/01/2017 00:51:19 : Times C fully visited = 17
+05/01/2017 01:16:49 : Times C fully visited = 18
+05/01/2017 01:37:49 : Times C fully visited = 19
+05/01/2017 02:11:25 : Times C fully visited = 20
+05/01/2017 02:33:39 : Wang-Landau is now flat, new lnF = 2.3283064365387e-10
+05/01/2017 02:35:23 : Times C fully visited = 21
+05/01/2017 02:58:55 : Times C fully visited = 22
+05/01/2017 03:08:34 : Wang-Landau is now flat, new lnF = 1.16415321826935e-10
+05/01/2017 03:28:39 : Times C fully visited = 23
+05/01/2017 03:29:38 : Wang-Landau is now flat, new lnF = 5.82076609134674e-11
+05/01/2017 03:44:50 : Wang-Landau is now flat, new lnF = 2.91038304567337e-11
+05/01/2017 04:05:45 : Times C fully visited = 24
+05/01/2017 04:46:18 : Times C fully visited = 25
+05/01/2017 05:10:42 : Times C fully visited = 26
+05/01/2017 05:37:07 : Times C fully visited = 27
+05/01/2017 05:59:33 : Times C fully visited = 28
+05/01/2017 06:20:50 : Times C fully visited = 29
+05/01/2017 06:41:51 : Times C fully visited = 30
+05/01/2017 06:42:09 : Wang-Landau is now flat, new lnF = 1.45519152283669e-11
+05/01/2017 07:03:24 : Times C fully visited = 31
+05/01/2017 07:09:58 : Wang-Landau is now flat, new lnF = 7.27595761418343e-12
+05/01/2017 07:22:13 : Times C fully visited = 32
+05/01/2017 07:51:35 : Wang-Landau is now flat, new lnF = 3.63797880709171e-12
+05/01/2017 07:55:10 : Times C fully visited = 33
+05/01/2017 08:16:32 : Times C fully visited = 34
+05/01/2017 08:36:06 : Wang-Landau is now flat, new lnF = 1.81898940354586e-12
+05/01/2017 08:43:54 : Times C fully visited = 35
+05/01/2017 09:14:44 : Times C fully visited = 36
+05/01/2017 09:48:24 : Times C fully visited = 37
+05/01/2017 09:53:09 : Wang-Landau is now flat, new lnF = 9.09494701772928e-13
+05/01/2017 10:16:17 : Times C fully visited = 38

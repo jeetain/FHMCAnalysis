@@ -1,0 +1,38 @@
+# <P(N_1)> as a function of N_tot.
+# number_of_species: 1
+# species_total_upper_bound: 408
+# species_total_lower_bound: 383
+# volume: 729
+# Bin widths for each species index 
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	
+# Bin lower bound for each species index 
+383	384	385	386	387	388	389	390	391	392	393	394	395	396	397	398	399	400	401	402	403	404	405	406	407	408	
+# Bin upper bound for each species index 
+383	384	385	386	387	388	389	390	391	392	393	394	395	396	397	398	399	400	401	402	403	404	405	406	407	408	
+# Normalized histogram for each species index 
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
+1	
