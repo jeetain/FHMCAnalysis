@@ -1,8 +1,8 @@
 """@docstring
 @brief Create a general joint two-D histogram
-@author Nathan A. Mahynski									
-@date 08/06/2016									
-@filename joint_hist.pyx									
+@author Nathan A. Mahynski
+@date 08/06/2016
+@filename joint_hist.pyx
 """
 
 import operator, sys, copy, cython, types
@@ -19,10 +19,10 @@ from libc.math cimport exp
 from libc.math cimport log
 from libc.math cimport fabs
 
-class joint_hist (object):	
+class joint_hist (object):
 	"""
 	Joint histogram
-	
+
 	"""
 
 	class entry (object):
@@ -36,11 +36,11 @@ class joint_hist (object):
 		def __init__(self):
 			"""
 			Instantiate class
-		
+
 			"""
 
 			self.clear_all()
-		
+
 		def clear_all(self):
 			"""
 			Clear all data in entry.
@@ -48,7 +48,7 @@ class joint_hist (object):
 			"""
 
 			self.data = {}
-		
+
 		def clear_props(self):
 			"""
 			Clear just the properties stored in an entry.
@@ -56,7 +56,7 @@ class joint_hist (object):
 			"""
 
 			self.data['props'] = {}
-		
+
 		def set(self, lnpi, op_vals, name_val_dict):
 			"""
 			Set ln(PI) and properties all at once.
@@ -70,13 +70,13 @@ class joint_hist (object):
 			name_val_dict : dict
 				Dictionary of {property_name: ndarray of property}
 
-			"""	
+			"""
 
-			self.set_lnPI(lnpi, op_vals)
+			self.set_lnpi(lnpi, op_vals)
 			for p in name_val_dict:
 				self.set_prop(p, name_val_dict[p])
-					
-		def set_lnPI(self, lnpi, op_vals):
+
+		def set_lnpi(self, lnpi, op_vals):
 			"""
 			Set ln(PI) in entry.
 
@@ -87,7 +87,7 @@ class joint_hist (object):
 			op_vals : ndarray
 				Order parameter values corresponding to ln(PI).  Must be sorted from low to high.
 
-			"""	
+			"""
 
 			assert(len(op_vals) == len(lnpi)), 'Size mismatch between ln(PI) and order parameters'
 			self.data['ln(PI)'] = np.array(lnpi, dtype=np.float64)
@@ -96,19 +96,19 @@ class joint_hist (object):
 			if ('props' in self.data):
 				for x in self.data['props']:
 					assert (self._check_size(self.data['props'][x])), 'Size of existing properties vectors is different from new ln(PI)'
-			
+
 		def set_prop(self, name, val):
 			"""
 			Set/add a property, e.g., N1 or U, to the entry.
 
 			Parameters
 			----------
-			name : str 
+			name : str
 				Name of property
-			val : ndarray 
+			val : ndarray
 				Property itself
-	
-			"""	
+
+			"""
 
 			assert (self._check_size(val)), 'Size of new property vector is different from existing ones'
 			if ('props' not in self.data):
@@ -118,13 +118,13 @@ class joint_hist (object):
 		def _check_size(self, x):
 			"""
 			Check that the size of x is the same as properties inside the entry.
-			
+
 			Parameters
 			----------
-			x : ndarray 
+			x : ndarray
 				New property
 
-			"""	
+			"""
 
 			cdef int ref_size = 0
 			if ('ln(PI)' in self.data):
@@ -139,19 +139,19 @@ class joint_hist (object):
 					ref_size = len(x)
 			else:
 				ref_size = len(x)
-			
+
 			return len(x) == ref_size
-			
+
 	def __init__(self):
 		"""
 		Create a joint probability distribution histogram from individual ones.
 
-		Result is lnPI(op1, op2), e.g., lnPI(h, N) surface 
+		Result is lnPI(op1, op2), e.g., lnPI(h, N) surface
 
 		"""
 
 		self.clear()
-					
+
 	def clear(self):
 		"""
 		Clear all data in this joint histogram.
@@ -159,7 +159,7 @@ class joint_hist (object):
 		"""
 
 		self.data = {}
-	
+
 	def add(self, op1, entry):
 		"""
 		Add an entry to this joint histogram.
@@ -168,7 +168,7 @@ class joint_hist (object):
 		----------
 		op1 : double
 			Number value of order parameter 1 this entry corresponds to, e.g., h
-		entry : entry 
+		entry : entry
 			entry to add to joint histogram
 
 		"""
@@ -185,7 +185,7 @@ class joint_hist (object):
 		----------
 		op1 : double
 			Number value of order parameter 1 this entry corresponds to, e.g., h
-		lnpi : ndarray 
+		lnpi : ndarray
 			ln(PI)
 		op_vals : ndarray
 			Order parameter values corresponding to ln(PI), e.g., ntot
@@ -197,15 +197,15 @@ class joint_hist (object):
 		e = self.entry()
 		e.set(lnpi, op_vals, name_val_dict)
 		self.add(op1, e)
-	
+
 	def make(self):
 		"""
 		Take all raw entries and sort to create a self-consistent joint probability surface.
-		
+
 		"""
 
 		cdef int i, j, y
-	
+
 		op1_vals = sorted(self.data['entries'])
 		op2_vals = []
 		for x in op1_vals:
@@ -236,7 +236,7 @@ class joint_hist (object):
 				assert (props == all_props), 'Properties are not all the same, or some are missing'
 			else:
 				all_props = copy.copy(props)
-			
+
 		for prop in all_props:
 			self.data['props'][prop] = np.full((len(op1_vals), len(op2_vals)), 0, dtype=np.float64)
 			for j in xrange(len(op1_vals)):
@@ -245,7 +245,7 @@ class joint_hist (object):
 				for i in xrange(len(op2)):
 					y = op2_vals.index(op2[i])
 					self.data['props'][prop][j,y] = self.data['entries'][x].data['props'][prop][i]
-	
+
 	def to_json(self, fname):
 		"""
 		Print this joint histogram's data to a json file.
@@ -268,7 +268,7 @@ class joint_hist (object):
 		f = open(fname, 'w')
 		json.dump(obj, f, indent=4, sort_keys=True)
 		f.close()
-	
+
 	def from_json(self, fname):
 		"""
 		Read data from json file.
@@ -284,36 +284,36 @@ class joint_hist (object):
 		f = open(fname, 'r')
 		raw = json.load(f)
 		f.close()
-		
+
 		assert ('ln(PI)' in raw), 'Missing ln(PI) information'
 		assert ('op_1' in raw), 'Missing op_1 information'
 		assert ('op_2' in raw), 'Missing op_2 information'
 		assert ('bounds_idx' in raw), 'Missing bounds information'
 		assert ('props' in raw), 'Missing properties information'
-		
+
 		self.data['ln(PI)'] = np.array(raw['ln(PI)'], dtype=np.float64)
 		self.data['op_1'] = np.array(raw['op_1'], dtype=np.float64)
 		self.data['op_2'] = np.array(raw['op_2'], dtype=np.float64)
 		self.data['bounds_idx'] = np.array(raw['bounds_idx'], dtype=np.float64)
-		
+
 		self.data['props'] = {}
 		for p in raw['props']:
 			self.data['props'][p] = np.array(raw['props'][p], dtype=np.float64)
-		
+
 if __name__ == '__main__':
 	print 'joint_hist.pyx'
-	
+
 	"""
-	
+
 	* Tutorial:
-	
+
 	1.) Instantiate the joint_hist
 	2.) Use the add() member to add data to the histogram (in any order), or use entry()
 	3.) Use make() to order and produce the joint histogram for further use/manipulation
 	4.) Print to file or use this class to perform other operations
 
 	* Notes:
-	
+
 	Histogram is produced which guarantees that the order parameters are sorted from low to high in both dimensions.
 	However, no guarantee is placed on the value of these bounds.
 
