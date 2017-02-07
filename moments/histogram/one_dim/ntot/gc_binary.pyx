@@ -50,7 +50,7 @@ def _get_most_stable_phase (hist):
 
 	return most_stable_phase
 
-def isopleth (object):
+class isopleth (object):
 	"""
 	Class to compute the isopleths from a series of (mu1, dMu2) histograms
 
