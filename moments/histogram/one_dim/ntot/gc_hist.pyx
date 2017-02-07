@@ -343,7 +343,7 @@ class histogram (object):
 		Parameters
 		----------
 		props : bool
-			If True then computes the extensive properties, otherwise just integrates lnPI (free energy) for each phase
+			If True then computes the extensive properties, otherwise just integrates lnPI (free energy) for each phase (default=True)
 		complete : bool
 			If True then compute properties of entire distribution, ignoring phase segmentation of lnPI surface (default=False)
 
