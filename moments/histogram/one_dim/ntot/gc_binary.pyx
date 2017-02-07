@@ -44,7 +44,7 @@ def _get_most_stable_phase (hist):
 
 	free_energy = {}
 	for phase in hist.data['thermo']:
-		free_energy[phase] = phase['F.E./kT']
+		free_energy[phase] = hist.data['thermo'][phase]['F.E./kT']
 	free_energy_sorted = sorted(free_energy.items(), key=operator.itemgetter(1))
 	most_stable_phase = free_energy_sorted[0][0]
 
@@ -160,7 +160,7 @@ class isopleth (object):
 				# Identify "bounding" dmu2's
 				left = bisect.bisect_left(self.data['dmu2'], dmu2)
 				right = bisect.bisect_right(self.data['dmu2'], dmu2)
-
+				print left, right
 				if (left == right and left == 0):
 					# below the lowest bounds, extrapolate just the lowest bound
 					h_l = self.data['histograms'][left]
@@ -172,7 +172,9 @@ class isopleth (object):
 							raise Exception ('extrapolated ln(PI) in histogram is not safe to use')
 						else:
 							# find most stable phase and extract properties
+							print 'a'
 							most_stable_phase = _get_most_stable_phase(h_l)
+							print 'b'
 							grid_x1[i,j] = h_l.data['thermo'][most_stable_phase]['x1']
 					except Exception as e:
 						print 'Error at (mu1,dmu2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
