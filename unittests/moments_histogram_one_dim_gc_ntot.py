@@ -903,7 +903,7 @@ class TestHistogram(unittest.TestCase):
 		hist2.data['mom'] = hist1.data['mom']*2
 		hist2.data['ln(PI)'] = hist1.data['ln(PI)']*2
 
-		mixed = hist1.mix(hist2, 1.0)
+		mixed = hist1.mix(hist2, [1.0, 1.0])
 		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'] - (lnPI*1.0+(2.0*lnPI)*1.0)/(1.0+1.0)) < tol))
 
 		for i in xrange(2):
@@ -913,7 +913,7 @@ class TestHistogram(unittest.TestCase):
 						for p in xrange(3):
 							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,:] - (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*1.0)/(1.0+1.0)) < tol))
 
-		mixed = hist1.mix(hist2, 0.1234)
+		mixed = hist1.mix(hist2, [1.0, 0.1234])
 		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'] - (lnPI*1.0+(2.0*lnPI)*0.1234)/(1.0+0.1234)) < tol))
 
 		for i in xrange(2):
@@ -955,7 +955,7 @@ class TestHistogram(unittest.TestCase):
 		hist2.data['ntot'].resize(29)
 		hist2.data['ub'] = 28 # 28 particles = size 29
 
-		mixed = hist1.mix(hist2, 1.0)
+		mixed = hist1.mix(hist2, [1.0, 1.0])
 
 		self.assertEqual(len(mixed.data['ln(PI)']), 31)
 		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][:29] - (1.0+2.0*1.0)/(1.0+1.0)*lnPI[:29]) < tol))
@@ -969,7 +969,7 @@ class TestHistogram(unittest.TestCase):
 							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,:29] - (hist1.data['mom'][i,j,k,m,p,:29]*1.0+hist2.data['mom'][i,j,k,m,p,:29]*1.0)/(1.0+1.0)) < tol))
 							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,29:] - hist1.data['mom'][i,j,k,m,p,29:]) < tol))
 
-		mixed = hist1.mix(hist2, 0.1234)
+		mixed = hist1.mix(hist2, [1.0, 0.1234])
 
 		self.assertEqual(len(mixed.data['ln(PI)']), 31)
 		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][:29] - (1.0+2.0*0.1234)/(1.0+0.1234)*lnPI[:29]) < tol))
