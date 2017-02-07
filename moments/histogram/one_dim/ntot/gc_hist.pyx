@@ -199,8 +199,6 @@ class histogram (object):
 
 		# Ensure these histograms are compatible
 		if (self.metadata['nspec'] != other.metadata['nspec']): raise Exception ('Difference in conditions, cannot mix histograms')
-		if (fabs(self.metadata['beta_ref'] - other.metadata['beta_ref']) > tol): raise Exception ('Difference in conditions, cannot mix histograms')
-		if (not np.all(np.abs(self.metadata['mu_ref'] - other.metadata['mu_ref']) < tol)): raise Exception ('Difference in conditions, cannot mix histograms')
 		if (self.metadata['used_ke'] != other.metadata['used_ke']): raise Exception ('Difference in conditions, cannot mix histograms')
 
 		if (self.data['nspec'] != other.data['nspec']): raise Exception ('Difference in conditions, cannot mix histograms')
@@ -220,6 +218,12 @@ class histogram (object):
 
 		mixed_hist = copy.deepcopy(longer_one)
 		mixed_hist.data['file_history'] = 'this is a mixed histogram'
+
+		# Since the raw data is provided at this condition, define the metadata manually for this mixed histogram.
+		# This should allow this mixed hsitogram to be extrapolated/reweighted in the future, though that is not recommended.
+		mixed_hist.metadata['fname'] = ''
+		mixed_hist.metadata['beta_ref'] = mixed_hist.data['curr_beta']
+		mixed_hist.metadata['mu_ref'] = mixed_hist.data['curr_mu']
 
 		# Mix lnPI and moments
 		mixed_hist.data['ln(PI)'] = (self.data['ln(PI)'][:max_idx] + rel_weight*other.data['ln(PI)'][:max_idx])/(1.0+rel_weight)
