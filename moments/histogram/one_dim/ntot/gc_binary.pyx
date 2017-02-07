@@ -5,6 +5,7 @@
 @filename gc_binary.pyx
 """
 
+import gc_hist as gch
 import copy, cython, types
 import numpy as np
 
@@ -18,10 +19,40 @@ from libc.math cimport exp
 from libc.math cimport log
 from libc.math cimport fabs
 
-# Ignore underflows for phase property calculations.  This could be problematic if we are 
-# interested in the properties of very unlikely phases, but since the primary goal here
-# is to obtain phase behavior, we only care here about the properties of relatively likely
-# phases.
 np.seterr(divide='raise', over='raise', invalid='raise', under='ignore') 
 
 cdef inline double double_max(double a, double b): return a if a > b else b
+
+def isopleth (object):
+    """
+    Class to compute the isopleths from a series of (mu1, dMu2) histograms
+    
+    """
+    
+    def __init__ (self, object histograms):
+      """
+      Instantiate the class.
+    
+      Parameters
+      ----------
+      histograms : array
+        Array of hc_hist.histogram objects that define the space
+      
+      """
+    
+      self.clear()
+      self.data['histograms'] = copy.deepcopy(histograms)
+      
+      # Check that all histograms at the same temperature and
+    
+    
+    def clear (self):
+      """
+      Clear all information from the class.
+    
+      """
+    
+      self.data = {}
+      self.meta = {}
+    
+    
