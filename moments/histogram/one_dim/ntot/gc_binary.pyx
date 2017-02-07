@@ -6,7 +6,7 @@
 """
 
 import gc_hist as gch
-import copy, cython, types
+import copy, cython, types, operator
 import numpy as np
 
 cimport cython
@@ -40,33 +40,37 @@ def isopleth (object):
 
         """
 
-        if (not isinstance(histogram, list)): raise Exception ('Expects a vector of histograms to construct isopleths')
+		cdef double dmu2
 
-        self.reset()
-        self.data['histograms'] = copy.deepcopy(histograms)
+        if (not isinstance(histogram, list)): raise Exception ('Expects a vector of histograms to construct isopleths')
+        self.clear()
 
         # Check that all histograms at the same temperature and 2 species
         b = None
-        for h in self.data['histograms']:
+        for h in histograms:
             if (b is not None):
                 b = h.data['curr_beta']
             else:
                 if (fabs(b-h.data['curr_beta']) > self.data['tol']): raise Exception ('Temperature mismatch in isopleth generation')
                 if (h.data['nspec'] != 2): raise Exception ('Component mismatch in isopleth generation')
 
-        # Sort the histograms from min to max dMu2
+        # Sort the histograms from min to max dmu2
+		dummy = {}
+		for h in histograms:
+			if (len(h.data['curr_mu']) != 2): raise Exception ('Only expects 2 chemical potentials, one for each component, cannot construct isopleth')
+			dmu2 = float(h.data['curr_mu'][1] - h.data['curr_mu'][0])
+			dummy[dmu2] = copy.deepcopy(h)
 
+		self.data['histograms'] = sorted(x.items(), key=operator.itemgetter(0)) # dict of {dmu2:histogram}
 
-        self.data['dmu2'] =
-
-    def reset (self):
+    def clear (self):
         """
-        Resets all information from the class, leaves metadata from init statement.
+        Clears all non-default information from the class.
 
         """
 
         self.data = {}
-        self.data['tol'] = 1.0e-6
+        self.data['tol'] = 1.0e-9
 
     def make_grid (self, mu1_bounds, mu2_bounds, delta):
         """
@@ -104,8 +108,8 @@ def isopleth (object):
         cdef int nx = np.ceil((mu1_bounds[1]-mu1_bounds[0])/delta[0])+1
         cdef int ny = np.ceil((mu2_bounds[1]-mu2_bounds[0])/delta[1])+1
 
-        grid_x1 = np.zeros((nx, ny), np.dtype=float64)
-        grid_mu = np.zeros((nx, ny, 2), np.dtype=float64)
+        grid_x1 = np.zeros((nx, ny), dtype=np.float64)
+        grid_mu = np.zeros((nx, ny, 2), dtype=np.float64)
 
         for i in range(0, nx):
             for j in range(0, ny):
