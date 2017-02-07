@@ -18,14 +18,14 @@ class TestHistogram(unittest.TestCase):
 
 	def setUp(self):
 		"""
-		Set up the class 
+		Set up the class
 		"""
 
 		self.fname = 'reference/test.nc'
 		self.beta_ref = 1.0
 		self.mu_ref = [5, 0]
 		self.smooth = 1
-		
+
 	def test_init(self):
 		"""
 		Test it initializes correctly
@@ -42,7 +42,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.all(hist.metadata['mu_ref'] == self.mu_ref))
 		self.assertTrue(hist.metadata['smooth'] == self.smooth)
 		self.assertTrue(hist.metadata['fname'] == self.fname)
-		
+
 	def test_load(self):
 		"""
 		Test it loads data correctly
@@ -55,21 +55,21 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.all(hist.data['ntot'] == np.arange(0,31)))
 		self.assertTrue(hist.data['lb'] == hist.data['ntot'][0])
 		self.assertTrue(hist.data['ub'] == hist.data['ntot'][30])
-		self.assertTrue(hist.data['pk_hist']['hist'].shape == (2, 31, 122))	
+		self.assertTrue(hist.data['pk_hist']['hist'].shape == (2, 31, 122))
 		self.assertTrue(hist.data['pk_hist']['lb'].shape == (2, 31))
 		self.assertTrue(hist.data['pk_hist']['ub'].shape == (2, 31))
 		self.assertTrue(hist.data['pk_hist']['bw'].shape == (2, 31))
-		self.assertTrue(hist.data['e_hist']['hist'].shape == (31, 122))	
+		self.assertTrue(hist.data['e_hist']['hist'].shape == (31, 122))
 		self.assertTrue(hist.data['e_hist']['lb'].shape == (31,))
 		self.assertTrue(hist.data['e_hist']['ub'].shape == (31,))
 		self.assertTrue(hist.data['e_hist']['bw'].shape == (31,))
 		self.assertTrue(hist.data['mom'].shape == (2,3,2,3,3,31))
-	
+
 	def test_clear(self):
 		"""
 		Test data is cleared
 		"""
-	
+
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		fail = False
 		try:
@@ -79,12 +79,12 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(not fail)
 		self.assertTrue(len(hist.data) == 0)
 		self.assertTrue(len(hist.metadata) != 0)
-	
+
 	def test_norm(self):
 		"""
 		Test normalization
 		"""
-	
+
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		lnpi_1 = copy.copy(hist.data['ln(PI)'])
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'])) - 1.0) > 1.0e-6)
@@ -93,10 +93,10 @@ class TestHistogram(unittest.TestCase):
 			hist.normalize()
 		except Exception as e:
 			print e
-			fail = True	
+			fail = True
 		self.assertTrue(not fail)
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'])) - 1.0) < 1.0e-6)
-	
+
 	def test_rew(self):
 		"""
 		Test reweighting
@@ -104,7 +104,7 @@ class TestHistogram(unittest.TestCase):
 
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		lnpi_1 = copy.copy(hist.data['ln(PI)'])
-		
+
 		# initial reweight
 		fail = False
 		try:
@@ -114,11 +114,11 @@ class TestHistogram(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 		lnpi_2 = copy.copy(hist.data['ln(PI)'])
-		
+
 		x = lnpi_1+np.arange(0,31)*self.beta_ref*(0.0-self.mu_ref[0])
 		x -= np.log(np.sum(np.exp(x)))
 		self.assertTrue(np.all(np.abs(lnpi_2-x) < 1.0e-12))
-		
+
 		# reweight again with the modified data
 		fail = False
 		try:
@@ -128,7 +128,7 @@ class TestHistogram(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 		lnpi_3 = copy.copy(hist.data['ln(PI)'])
-		
+
 		x = lnpi_1+np.arange(0,31)*self.beta_ref*(-5.0-self.mu_ref[0])
 		x -= np.log(np.sum(np.exp(x)))
 		self.assertTrue(np.all(np.abs(lnpi_3-x) < 1.0e-12))
@@ -145,7 +145,7 @@ class TestHistogram(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 		self.assertTrue(np.all(np.abs(hist.data['ln(PI)']-lnpi_3) < 1.0e-12))
-	
+
 	def test_relextrema(self):
 		"""
 		Test surface identification of local max/min
@@ -153,7 +153,7 @@ class TestHistogram(unittest.TestCase):
 
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['ln(PI)'] = np.array([1,2,3,2,1,2,3,4,5])
-		
+
 		fail = False
 		try:
 			hist.relextrema()
@@ -163,7 +163,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(not fail)
 		self.assertTrue(np.all(hist.data['ln(PI)_maxima_idx'] == [2,8]))
 		self.assertTrue(np.all(hist.data['ln(PI)_minima_idx'] == [0,4]))
-		
+
 		hist.data['ln(PI)'] = np.array([1,2,3,2,1,2])
 		fail = False
 		try:
@@ -174,7 +174,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(not fail)
 		self.assertTrue(np.all(hist.data['ln(PI)_maxima_idx'] == [2,5]))
 		self.assertTrue(np.all(hist.data['ln(PI)_minima_idx'] == [0,4]))
-		
+
 		hist.data['ln(PI)'] = np.array([1,2,3,2,1])
 		fail = False
 		try:
@@ -185,7 +185,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(not fail)
 		self.assertTrue(np.all(hist.data['ln(PI)_maxima_idx'] == [2]))
 		self.assertTrue(np.all(hist.data['ln(PI)_minima_idx'] == [0,4]))
-		
+
 		hist.data['ln(PI)'] = np.array([2,1,2,3,2,1])
 		fail = False
 		try:
@@ -196,7 +196,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(not fail)
 		self.assertTrue(np.all(hist.data['ln(PI)_maxima_idx'] == [0,3]))
 		self.assertTrue(np.all(hist.data['ln(PI)_minima_idx'] == [1,5]))
-		
+
 	def test_thermo(self):
 		"""
 		Test thermo calculations for phases
@@ -207,7 +207,7 @@ class TestHistogram(unittest.TestCase):
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
 		hist.data['mom'][0,1,0,0,:] = np.arange(0,31)
 		hist.data['mom'][1,1,0,0,:] = np.arange(0,31)*2
-		
+
 		fail = False
 		try:
 			hist.thermo()
@@ -215,12 +215,12 @@ class TestHistogram(unittest.TestCase):
 			print e
 			fail = True
 		self.assertTrue(not fail)
-		
+
 		self.assertTrue(len(hist.data['thermo']) == 2)
 		self.assertTrue(np.all(hist.data['ln(PI)_maxima_idx'] == [10,25]))
 		self.assertTrue(np.abs(hist.data['thermo'][0]['F.E./kT'] - -np.log(np.sum(np.exp(hist.data['ln(PI)'][:20] - hist.data['ln(PI)'][0])))) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][1]['F.E./kT'] - -np.log(np.sum(np.exp(hist.data['ln(PI)'][20:] - hist.data['ln(PI)'][0])))) < 1.0e-6)
-		
+
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'][:20])*np.arange(0,20))/np.sum(np.exp(hist.data['ln(PI)'][:20])) - hist.data['thermo'][0]['n1']) < 1.0e-6)
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'][:20])*np.arange(0,20)*2)/np.sum(np.exp(hist.data['ln(PI)'][:20])) - hist.data['thermo'][0]['n2']) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][0]['n1'] - 9.99979018961) < 1.0e-6)
@@ -235,7 +235,7 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.abs(hist.data['thermo'][1]['ntot'] - 75.0) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][1]['x1'] - 25./75.) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][1]['x2'] - 50./75.) < 1.0e-6)
-		
+
 	def test_thermo_complete(self):
 		"""
 		Test thermo calculations for complete lnPI surface
@@ -246,7 +246,7 @@ class TestHistogram(unittest.TestCase):
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
 		hist.data['mom'][0,1,0,0,:] = np.arange(0,31)
 		hist.data['mom'][1,1,0,0,:] = np.arange(0,31)*2
-		
+
 		fail = False
 		try:
 			hist.thermo(True, True)
@@ -254,10 +254,10 @@ class TestHistogram(unittest.TestCase):
 			print e
 			fail = True
 		self.assertTrue(not fail)
-		
+
 		self.assertTrue(len(hist.data['thermo']) == 1)
 		self.assertTrue(np.abs(hist.data['thermo'][0]['F.E./kT'] - -np.log(np.sum(np.exp(hist.data['ln(PI)'][:] - hist.data['ln(PI)'][0])))) < 1.0e-6)
-		
+
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'][:])*np.arange(0,31))/np.sum(np.exp(hist.data['ln(PI)'][:])) - hist.data['thermo'][0]['n1']) < 1.0e-6)
 		self.assertTrue(np.abs(np.sum(np.exp(hist.data['ln(PI)'][:])*np.arange(0,31)*2)/np.sum(np.exp(hist.data['ln(PI)'][:])) - hist.data['thermo'][0]['n2']) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][0]['n1'] - 10.0998274444) < 1.0e-6)
@@ -265,18 +265,18 @@ class TestHistogram(unittest.TestCase):
 		self.assertTrue(np.abs(hist.data['thermo'][0]['ntot'] - 30.2994823331) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][0]['x1'] - 10.0998274444/30.2994823331) < 1.0e-6)
 		self.assertTrue(np.abs(hist.data['thermo'][0]['x2'] - 20.1996548887/30.2994823331) < 1.0e-6)
-	
+
 	def test_is_safe(self):
 		"""
 		Test check that thermo calculations are safe
-		"""	
-		
+		"""
+
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
 		hist.data['mom'][0,1,0,0,:] = np.arange(0,31)
 		hist.data['mom'][1,1,0,0,:] = np.arange(0,31)*2
-		
+
 		fail = False
 		try:
 			hist.thermo()
@@ -284,12 +284,12 @@ class TestHistogram(unittest.TestCase):
 			print e
 			fail = True
 		self.assertTrue(not fail)
-		
+
 		self.assertTrue(not hist.is_safe(10.0))
 		self.assertTrue(hist.is_safe(5.0))
 		self.assertTrue(hist.is_safe(10.0, True))
 		self.assertTrue(not hist.is_safe(10.1, True))
-				 
+
 	def test_phase_eq(self):
 		"""
 		Test phase equilibrium at this temperature
@@ -297,7 +297,7 @@ class TestHistogram(unittest.TestCase):
 
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
-	
+
 		fail = False
 		try:
 			eq_hist = hist.find_phase_eq(0.001, self.mu_ref[0])
@@ -306,12 +306,12 @@ class TestHistogram(unittest.TestCase):
 			fail = True
 		self.assertTrue(not fail)
 		self.assertTrue(np.abs(eq_hist.data['thermo'][0]['F.E./kT']-eq_hist.data['thermo'][1]['F.E./kT']) < 0.001)
-	
+
 	def test_temp_extrap_1(self):
 		"""
 		Test first order temperature extrapolation
-		"""	
-	
+		"""
+
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
 		hist.data['ln(PI)'] = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
@@ -323,49 +323,49 @@ class TestHistogram(unittest.TestCase):
 		hist.data['mom'][1,1,1,0,:] = np.arange(0,31)*2
 		hist.data['mom'][0,0,1,1,:] = np.arange(0,31)*2
 		hist.data['mom'][1,0,1,1,:] = np.arange(0,31)*2
-		
+
 		hist.data['mom'][:,1,:,1,:] = 1.234*np.ones(31, dtype=np.float64)
-		
+
 		beta = 2.0*hist.data['curr_beta']
-		
+
 		hist.normalize()
 		lnpi_orig = copy.copy(hist.data['ln(PI)'])
 		mom = copy.copy(hist.data['mom'])
-		
+
 		f_n1n2 = hist.data['mom'][0,1,1,1,0] - hist.data['mom'][0,1,1,0,0]*hist.data['mom'][0,0,1,1,0]
 		f_n2n2 = hist.data['mom'][1,1,1,1,0] - hist.data['mom'][1,1,1,0,0]*hist.data['mom'][1,0,1,1,0]
-		
+
 		mom[0,1,0,0,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n1n2
 		mom[1,1,0,0,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n2n2
 		mom[0,0,0,1,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n1n2
 		mom[0,0,1,1,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n2n2
-		
+
 		mom[0,1,1,0,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n1n2
 		mom[1,1,1,0,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n2n2
 		mom[1,0,0,1,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n1n2
 		mom[1,0,1,1,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n2n2
-		
+
 		ave_n1 = 10.0998274444
 		ave_n2 = 20.1996548887
 		ave_ntot = 30.2994823331
 		ave_u = 1.0
-		
+
 		dlnpi = hist.data['curr_mu'][0]*(np.arange(0,31) - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(np.arange(0,31)*2 - ave_n2) - (np.ones(31, dtype=np.float64) - ave_u)
 		ans = lnpi_orig + dlnpi*(beta - hist.data['curr_beta'])
 		ans -= np.log(np.sum(np.exp(ans)))
 		new_hist = hist.temp_extrap(beta, 1, 10.0, True, True, True)
-		
+
 		self.assertTrue(np.all(np.abs(ans - new_hist.data['ln(PI)']) < 1.0e-12))
 		self.assertTrue(np.all(np.abs(beta - new_hist.data['curr_beta']) < 1.0e-12))
-	
+
 	def test_temp_extrap_2(self):
 		"""
 		Test second order temperature extrapolation
 		"""
-	
+
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		beta = 2.0*self.beta_ref
-		
+
 		# expect fail from low order
 		fail = False
 		try:
@@ -393,14 +393,14 @@ class TestHistogram(unittest.TestCase):
 
 		self.assertTrue(np.all(newh.data['curr_mu'] == [5.0, 1.0]))
 		self.assertTrue(newh.data['curr_beta'] == self.beta_ref)
-	
+
 		ave_n2 = np.sum(np.exp(hist.data['ln(PI)'])*hist.data['mom'][1,1,0,0,0])/np.sum(np.exp(hist.data['ln(PI)']))
 
 		check = hist.data['ln(PI)'] + (hist.data['curr_beta']*(hist.data['mom'][1,1,0,0,0]-ave_n2)*1.0)
 
 		newh.normalize()
 		check = np.log(np.exp(check)/np.sum(np.exp(check)))
-		
+
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 
 	def test_dmu2_extrap_2(self):
@@ -434,7 +434,7 @@ class TestHistogram(unittest.TestCase):
 
 		# normalize new estimate
 		check = np.log(np.exp(check)/np.sum(np.exp(check)))
-		
+
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
 
 	def test_temp_dmu2_extrap_1(self):
@@ -466,13 +466,13 @@ class TestHistogram(unittest.TestCase):
 		check += dlnpi*(target_beta - hist.data['curr_beta'])
 		check -= np.log(np.sum(np.exp(check)))
 
-		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)		
-	
+		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
+
 	def test_temp_dmu2_extrap_2(self):
 		"""
 		Test second order T+dMu extrapolation with 2 components
 		"""
-	
+
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		target_dmu = np.array([-4.0]) # mu = [5.0, 0.0] so dMu2 = -5.0 originally
 		target_beta = 2.0*hist.data['curr_beta']
@@ -520,7 +520,7 @@ class TestHistogram(unittest.TestCase):
 		check -= np.max(check)
 		check -= np.log(np.sum(np.exp(check)))
 		self.assertTrue(np.all(newh.data['ln(PI)']-check) < 1.0e-12)
-	
+
 	def test_temp_extrap_1_ke (self):
 		"""
 		Test first order temperature extrapolation when KE contributions are present. This should be identical to the case when we say no KE present since dlnpi_dB is structurally the same
@@ -539,38 +539,38 @@ class TestHistogram(unittest.TestCase):
 		hist.data['mom'][1,1,1,0,:] = np.arange(0,31)*2
 		hist.data['mom'][0,0,1,1,:] = np.arange(0,31)*2
 		hist.data['mom'][1,0,1,1,:] = np.arange(0,31)*2
-		
+
 		hist.data['mom'][:,1,:,1,:] = 1.234*np.ones(31, dtype=np.float64)
-		
+
 		beta = 2.0*hist.data['curr_beta']
-		
+
 		hist.normalize()
 		lnpi_orig = copy.copy(hist.data['ln(PI)'])
 		mom = copy.copy(hist.data['mom'])
-		
+
 		f_n1n2 = hist.data['mom'][0,1,1,1,0] - hist.data['mom'][0,1,1,0,0]*hist.data['mom'][0,0,1,1,0]
 		f_n2n2 = hist.data['mom'][1,1,1,1,0] - hist.data['mom'][1,1,1,0,0]*hist.data['mom'][1,0,1,1,0]
-		
+
 		mom[0,1,0,0,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n1n2
 		mom[1,1,0,0,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n2n2
 		mom[0,0,0,1,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n1n2
 		mom[0,0,1,1,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n2n2
-		
+
 		mom[0,1,1,0,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n1n2
 		mom[1,1,1,0,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n2n2
 		mom[1,0,0,1,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n1n2
 		mom[1,0,1,1,0] += (beta-self.beta_ref)*(hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*f_n2n2
-		
+
 		ave_n1 = 10.0998274444
 		ave_n2 = 20.1996548887
 		ave_ntot = 30.2994823331
 		ave_u = 1.0
-		
+
 		dlnpi = hist.data['curr_mu'][0]*(np.arange(0,31) - ave_ntot) + (hist.data['curr_mu'][1] - hist.data['curr_mu'][0])*(np.arange(0,31)*2 - ave_n2) - (np.ones(31, dtype=np.float64) - ave_u)
 		ans = lnpi_orig + dlnpi*(beta - hist.data['curr_beta'])
 		ans -= np.log(np.sum(np.exp(ans)))
 		new_hist = hist.temp_extrap(beta, 1, 10.0, True, True, True)
-		
+
 		self.assertTrue(np.all(np.abs(ans - new_hist.data['ln(PI)']) < 1.0e-12))
 		self.assertTrue(np.all(np.abs(beta - new_hist.data['curr_beta']) < 1.0e-12))
 
@@ -581,7 +581,7 @@ class TestHistogram(unittest.TestCase):
 
 		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth, True)
 		beta = 2.0*self.beta_ref
-		
+
 		self.assertTrue(hist.metadata['used_ke'])
 
 		# expect fail from low order
@@ -858,7 +858,7 @@ class TestHistogram(unittest.TestCase):
 		idx, n = [1,1,0,1,1],1
 		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (x-(d1-d2+d3))) < 1.0e-12)
-		
+
 		# pk number unaffected by KE
 
 		idx, n = [0,1,0,0,0],0
@@ -877,6 +877,82 @@ class TestHistogram(unittest.TestCase):
 		d_pe, d_ke, x, d1, d2, d3 = compare_gc_d2_x(hist_ke, hist_pe, idx, n, self.beta_ref, self.mu_ref)
 		self.assertTrue(np.abs((d_pe-d_ke) - (0.0-(d1-d2+d3))) < 1.0e-12)
 
+	def test_mix_symmetric(self):
+		"""
+		Test the ability to mix two histograms of equal size
+		"""
+
+		lnPI = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0], dtype=np.float)
+
+		hist1 = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
+		hist1.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
+		hist1.data['ln(PI)'] = lnPI
+		hist1.data['mom'][0,1,0,0,:] = np.arange(0,31)
+		hist1.data['mom'][0,1,1,0,:] = np.arange(0,31)
+		hist1.data['mom'][0,0,0,1,:] = np.arange(0,31)
+		hist1.data['mom'][1,0,0,1,:] = np.arange(0,31)
+		hist1.data['mom'][1,1,0,0,:] = np.arange(0,31)*2
+		hist1.data['mom'][1,1,1,0,:] = np.arange(0,31)*2
+		hist1.data['mom'][0,0,1,1,:] = np.arange(0,31)*2
+		hist1.data['mom'][1,0,1,1,:] = np.arange(0,31)*2
+		hist1.data['mom'][:,1,:,1,:] = 1.234*np.ones(31, dtype=np.float64)
+
+		hist2 = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
+		hist2.data['mom'] = hist1.data['mom']*2
+		hist2.data['ln(PI)'] = hist1.data['ln(PI)']*2
+
+		mixed = hist1.mix(hist2, 1.0)
+		self.assertTrue(np.all(mixed.data['ln(PI)'] == (lnPI*1.0+(2.0*lnPI)*1.0)/(1.0+1.0)))
+
+		for i in xrange(2):
+			for j in xrange(3):
+				for k in xrange(2):
+					for m in xrange(3):
+						for p in xrange(3):
+							self.assertTrue(np.all(mixed.data['mom'][i,j,k,m,p,:] == (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*1.0)/(1.0+1.0)))
+
+		mixed = hist1.mix(hist2, 0.1234)
+		self.assertTrue(np.all(mixed.data['ln(PI)'] == (lnPI*1.0+(2.0*lnPI)*0.1234)/(1.0+0.1234)))
+
+		for i in xrange(2):
+			for j in xrange(3):
+				for k in xrange(2):
+					for m in xrange(3):
+						for p in xrange(3):
+							self.assertTrue(np.all(mixed.data['mom'][i,j,k,m,p,:] == (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*0.1234)/(1.0+0.1234)))
+
+	#def test_mix_asymmetric(self):
+		"""
+		Test the ability to mix two histograms of unequal size
+		"""
+
+		"""lnPI = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
+
+		hist1 = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
+		hist1.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
+		hist1.data['ln(PI)'] = lnPI
+		hist1.data['mom'][0,1,0,0,:] = np.arange(0,31)
+		hist1.data['mom'][0,1,1,0,:] = np.arange(0,31)
+		hist1.data['mom'][0,0,0,1,:] = np.arange(0,31)
+		hist1.data['mom'][1,0,0,1,:] = np.arange(0,31)
+		hist1.data['mom'][1,1,0,0,:] = np.arange(0,31)*2
+		hist1.data['mom'][1,1,1,0,:] = np.arange(0,31)*2
+		hist1.data['mom'][0,0,1,1,:] = np.arange(0,31)*2
+		hist1.data['mom'][1,0,1,1,:] = np.arange(0,31)*2
+		hist1.data['mom'][:,1,:,1,:] = 1.234*np.ones(31, dtype=np.float64)
+
+		hist2 = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
+		hist2.data['mom'] = hist1.data['mom']*2
+		hist2.data['ln(PI)'] = hist1.data['ln(PI)']*2
+
+		# artificially trim off hist2 from 31 to 29 (trim off last 2)
+		hist2.data['mom'].resize((2,3,2,3,3,29))
+		hist2.data['ln(PI)'].resize(29)
+		hist2.data['ntot'].resize(29)
+		hist2.data['ub'] = 28 # 28 particles = size 29
+
+		mixed = hist1.mix(hist2, 1.0)
+		print 'len = ', len(mixed.data['ln(PI)'])"""
 
 def compare_gc_d2_x(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
 	"""
@@ -916,10 +992,10 @@ def compare_gc_d2_x(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
 	d3 -= mu_ref[0]*hist_pe._gc_df_dB_in((idx,n),1)
 
 	return d_pe, d_ke, x, d1, d2, d3
-	
+
 if __name__ == '__main__':
 	unittest.main()
-	
+
 	"""
 
 	* To Do:

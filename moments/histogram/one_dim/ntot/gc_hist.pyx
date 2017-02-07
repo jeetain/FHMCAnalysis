@@ -145,13 +145,13 @@ class histogram (object):
 			raise Exception ('Unable to load data from '+str(self.metadata['fname'])+' : '+str(e))
 
 		self.metadata['file_history'] = copy.copy(dataset.history)
-		self.data['ln(PI)'] = np.array(dataset.variables["ln(PI)"][:])
+		self.data['ln(PI)'] = np.array(dataset.variables["ln(PI)"][:], dtype=np.float64)
 		assert(dataset.nspec == self.metadata['nspec']), 'Different number of species in datafile from information initially specified'
 		self.data['max_order'] = int(dataset.max_order)
 		assert(self.data['max_order'] > 0), 'Error, max_order < 1'
 		self.data['volume'] = float(dataset.volume)
 		assert(self.data['volume'] > 0), 'Error, volume <= 0'
-		self.data['ntot'] = np.array(dataset.variables["N_{tot}"][:])
+		self.data['ntot'] = np.array(dataset.variables["N_{tot}"][:], dtype=np.int)
 		self.data['lb'] = self.data['ntot'][0]
 		self.data['ub'] = self.data['ntot'][len(self.data['ntot'])-1]
 		assert(self.data['lb'] < self.data['ub']), 'Error, bad bounds for N_tot'
@@ -226,7 +226,8 @@ class histogram (object):
 		mixed_hist.metadata['mu_ref'] = mixed_hist.data['curr_mu']
 
 		# Mix lnPI and moments
-		mixed_hist.data['ln(PI)'] = (self.data['ln(PI)'][:max_idx] + rel_weight*other.data['ln(PI)'][:max_idx])/(1.0+rel_weight)
+		mixed_hist.data['ln(PI)'][:max_idx] = (self.data['ln(PI)'][:max_idx] + rel_weight*other.data['ln(PI)'][:max_idx])/(1.0+rel_weight)
+
 		for i in range(self.data['nspec']):
 			for j in range(self.data['max_order']+1):
 				for k in range(self.data['nspec']):
