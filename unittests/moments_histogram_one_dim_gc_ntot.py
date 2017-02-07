@@ -921,12 +921,12 @@ class TestHistogram(unittest.TestCase):
 						for p in xrange(3):
 							self.assertTrue(np.all(mixed.data['mom'][i,j,k,m,p,:] == (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*0.1234)/(1.0+0.1234)))
 
-	#def test_mix_asymmetric(self):
+	def test_mix_asymmetric(self):
 		"""
 		Test the ability to mix two histograms of unequal size
 		"""
 
-		"""lnPI = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
+		lnPI = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
 
 		hist1 = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist1.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
@@ -952,7 +952,9 @@ class TestHistogram(unittest.TestCase):
 		hist2.data['ub'] = 28 # 28 particles = size 29
 
 		mixed = hist1.mix(hist2, 1.0)
-		print 'len = ', len(mixed.data['ln(PI)'])"""
+
+		self.assertEqual(len(mixed.data['ln(PI)']), 31)
+		print mixed.data['ln(PI)']		
 
 def compare_gc_d2_x(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
 	"""

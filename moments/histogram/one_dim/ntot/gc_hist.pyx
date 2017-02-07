@@ -226,14 +226,14 @@ class histogram (object):
 		mixed_hist.metadata['mu_ref'] = mixed_hist.data['curr_mu']
 
 		# Mix lnPI and moments
-		mixed_hist.data['ln(PI)'][:max_idx] = (self.data['ln(PI)'][:max_idx] + rel_weight*other.data['ln(PI)'][:max_idx])/(1.0+rel_weight)
+		mixed_hist.data['ln(PI)'][:max_idx] = np.array((self.data['ln(PI)'][:max_idx] + rel_weight*other.data['ln(PI)'][:max_idx])/(1.0+rel_weight), dtype=np.float64)
 
 		for i in range(self.data['nspec']):
 			for j in range(self.data['max_order']+1):
 				for k in range(self.data['nspec']):
 					for m in range(self.data['max_order']+1):
 						for p in range(self.data['max_order']+1):
-							mixed_hist.data['mom'][i,j,k,m,p,:max_idx] = (self.data['mom'][i,j,k,m,p,:max_idx] + rel_weight*other.data['mom'][i,j,k,m,p,:max_idx])/(1.0+rel_weight)
+							mixed_hist.data['mom'][i,j,k,m,p,:max_idx] = np.array((self.data['mom'][i,j,k,m,p,:max_idx] + rel_weight*other.data['mom'][i,j,k,m,p,:max_idx])/(1.0+rel_weight), dtype=np.float64)
 
 		# In the future, also mix e_hist and pk_hist, but for now delete them to prevent them from being used accidentally
 		mixed_hist.data['pk_hist'] = {}
