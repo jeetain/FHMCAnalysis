@@ -124,3 +124,21 @@ def isopleth (object):
                 # Compute properties of "mixed" histograms
                 
         return grid_x1, grid_mu
+    
+    def get_iso (self, x1):
+        """
+        Trace out the isopleth from the discretized grid of (mu1, mu2)
+        
+        Parameters
+        ----------
+        x1 : double
+            Target mole fraction of species 1
+            
+        Returns
+        -------
+        mu_vals : array
+            (mu1, mu2) values that trace out the isopleth
+            
+        """
+        
+        return mu_vals
