@@ -884,11 +884,11 @@ class TestHistogram(unittest.TestCase):
 
 		tol = 1.0e-9
 
-		lnPI = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0], dtype=np.float)
+		lnpi = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0], dtype=np.float)
 
 		hist1 = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist1.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
-		hist1.data['ln(PI)'] = lnPI
+		hist1.data['ln(PI)'] = lnpi
 		hist1.data['mom'][0,1,0,0,:] = np.arange(0,31)
 		hist1.data['mom'][0,1,1,0,:] = np.arange(0,31)
 		hist1.data['mom'][0,0,0,1,:] = np.arange(0,31)
@@ -904,7 +904,7 @@ class TestHistogram(unittest.TestCase):
 		hist2.data['ln(PI)'] = hist1.data['ln(PI)']*2
 
 		mixed = hist1.mix(hist2, [1.0, 1.0])
-		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'] - (lnPI*1.0+(2.0*lnPI)*1.0)/(1.0+1.0)) < tol))
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'] - (lnpi*1.0+(2.0*lnpi)*1.0)/(1.0+1.0)) < tol))
 
 		for i in xrange(2):
 			for j in xrange(3):
@@ -914,7 +914,7 @@ class TestHistogram(unittest.TestCase):
 							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,:] - (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*1.0)/(1.0+1.0)) < tol))
 
 		mixed = hist1.mix(hist2, [1.0, 0.1234])
-		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'] - (lnPI*1.0+(2.0*lnPI)*0.1234)/(1.0+0.1234)) < tol))
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'] - (lnpi*1.0+(2.0*lnpi)*0.1234)/(1.0+0.1234)) < tol))
 
 		for i in xrange(2):
 			for j in xrange(3):
@@ -930,11 +930,11 @@ class TestHistogram(unittest.TestCase):
 
 		tol = 1.0e-9
 
-		lnPI = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
+		lnpi = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
 
 		hist1 = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
 		hist1.data['mom'] = np.ones((2,3,2,3,3,31), dtype=np.float64)
-		hist1.data['ln(PI)'] = lnPI
+		hist1.data['ln(PI)'] = lnpi
 		hist1.data['mom'][0,1,0,0,:] = np.arange(0,31)
 		hist1.data['mom'][0,1,1,0,:] = np.arange(0,31)
 		hist1.data['mom'][0,0,0,1,:] = np.arange(0,31)
@@ -958,8 +958,8 @@ class TestHistogram(unittest.TestCase):
 		mixed = hist1.mix(hist2, [1.0, 1.0])
 
 		self.assertEqual(len(mixed.data['ln(PI)']), 31)
-		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][:29] - (1.0+2.0*1.0)/(1.0+1.0)*lnPI[:29]) < tol))
-		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][29:] - lnPI[29:]) < tol))
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][:29] - (1.0+2.0*1.0)/(1.0+1.0)*lnpi[:29]) < tol))
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][29:] - lnpi[29:]) < tol))
 
 		for i in xrange(2):
 			for j in xrange(3):
@@ -972,8 +972,8 @@ class TestHistogram(unittest.TestCase):
 		mixed = hist1.mix(hist2, [1.0, 0.1234])
 
 		self.assertEqual(len(mixed.data['ln(PI)']), 31)
-		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][:29] - (1.0+2.0*0.1234)/(1.0+0.1234)*lnPI[:29]) < tol))
-		self.assertTrue(np.all(mixed.data['ln(PI)'][29:] == lnPI[29:]))
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][:29] - (1.0+2.0*0.1234)/(1.0+0.1234)*lnpi[:29]) < tol))
+		self.assertTrue(np.all(mixed.data['ln(PI)'][29:] == lnpi[29:]))
 
 		for i in xrange(2):
 			for j in xrange(3):
