@@ -170,11 +170,11 @@ class histogram (object):
 
 		dataset.close()
 
-	def mix(self, other, double rel_weight):
+	def mix(self, other, weights):
 		"""
 		Create a new histogram that is a "mix" of this one and another one.
 		Will only mix histograms at the same temperature, and chemical potentials.
-		Properties, X, are mixed such that X(new) = [X(self)*1 + X(other)*rel_weight]/[1 + rel_weight].
+		Properties, X, are mixed such that X(new) = [X(self)*weight_self + X(other)*weight_other]/[weight_self + weight_other].
 		This requires that both histograms start from the same lower bound (i.e. Ntot = 0 usually), however
 		it allows different upper bounds.  When these are different, the default is to only use the predictions
 		from the histogram with the larger upper bound.
@@ -184,8 +184,8 @@ class histogram (object):
 		----------
 		other : gc_hist
 			Other histogram to mix with this one
-		rel_weight : float
-			Relative weight to assign to the other histogram
+		weights : array
+			Weights to assign to each of the histograms [weight_self, weight_other]
 
 		Returns
 		-------
@@ -209,6 +209,9 @@ class histogram (object):
 		if (len(self.data['mom']) != len(other.data['mom'])): raise Exception ('Difference in conditions, cannot mix histograms')
 		if (self.data['lb'] != other.data['lb']): raise Exception ('Difference in conditions, cannot mix histograms')
 
+		if (not isinstance(weights, (np.ndarray, list, tuple))): raise Exception ('Requires 2 weights, cannot mix histograms')
+		if (len(weights) != 2): raise Exception ('Requires 2 weights, cannot mix histograms')
+
 		if (len(self.data['ln(PI)']) >= len(other.data['ln(PI)'])):
 			longer_one = self
 			max_idx = len(other.data['ln(PI)'])
@@ -227,7 +230,7 @@ class histogram (object):
 
 		# Mix lnPI and moments
 		mixed_hist.data['ln(PI)'] = mixed_hist.data['ln(PI)'].astype(np.float64) # guarantee not integer
-		mixed_hist.data['ln(PI)'][:max_idx] = (self.data['ln(PI)'][:max_idx] + rel_weight*other.data['ln(PI)'][:max_idx])/(1.0+rel_weight)
+		mixed_hist.data['ln(PI)'][:max_idx] = (self.data['ln(PI)'][:max_idx]*weights[0] + weights[1]*other.data['ln(PI)'][:max_idx])/(weights[0] + weights[1])
 
 		mixed_hist.data['mom'] = mixed_hist.data['mom'].astype(np.float64) # guarantee not integer
 		for i in range(self.data['nspec']):
@@ -235,7 +238,7 @@ class histogram (object):
 				for k in range(self.data['nspec']):
 					for m in range(self.data['max_order']+1):
 						for p in range(self.data['max_order']+1):
-							mixed_hist.data['mom'][i,j,k,m,p,:max_idx] = (self.data['mom'][i,j,k,m,p,:max_idx] + rel_weight*other.data['mom'][i,j,k,m,p,:max_idx])/(1.0+rel_weight)
+							mixed_hist.data['mom'][i,j,k,m,p,:max_idx] = (self.data['mom'][i,j,k,m,p,:max_idx]*weights[0] + weights[1]*other.data['mom'][i,j,k,m,p,:max_idx])/(weights[0] + weights[1])
 
 		# In the future, also mix e_hist and pk_hist, but for now delete them to prevent them from being used accidentally
 		mixed_hist.data['pk_hist'] = {}
