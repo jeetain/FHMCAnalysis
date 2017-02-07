@@ -882,6 +882,8 @@ class TestHistogram(unittest.TestCase):
 		Test the ability to mix two histograms of equal size
 		"""
 
+		tol = 1.0e-9
+
 		lnPI = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0], dtype=np.float)
 
 		hist1 = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
@@ -902,29 +904,31 @@ class TestHistogram(unittest.TestCase):
 		hist2.data['ln(PI)'] = hist1.data['ln(PI)']*2
 
 		mixed = hist1.mix(hist2, 1.0)
-		self.assertTrue(np.all(mixed.data['ln(PI)'] == (lnPI*1.0+(2.0*lnPI)*1.0)/(1.0+1.0)))
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'] - (lnPI*1.0+(2.0*lnPI)*1.0)/(1.0+1.0)) < tol))
 
 		for i in xrange(2):
 			for j in xrange(3):
 				for k in xrange(2):
 					for m in xrange(3):
 						for p in xrange(3):
-							self.assertTrue(np.all(mixed.data['mom'][i,j,k,m,p,:] == (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*1.0)/(1.0+1.0)))
+							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,:] - (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*1.0)/(1.0+1.0)) < tol))
 
 		mixed = hist1.mix(hist2, 0.1234)
-		self.assertTrue(np.all(mixed.data['ln(PI)'] == (lnPI*1.0+(2.0*lnPI)*0.1234)/(1.0+0.1234)))
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'] - (lnPI*1.0+(2.0*lnPI)*0.1234)/(1.0+0.1234)) < tol))
 
 		for i in xrange(2):
 			for j in xrange(3):
 				for k in xrange(2):
 					for m in xrange(3):
 						for p in xrange(3):
-							self.assertTrue(np.all(mixed.data['mom'][i,j,k,m,p,:] == (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*0.1234)/(1.0+0.1234)))
+							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,:] - (hist1.data['mom'][i,j,k,m,p,:]*1.0+hist2.data['mom'][i,j,k,m,p,:]*0.1234)/(1.0+0.1234)) < tol))
 
 	def test_mix_asymmetric(self):
 		"""
 		Test the ability to mix two histograms of unequal size
 		"""
+
+		tol = 1.0e-9
 
 		lnPI = np.array([0,1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1,0,1,2,3,4,5,4,3,2,1,0])
 
@@ -954,7 +958,30 @@ class TestHistogram(unittest.TestCase):
 		mixed = hist1.mix(hist2, 1.0)
 
 		self.assertEqual(len(mixed.data['ln(PI)']), 31)
-		print mixed.data['ln(PI)']		
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][:29] - (1.0+2.0*1.0)/(1.0+1.0)*lnPI[:29]) < tol))
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][29:] - lnPI[29:]) < tol))
+
+		for i in xrange(2):
+			for j in xrange(3):
+				for k in xrange(2):
+					for m in xrange(3):
+						for p in xrange(3):
+							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,:29] - (hist1.data['mom'][i,j,k,m,p,:29]*1.0+hist2.data['mom'][i,j,k,m,p,:29]*1.0)/(1.0+1.0)) < tol))
+							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,29:] - hist1.data['mom'][i,j,k,m,p,29:]) < tol))
+
+		mixed = hist1.mix(hist2, 0.1234)
+
+		self.assertEqual(len(mixed.data['ln(PI)']), 31)
+		self.assertTrue(np.all(np.abs(mixed.data['ln(PI)'][:29] - (1.0+2.0*0.1234)/(1.0+0.1234)*lnPI[:29]) < tol))
+		self.assertTrue(np.all(mixed.data['ln(PI)'][29:] == lnPI[29:]))
+
+		for i in xrange(2):
+			for j in xrange(3):
+				for k in xrange(2):
+					for m in xrange(3):
+						for p in xrange(3):
+							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,:29] - (hist1.data['mom'][i,j,k,m,p,:29]*1.0+hist2.data['mom'][i,j,k,m,p,:29]*0.1234)/(1.0+0.1234)) < tol))
+							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,29:] - hist1.data['mom'][i,j,k,m,p,29:]) < tol))
 
 def compare_gc_d2_x(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
 	"""
