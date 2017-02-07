@@ -6,8 +6,9 @@
 """
 
 import gc_hist as gch
-import copy, cython, types, operator, bisect
 import numpy as np
+import matplotlib.pyplot as plt
+import copy, cython, types, operator, bisect
 
 cimport cython
 cimport numpy as np
@@ -127,7 +128,7 @@ def isopleth (object):
 		grid_x1 : ndarray
 			2D array of x1 (< 0 where thermodynamics could not be calculated)
 		grid_mu : ndarray
-			3D array of (mu1, mu2) at each "pixel" (-np.inf where thermodynamics could not be calculated)
+			3D array of (mu1, mu2) at each "pixel"
 
 		"""
 
@@ -148,13 +149,14 @@ def isopleth (object):
 		cdef int ny = np.ceil((mu2_bounds[1]-mu2_bounds[0])/delta[1])+1
 
 		grid_x1 = np.zeros((nx, ny), dtype=np.float64) - 1.0
-		grid_mu = np.zeros((nx, ny, 2), dtype=np.float64) - np.inf
+		grid_mu = np.zeros((nx, ny, 2), dtype=np.float64)
 
 		for i in range(0, nx):
 			for j in range(0, ny):
 				mu1 = mu1_bounds[0] + delta[0]*i
 				mu2 = mu2_bounds[0] + delta[1]*j
 				dmu2 = mu2 - mu1
+				grid_mu[i,j,:] = [mu1, mu2]
 
 				# Identify "bounding" dmu2's
 				left = bisect.bisect_left(self.data['dmu2'], dmu2)
@@ -173,7 +175,6 @@ def isopleth (object):
 							# find most stable phase and extract properties
 							most_stable_phase = _get_most_stable_phase(h_l)
 							grid_x1[i,j] = h_l.data['thermo'][most_stable_phase]['x1']
-							grid_mu[i,j,:] = [mu1, mu2]
 					except Exception as e:
 						print 'Error at (mu1,mu2) = ('+str(mu1)+','+str(mu2)+') : '+str(e)+', continuing on...'
 				elif (left == right and left == len(self.data['dmu2'])):
@@ -189,7 +190,6 @@ def isopleth (object):
 							# find most stable phase and extract properties
 							most_stable_phase = _get_most_stable_phase(h_r)
 							grid_x1[i,j] = h_r.data['thermo'][most_stable_phase]['x1']
-							grid_mu[i,j,:] = [mu1, mu2]
 					except Exception as e:
 						print 'Error at (mu1,mu2) = ('+str(mu1)+','+str(mu2)+') : '+str(e)+', continuing on...'
 				elif (fabs(dmu2 - self.data['dmu2'][left]) < self.meta['tol']):
@@ -205,7 +205,6 @@ def isopleth (object):
 							# find most stable phase and extract properties
 							most_stable_phase = _get_most_stable_phase(h_l)
 							grid_x1[i,j] = h_l.data['thermo'][most_stable_phase]['x1']
-							grid_mu[i,j,:] = [mu1, mu2]
 					except Exception as e:
 						print 'Error at (mu1,mu2) = ('+str(mu1)+','+str(mu2)+') : '+str(e)+', continuing on...'
 				else:
@@ -235,11 +234,10 @@ def isopleth (object):
 							# find most stable phase and extract properties
 							most_stable_phase = _get_most_stable_phase(h_m)
 							grid_x1[i,j] = h_m.data['thermo'][most_stable_phase]['x1']
-							grid_mu[i,j,:] = [mu1, mu2]
 
 		return grid_x1, grid_mu
 
-	def get_iso (self, x1):
+	def get_iso (self, double x1, grid_x1, grid_mu):
 		"""
 		Trace out the isopleth from the discretized grid of (mu1, mu2)
 
@@ -247,6 +245,10 @@ def isopleth (object):
 		----------
 		x1 : double
 			Target mole fraction of species 1
+		grid_x1 : ndarray
+			2D array of x1
+		grid_mu : ndarray
+			3D array of (mu1, mu2) at each "pixel"
 
 		Returns
 		-------
@@ -255,6 +257,30 @@ def isopleth (object):
 
 		"""
 
-		mu_vals = []
+		cs = plt.contour(grid_mu[:,:,0], grid_mu[:,:,1], grid_x1, [x1])
+		p = cs.collections[0].get_paths()[0]
+		v = p.vertices
+		mu_vals = zip(v[:,0], v[:,1])
 
 		return mu_vals
+
+if __name__ == '__main__':
+	print "gc_binary.pyx"
+
+	"""
+
+	* Tutorial:
+
+	To compute an isopleth for a binary system from simulations at different dmu2
+
+	1. Instantiate an isopleth object from an array of histograms measured at different (mu1, dmu2)
+	2. Call make_grid() to compute a grid over which to look for an isopleth.  This returns the grid so it can be manipulated by the user.
+	3. Use get_iso() operate on those grids to find an isopleth desired
+
+	* Notes:
+
+	Histograms do not need to be provided in any order.
+
+	* To Do:
+
+	"""
