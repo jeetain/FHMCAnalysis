@@ -817,7 +817,7 @@ class histogram (object):
 
 		return tmp_hist
 
-	def _temp_dmu_extrap_1_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, double cutoff, override=False, skip_mom=False):
+	def _temp_dmu_extrap_1_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, double cutoff=10.0, override=False, skip_mom=False):
 		"""
 		Extrapolate the histogam in an array of different temperatures and dMus using first order corrections.
 
@@ -942,6 +942,97 @@ class histogram (object):
 							for q in xrange(1, self.data['nspec']):
 								self.data['mom'][i,j,k,m,p] += target_dDmu[q-1]*dm[q,i,j,k,m,p]
 
+	def _temp_dmu_extrap_2_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, double cutoff=10.0, override=False, skip_mom=False):
+		"""
+		Extrapolate the histogam in an array of different temperatures and dMus using second order corrections.
+
+		Parameters
+		----------
+		target_betas : ndarray
+			Array of 1/kT of the desired distribution
+		target_dmus : ndarray
+			Array of [desired difference of chemical potentials of species 2-N, dmu_i = mu_i - mu_1]
+		cutoff : double
+			Difference in lnPI between maxima and edge to be considered safe to attempt reweighting (default=10)
+		override : bool
+			Override warnings about inaccuracies in lnPI (default=False)
+		skip_mom : bool
+			Skip extrapolation of moments (default=False)
+
+		Returns
+		-------
+		array
+			2D array of histogram clones at each [beta, dMu]
+
+		"""
+
+		cdef double dB
+		cdef np.ndarray[np.double_t, ndim=1] target_dDmu, xi = np.zeros(self.data['nspec'], dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=2] dlnPI = np.zeros((self.data['nspec'], self.data['ub']-self.data['lb']+1), dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=3] H_lnPI = np.zeros((self.data['nspec'], self.data['nspec'], self.data['ub']-self.data['lb']+1), dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=8] H_mom = np.zeros((self.data['nspec'], self.data['nspec'], self.data['nspec'],self.data['max_order']+1,self.data['nspec'],self.data['max_order']+1,self.data['max_order']+1, len(self.data['ln(PI)'])), dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=7] dm = np.zeros((self.data['nspec'], self.data['nspec'],self.data['max_order']+1,self.data['nspec'],self.data['max_order']+1,self.data['max_order']+1, len(self.data['ln(PI)'])), dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=2] x = np.zeros((self.data['nspec'], self.data['ub']-self.data['lb']+1), dtype=np.float64)
+		cdef int i, j, k, m, p, q, r
+
+		hists = []
+
+		# Extrapolate lnPI
+		if (not override):
+			# If histogram does not extend far enough, cannot calculate average quantities needed for extrapolation accurately
+			assert (np.max(self.data['ln(PI)']) - cutoff > self.data['ln(PI)'][len(self.data['ln(PI)'])-1]), 'Error, histogram edge effect encountered in temperature extrapolation'
+
+		try:
+			# For numerical stability, always normalize lnPI before extrapolating
+			cc = copy.deepcopy(self)
+			cc.normalize()
+			dlnPI, dm = cc._dBMU(skip_mom)
+			H_lnPI, H_mom = cc._dBMU2(skip_mom)
+		except:
+			raise Exception ('Unable to compute derivatives')
+
+		for target_beta in target_betas:
+			dB = target_beta - self.data['curr_beta']
+			hc = []
+
+			for target_dmu in target_dmus:
+				target_dDmu = target_dmu - (self.data['curr_mu'][1:] - self.data['curr_mu'][0])
+
+				try:
+					clone = copy.deepcopy(self)
+
+					xi[0] = dB
+					xi[1:] = target_dDmu[:]
+
+					clone.data['ln(PI)'] += np.dot(xi,dlnPI)
+					for q in xrange(clone.data['nspec']):
+						x[q,:] = np.dot(xi, H_lnPI[:,q,:])*xi[q]
+					clone.data['ln(PI)'] += 0.5*np.sum(x, axis=0)
+
+					for i in xrange(clone.data['nspec']):
+						for j in xrange(clone.data['max_order']+1):
+							for k in xrange(clone.data['nspec']):
+								for m in xrange(clone.data['max_order']+1):
+									for p in xrange(clone.data['max_order']+1):
+										# 1st order corrections
+										clone.data['mom'][i,j,k,m,p] += dB*dm[0,i,j,k,m,p]
+										for q in xrange(1, clone.data['nspec']):
+											clone.data['mom'][i,j,k,m,p] += target_dDmu[q-1]*dm[q,i,j,k,m,p]
+
+										# 2nd order corrections
+										for q in xrange(clone.data['nspec']):
+											x[q,:] = np.dot(xi, H_mom[:,q,i,j,k,m,p,:])*xi[q]
+										clone.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
+
+				except:
+					hc.append(None)
+				else:
+					hc.append(clone)
+
+			hists.append(hc)
+
+		return hists
+
 	def _temp_dmu_extrap_2(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_dmu, double cutoff=10.0, override=False, skip_mom=False):
 		"""
 		Extrapolate the histogam in temperature and dMu using second order corrections.
@@ -970,13 +1061,16 @@ class histogram (object):
 		cdef np.ndarray[np.double_t, ndim=2] x = np.zeros((self.data['nspec'], self.data['ub']-self.data['lb']+1), dtype=np.float64)
 		cdef int i, j, k, m, p, q, r
 
-		# extrapolate lnPI
+		# Extrapolate lnPI
 		if (not override):
-			# if histogram does not extend far enough, cannot calculate average quantities needed for extrapolation accurately
+			# If histogram does not extend far enough, cannot calculate average quantities needed for extrapolation accurately
 			assert (np.max(self.data['ln(PI)']) - cutoff > self.data['ln(PI)'][len(self.data['ln(PI)'])-1]), 'Error, histogram edge effect encountered in temperature extrapolation'
 
-		dlnPI, dm = self._dBMU(skip_mom)
-		H_lnPI, H_mom = self._dBMU2(skip_mom)
+		try:
+			dlnPI, dm = self._dBMU(skip_mom)
+			H_lnPI, H_mom = self._dBMU2(skip_mom)
+		except:
+			raise Exception ('Unable to compure derivatives')
 
 		xi[0] = dB
 		xi[1:] = target_dDmu[:]
@@ -990,6 +1084,12 @@ class histogram (object):
 				for k in xrange(self.data['nspec']):
 					for m in xrange(self.data['max_order']+1):
 						for p in xrange(self.data['max_order']+1):
+							# 1st order corrections
+							self.data['mom'][i,j,k,m,p] += dB*dm[0,i,j,k,m,p]
+							for q in xrange(1, self.data['nspec']):
+								self.data['mom'][i,j,k,m,p] += target_dDmu[q-1]*dm[q,i,j,k,m,p]
+
+							# 2nd order corrections
 							for q in xrange(self.data['nspec']):
 								x[q,:] = np.dot(xi, H_mom[:,q,i,j,k,m,p,:])*xi[q]
 							self.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
@@ -2093,7 +2193,8 @@ class histogram (object):
 					for m in xrange(self.data['max_order']+1):
 						for p in xrange(self.data['max_order']+1):
 							for q in xrange(self.data['nspec']-1):
-								x[q,:] = np.dot(target_dDmu, H_mom[:,q,i,j,k,m,p,:])*target_dDmu[q]
+								self.data['mom'][i,j,k,m,p] += target_dDmu[q]*dm_dDmu[q,i,j,k,m,p] # First order corrections
+								x[q,:] = np.dot(target_dDmu, H_mom[:,q,i,j,k,m,p,:])*target_dDmu[q] # Second order corrections
 							self.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
 
 	def _dMU(self, skip_mom=False):
