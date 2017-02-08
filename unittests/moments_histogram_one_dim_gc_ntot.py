@@ -23,7 +23,7 @@ class TestHistogram(unittest.TestCase):
 
 		self.fname = 'reference/test.nc'
 		self.beta_ref = 1.0
-		self.mu_ref = [5, 0]
+		self.mu_ref = [5.0, 0.0]
 		self.smooth = 1
 
 	def test_init(self):
@@ -983,6 +983,65 @@ class TestHistogram(unittest.TestCase):
 							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,:29] - (hist1.data['mom'][i,j,k,m,p,:29]*1.0+hist2.data['mom'][i,j,k,m,p,:29]*0.1234)/(1.0+0.1234)) < tol))
 							self.assertTrue(np.all(np.abs(mixed.data['mom'][i,j,k,m,p,29:] - hist1.data['mom'][i,j,k,m,p,29:]) < tol))
 
+	def test_temp_dmu2_extrap_multi(self):
+		"""
+		Test second order T+dMu extrapolation with 2 components for multiple conditions.
+		"""
+		import time
+
+		hist = oneDH.histogram(self.fname, self.beta_ref, self.mu_ref, self.smooth)
+		target_dmus = np.array([np.array([-4.0]), np.array([-6.0])]) # mu = [5.0, 0.0] so dMu2 = -5.0 originally
+		target_betas = np.array([2.0*hist.data['curr_beta'], 0.5*hist.data['curr_beta']])
+
+		fail = False
+		try:
+			hists = hist.temp_dmu_extrap_multi(target_betas, target_dmus, 2, 10.0, True, True)
+		except Exception as e:
+			print e
+			fail = True
+
+		self.assertTrue(not fail)
+		self.assertTrue(len(hists) == 2)
+		self.assertTrue(len(hists[0]) == 2)
+		self.assertTrue(len(hists[1]) == 2)
+
+		# Check mu1 preserved
+		for h in [item for sublist in hists for item in sublist]:
+			self.assertTrue(h.data['curr_mu'][0] == 5.0)
+
+		# Check beta and dMu shifted accordingly in the grid
+		self.assertTrue(hists[0][0].data['curr_mu'][1] == 5.0+target_dmus[0])
+		self.assertTrue(hists[0][0].data['curr_beta'] == target_betas[0])
+		self.assertTrue(hists[0][1].data['curr_mu'][1] == 5.0+target_dmus[1])
+		self.assertTrue(hists[0][1].data['curr_beta'] == target_betas[0])
+
+		self.assertTrue(hists[1][0].data['curr_mu'][1] == 5.0+target_dmus[0])
+		self.assertTrue(hists[1][0].data['curr_beta'] == target_betas[1])
+		self.assertTrue(hists[1][1].data['curr_mu'][1] == 5.0+target_dmus[1])
+		self.assertTrue(hists[1][1].data['curr_beta'] == target_betas[1])
+
+		# Check original hist untouched
+		self.assertTrue(hist.data['curr_mu'][0] == self.mu_ref[0])
+		self.assertTrue(hist.data['curr_mu'][1] == self.mu_ref[1])
+		self.assertTrue(hist.data['curr_beta'] == self.beta_ref)
+
+		# Check each histogram's ln(PI) is same as if were individually extrapolated
+		hc = copy.deepcopy(hist)
+		hcn = hc.temp_dmu_extrap(target_betas[0], target_dmus[0], 2, 10.0, True, True, True)
+		self.assertTrue(np.all(np.abs(hcn.data['ln(PI)'] - hists[0][0].data['ln(PI)']) < 1.0e-9))
+
+		hc = copy.deepcopy(hist)
+		hcn = hc.temp_dmu_extrap(target_betas[0], target_dmus[1], 2, 10.0, True, True, True)
+		self.assertTrue(np.all(np.abs(hcn.data['ln(PI)'] - hists[0][1].data['ln(PI)']) < 1.0e-9))
+
+		hc = copy.deepcopy(hist)
+		hcn = hc.temp_dmu_extrap(target_betas[1], target_dmus[0], 2, 10.0, True, True, True)
+		self.assertTrue(np.all(np.abs(hcn.data['ln(PI)'] - hists[1][0].data['ln(PI)']) < 1.0e-9))
+
+		hc = copy.deepcopy(hist)
+		hcn = hc.temp_dmu_extrap(target_betas[1], target_dmus[1], 2, 10.0, True, True, True)
+		self.assertTrue(np.all(np.abs(hcn.data['ln(PI)'] - hists[1][1].data['ln(PI)']) < 1.0e-9))
+
 def compare_gc_d2_x(hist_ke, hist_pe, idx, n, beta_ref, mu_ref):
 	"""
 	Compare semigrand second derivative when using kinetic contributions.
@@ -1030,6 +1089,7 @@ if __name__ == '__main__':
 	* To Do:
 
 	Should unittest more components that 2 when this is going to be used.
+	Add unittests for moment extrapolation not just lnpi for temp_dmu_extrap.
 
 	* Notes:
 
