@@ -1014,14 +1014,9 @@ class histogram (object):
 							for k in xrange(clone.data['nspec']):
 								for m in xrange(clone.data['max_order']+1):
 									for p in xrange(clone.data['max_order']+1):
-										# 1st order corrections
-										clone.data['mom'][i,j,k,m,p] += dB*dm[0,i,j,k,m,p]
-										for q in xrange(1, clone.data['nspec']):
-											clone.data['mom'][i,j,k,m,p] += target_dDmu[q-1]*dm[q,i,j,k,m,p]
-
-										# 2nd order corrections
 										for q in xrange(clone.data['nspec']):
-											x[q,:] = np.dot(xi, H_mom[:,q,i,j,k,m,p,:])*xi[q]
+											clone.data['mom'][i,j,k,m,p] += xi[q]*dm[q,i,j,k,m,p] # 1st order corrections
+											x[q,:] = np.dot(xi, H_mom[:,q,i,j,k,m,p,:])*xi[q] # 2nd order corrections
 										clone.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
 
 				except:
@@ -1084,14 +1079,9 @@ class histogram (object):
 				for k in xrange(self.data['nspec']):
 					for m in xrange(self.data['max_order']+1):
 						for p in xrange(self.data['max_order']+1):
-							# 1st order corrections
-							self.data['mom'][i,j,k,m,p] += dB*dm[0,i,j,k,m,p]
-							for q in xrange(1, self.data['nspec']):
-								self.data['mom'][i,j,k,m,p] += target_dDmu[q-1]*dm[q,i,j,k,m,p]
-
-							# 2nd order corrections
 							for q in xrange(self.data['nspec']):
-								x[q,:] = np.dot(xi, H_mom[:,q,i,j,k,m,p,:])*xi[q]
+								self.data['mom'][i,j,k,m,p] += xi[q]*dm[q,i,j,k,m,p] # 1st order corrections
+								x[q,:] = np.dot(xi, H_mom[:,q,i,j,k,m,p,:])*xi[q] # 2nd order corrections
 							self.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
 
 	def _gc_fluct_vv(self, a, b):
