@@ -19,6 +19,7 @@ from cpython cimport bool
 from libc.math cimport exp
 from libc.math cimport log
 from libc.math cimport fabs
+from joblib import Parallel, delayed
 
 np.seterr(divide='raise', over='raise', invalid='raise', under='ignore')
 
@@ -193,10 +194,12 @@ class isopleth (object):
 
 		mu1_v = np.linspace(mu1_bounds[0],mu1_bounds[1],nx)
 		dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
-		X,Y = np.meshgrid(mu1_v, dmu2_v)
-		Z = np.zeros(X.shape, dtype=np.float64)
+		self.data['X'], self.data['Y'] = np.meshgrid(mu1_v, dmu2_v)
+		self.data['Z'] = np.zeros(self.data['X'].shape, dtype=np.float64)
 
-		for i in range(0, X.shape[0]):
+		Parallel(n_jobs=4)(delayed(self._parallel_grid)(x) for x in zip([i for i in range(0, self.data['X'].shape[0])],[j for j in range(0, self.data['X'].shape[1])]))
+
+		"""for i in range(0, X.shape[0]):
 			for j in range(0, X.shape[1]):
 				mu1 = X[i,j]
 				dmu2 = Y[i,j]
@@ -256,9 +259,71 @@ class isopleth (object):
 						else:
 							# Find most stable phase and extract properties
 							most_stable_phase = _get_most_stable_phase(h_m)
-							Z[i,j] = h_m.data['thermo'][most_stable_phase]['x1']
+							Z[i,j] = h_m.data['thermo'][most_stable_phase]['x1']"""
 
-		return Z, (X,Y)
+		return self.data['Z'], (self.data['X'], self.data['Y'])
+
+	def _parallel_grid(self, tuple ij_idx):
+		i, j = ij_idx
+		mu1 = self.data['X'][i,j]
+		dmu2 = self.data['Y'][i,j]
+
+		# Identify "bounding" dmu2's
+		left, right = _find_left_right(self.data['dmu2'], dmu2)
+
+		if (left == right):
+			if (left < 0):
+				# Below lower bound
+				h_l = self.data['histograms'][0]
+			elif (left == len(self.data['dmu2'])):
+				# Above upper bound
+				h_l = self.data['histograms'][-1]
+			else:
+				# Falls exactly on one of the dmu2 values
+				h_l = self.data['histograms'][left]
+
+			try:
+				h_l.reweight(mu1)
+				h_l = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
+				h_l.thermo()
+				if (not h_l.is_safe()):
+					raise Exception ('extrapolated ln(PI) in histogram is not safe to use')
+				else:
+					# find most stable phase and extract properties
+					most_stable_phase = _get_most_stable_phase(h_l)
+					self.data['Z'][i,j] = h_l.data['thermo'][most_stable_phase]['x1']
+			except Exception as e:
+				print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
+		else:
+			# In between two measured dmu2 values
+			h_l = self.data['histograms'][left]
+			h_r = self.data['histograms'][right]
+
+			try:
+				h_l.reweight(mu1)
+				h_l = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
+				h_r.reweight(mu1)
+				h_r = h_r.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
+			except Exception as e:
+				print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
+			else:
+				# "Linearly" mix these histograms
+				dl = fabs(self.data['dmu2'][left] - dmu2)
+				dr = fabs(self.data['dmu2'][right] - dmu2)
+				wl = dr/(dr+dl) # Weights are "complementary" to distances
+				wr = dl/(dr+dl) # Weights are "complementary" to distances
+
+				h_m = h_l.mix(h_r, [wl, wr])
+				try:
+					h_m.thermo()
+					if (not h_m.is_safe()):
+						raise Exception ('extrapolated ln(PI) in histogram is not safe to use')
+				except Exception as e:
+					print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
+				else:
+					# Find most stable phase and extract properties
+					most_stable_phase = _get_most_stable_phase(h_m)
+					self.data['Z'][i,j] = h_m.data['thermo'][most_stable_phase]['x1']
 
 	def get_iso (self, double x1, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
 		"""
