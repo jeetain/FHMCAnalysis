@@ -567,7 +567,7 @@ class histogram (object):
 		else:
 			tmp_hist = self
 
-		# for numerical stability, always normalize lnPI before extrapolating
+		# For numerical stability, always normalize lnPI before extrapolating
 		tmp_hist.normalize()
 
 		if (order == 1):
@@ -588,10 +588,9 @@ class histogram (object):
 		else:
 			raise Exception('No implementation for temperature extrapolation of order '+str(order))
 
-		# reset beta after extrapolation is done so the object still knows what beta it originated from during calculation
 		tmp_hist.data['curr_beta'] = target_beta
 
-		# renormalize afterwards as well
+		# Renormalize afterwards as well
 		tmp_hist.normalize()
 
 		return tmp_hist
@@ -644,7 +643,7 @@ class histogram (object):
 		else:
 			tmp_hist = self
 
-		# for numerical stability, always normalize lnPI before extrapolating
+		# For numerical stability, always normalize lnPI before extrapolating
 		tmp_hist.normalize()
 
 		if (order == 1):
@@ -662,7 +661,7 @@ class histogram (object):
 
 		tmp_hist.data['curr_mu'][1:] = tmp_hist.data['curr_mu'][0] + target_dmu
 
-		# renormalize afterwards as well
+		# Renormalize afterwards as well
 		tmp_hist.normalize()
 
 		return tmp_hist
@@ -731,7 +730,6 @@ class histogram (object):
 		else:
 			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
 
-		# Reset beta after extrapolation is done so the object still knows what beta it originated from during calculation
 		for i in range(len(target_betas)):
 			for j in range(len(target_dmus)):
 				hists[i][j].data['curr_beta'] = target_betas[i]
@@ -811,7 +809,6 @@ class histogram (object):
 		else:
 			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
 
-		# Reset beta after extrapolation is done so the object still knows what beta it originated from during calculation
 		tmp_hist.data['curr_beta'] = target_beta
 		tmp_hist.data['curr_mu'][1:] = tmp_hist.data['curr_mu'][0] + target_dmu
 
