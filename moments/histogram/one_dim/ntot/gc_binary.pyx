@@ -155,11 +155,11 @@ class isopleth (object):
 
 		Parameters
 		----------
-		mu1_bounds : tuple
+		mu1_bounds : array-like
 			min, max of mu_1 to consider
-		dmu2_bounds : tuple
+		dmu2_bounds : array-like
 			min, max of dmu_2 to consider
-		delta : tuple or array
+		delta : array-like
 			Width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
 
 		Returns
@@ -174,10 +174,14 @@ class isopleth (object):
 		cdef int i, j, left, right
 		cdef double dmu2, mu1, mu2
 
+		if (not isinstance(mu1_bounds, (list, np.ndarray, tuple))): raise Exception ('Expects an array of mu1 bounds to construct isopleths')
+		if (not isinstance(dmu2_bounds, (list, np.ndarray, tuple))): raise Exception ('Expects an array of dmu2 bounds to construct isopleths')
+		if (not isinstance(delta, (list, np.ndarray, tuple))): raise Exception ('Expects an array of delta mu values to construct isopleths')
+		
 		if (len(mu1_bounds) != 2): raise Exception ('mu1_bound error in constructing isopleths')
 		if (len(dmu2_bounds) != 2): raise Exception ('dmu2_bound error in constructing isopleths')
-		if (not isinstance(delta, (list, np.ndarray))): raise Exception ('Expects an array of delta mu values to construct isopleths')
 		if (len(delta) != 2): raise Exception ('delta error in constructing isopleths')
+		
 		if (mu1_bounds[1] <= mu1_bounds[0]): raise Exception ('mu1_bound error in constructing isopleths')
 		if (dmu2_bounds[1] <= dmu2_bounds[0]): raise Exception ('dmu2_bound error in constructing isopleths')
 		if (delta[0] <= 0): raise Exception ('delta error in constructing isopleths')
@@ -187,8 +191,6 @@ class isopleth (object):
 		cdef int nx = np.ceil((mu1_bounds[1]-mu1_bounds[0])/delta[0])+1
 		cdef int ny = np.ceil((dmu2_bounds[1]-dmu2_bounds[0])/delta[1])+1
 
-		#grid_x1 = np.zeros((nx, ny), dtype=np.float64) - 1.0
-		#grid_mu = np.zeros((nx, ny, 2), dtype=np.float64)
 		mu1_v = np.linspace(mu1_bounds[0],mu1_bounds[1],nx)
 		dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
 		X,Y = np.meshgrid(mu1_v, dmu2_v)
@@ -241,8 +243,8 @@ class isopleth (object):
 						# "Linearly" mix these histograms
 						dl = fabs(self.data['dmu2'][left] - dmu2)
 						dr = fabs(self.data['dmu2'][right] - dmu2)
-						wl = dr/(self.data['dmu2'][right]-self.data['dmu2'][left]) # Weights are "complementary" to distances
-						wr = dl/(self.data['dmu2'][right]-self.data['dmu2'][left]) # Weights are "complementary" to distances
+						wl = dr/(dr+dl) # Weights are "complementary" to distances
+						wr = dl/(dr+dl) # Weights are "complementary" to distances
 
 						h_m = h_l.mix(h_r, [wl, wr])
 						try:
@@ -256,95 +258,9 @@ class isopleth (object):
 							most_stable_phase = _get_most_stable_phase(h_m)
 							Z[i,j] = h_m.data['thermo'][most_stable_phase]['x1']
 							
-				"""
-				mu1 = X[i,j] #mu1_bounds[0] + delta[0]*i
-				dmu2 = Y[i,j] #dmu2_bounds[0] + delta[1]*j
-				#grid_mu[i,j,:] = [mu1, dmu2]
-
-				# Identify "bounding" dmu2's
-				left = bisect.bisect_left(self.data['dmu2'], dmu2)
-				right = bisect.bisect_right(self.data['dmu2'], dmu2)
-
-				if (left == right and left == 0):
-					# below the lowest bounds, extrapolate just the lowest bound
-					h_l = self.data['histograms'][left]
-					try:
-						h_l.reweight(mu1)
-						h_l = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
-						h_l.thermo()
-						if (not h_l.is_safe()):
-							raise Exception ('extrapolated ln(PI) in histogram is not safe to use')
-						else:
-							# find most stable phase and extract properties
-							most_stable_phase = _get_most_stable_phase(h_l)
-							Z[i,j] = h_l.data['thermo'][most_stable_phase]['x1']
-					except Exception as e:
-						print 'Error at (mu1,dmu2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
-				elif (left == right and left == len(self.data['dmu2'])):
-					# above top bound, extrapolate just the upper bound
-					h_r = self.data['histograms'][right-1]
-					try:
-						h_r.reweight(mu1)
-						h_r = h_r.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
-						h_r.thermo()
-						if (not h_r.is_safe()):
-							raise Exception ('extrapolated ln(PI) in histogram is not safe to use')
-						else:
-							# find most stable phase and extract properties
-							most_stable_phase = _get_most_stable_phase(h_r)
-							Z[i,j] = h_r.data['thermo'][most_stable_phase]['x1']
-					except Exception as e:
-						print 'Error at (mu1,dmu2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
-				elif (fabs(dmu2 - self.data['dmu2'][left]) < self.meta['tol']):
-					# exactly equal to the dmu2 value at left, just use this one (no extrapolation necessary)
-					h_l = self.data['histograms'][left]
-					try:
-						h_l.reweight(mu1)
-						h_l = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
-						h_l.thermo()
-						if (not h_l.is_safe()):
-							raise Exception ('extrapolated ln(PI) in histogram is not safe to use')
-						else:
-							# find most stable phase and extract properties
-							most_stable_phase = _get_most_stable_phase(h_l)
-							Z[i,j] = h_l.data['thermo'][most_stable_phase]['x1']
-					except Exception as e:
-						print 'Error at (mu1,dmu2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
-				else:
-					# in between two measured dmu2 values
-					h_l = self.data['histograms'][left]
-					h_r = self.data['histograms'][right]
-					try:
-						h_l.reweight(mu1)
-						h_l = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
-						h_r.reweight(mu1)
-						h_r = h_r.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
-					except Exception as e:
-						print 'Error at (mu1,dmu2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
-					else:
-						# "linearly" mix these histograms
-						dl = fabs(self.data['dmu2'][left] - dmu2)
-						dr = fabs(self.data['dmu2'][right] - dmu2)
-						print 'dl, dr = ', dl, dr, self.data['dmu2'][right], self.data['dmu2'][left], left, right
-						print self.data['dmu2'], dmu2
-						wl = dr/(self.data['dmu2'][right]-self.data['dmu2'][left]) # weights are "complementary" to distances
-						wr = dl/(self.data['dmu2'][right]-self.data['dmu2'][left]) # weights are "complementary" to distances
-
-						h_m = h_l.mix(h_r, [wl, wr])
-						try:
-							h_m.thermo()
-							if (not h_m.is_safe()):
-								raise Exception ('extrapolated ln(PI) in histogram is not safe to use')
-						except Exception as e:
-							print 'Error at (mu1,mu2) = ('+str(mu1)+','+str(mu2)+') : '+str(e)+', continuing on...'
-						else:
-							# find most stable phase and extract properties
-							most_stable_phase = _get_most_stable_phase(h_m)
-							Z[i,j] = h_m.data['thermo'][most_stable_phase]['x1']
-				"""
 		return Z, (X,Y)
 
-	def get_iso (self, double x1, grid_x1, grid_mu):
+	def get_iso (self, double x1, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
 		"""
 		Trace out the isopleth from the discretized grid of (mu1, mu2)
 
@@ -354,17 +270,19 @@ class isopleth (object):
 			Target mole fraction of species 1
 		grid_x1 : ndarray
 			2D array of x_1
-		grid_mu : ndarray
-			3D array of (mu_1, dmu_2) at each "pixel"
-
+		grid_mu1 : ndarray
+			2D array of mu_1 at each "pixel"
+		grid_dmu2 : ndarray
+			2D array of dmu_2 at each "pixel"
+			
 		Returns
 		-------
 		mu_vals : array
-			array of tuples (mu_1, mu_2) that trace out the isopleth
+			array of tuples (mu_1, dmu_2) that trace out the isopleth
 
 		"""
 
-		cs = plt.contour(grid_mu[:,:,0], grid_mu[:,:,1], grid_x1, [x1])
+		cs = plt.contour(grid_mu1, grid_dmu2, grid_x1, [x1])
 		p = cs.collections[0].get_paths()[0]
 		v = p.vertices
 		mu_vals = zip(v[:,0], v[:,1])
@@ -390,4 +308,7 @@ if __name__ == '__main__':
 
 	* To Do:
 
+	Optimize make_grid and have extrapolation called such that is grouped into same mu1, but for set of dMu2.
+	Needs to be implemented in gc_hist.pyx to accept a variety of dMu2 values so derivatives only need to be calculated once.
+	
 	"""
