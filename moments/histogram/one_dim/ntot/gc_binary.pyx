@@ -28,19 +28,19 @@ cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val):
 	"""
 	Find the indices to the left and right of value in an array ordered from low to high.
 	If left == right, val is in the list, if < 0 or > len(ordered_dmu2) then is past the bounds.
-	
+
 	Parameters
 	----------
 	ordered_dmu2 : ndarray
 		Ordered array of dmu2 values from low to high
 	val : double
 		dmu2 to find bounds of
-		
+
 	Returns
 	-------
 	int, int
 		left, right
-		
+
 	"""
 	cdef int left, right
 
@@ -58,7 +58,7 @@ cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val):
 	else:
 		left = bisect.bisect(ordered_dmu2, val)-1
 		right = left+1
-		  
+
 	return left, right
 
 @cython.boundscheck(False)
@@ -172,16 +172,16 @@ class isopleth (object):
 		"""
 
 		cdef int i, j, left, right
-		cdef double dmu2, mu1, mu2
+		cdef double dmu2, mu1
 
 		if (not isinstance(mu1_bounds, (list, np.ndarray, tuple))): raise Exception ('Expects an array of mu1 bounds to construct isopleths')
 		if (not isinstance(dmu2_bounds, (list, np.ndarray, tuple))): raise Exception ('Expects an array of dmu2 bounds to construct isopleths')
 		if (not isinstance(delta, (list, np.ndarray, tuple))): raise Exception ('Expects an array of delta mu values to construct isopleths')
-		
+
 		if (len(mu1_bounds) != 2): raise Exception ('mu1_bound error in constructing isopleths')
 		if (len(dmu2_bounds) != 2): raise Exception ('dmu2_bound error in constructing isopleths')
 		if (len(delta) != 2): raise Exception ('delta error in constructing isopleths')
-		
+
 		if (mu1_bounds[1] <= mu1_bounds[0]): raise Exception ('mu1_bound error in constructing isopleths')
 		if (dmu2_bounds[1] <= dmu2_bounds[0]): raise Exception ('dmu2_bound error in constructing isopleths')
 		if (delta[0] <= 0): raise Exception ('delta error in constructing isopleths')
@@ -195,15 +195,15 @@ class isopleth (object):
 		dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
 		X,Y = np.meshgrid(mu1_v, dmu2_v)
 		Z = np.zeros(X.shape, dtype=np.float64)
-		
+
 		for i in range(0, X.shape[0]):
 			for j in range(0, X.shape[1]):
-				mu1 = X[i,j] 
+				mu1 = X[i,j]
 				dmu2 = Y[i,j]
-				
+
 				# Identify "bounding" dmu2's
 				left, right = _find_left_right(self.data['dmu2'], dmu2)
-				
+
 				if (left == right):
 					if (left < 0):
 						# Below lower bound
@@ -214,7 +214,7 @@ class isopleth (object):
 					else:
 						# Falls exactly on one of the dmu2 values
 						h_l = self.data['histograms'][left]
-						
+
 					try:
 						h_l.reweight(mu1)
 						h_l = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
@@ -226,19 +226,19 @@ class isopleth (object):
 							most_stable_phase = _get_most_stable_phase(h_l)
 							Z[i,j] = h_l.data['thermo'][most_stable_phase]['x1']
 					except Exception as e:
-						print 'Error at (mu1,dmu2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
+						print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
 				else:
 					# In between two measured dmu2 values
 					h_l = self.data['histograms'][left]
 					h_r = self.data['histograms'][right]
-					
+
 					try:
 						h_l.reweight(mu1)
 						h_l = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
 						h_r.reweight(mu1)
 						h_r = h_r.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
 					except Exception as e:
-						print 'Error at (mu1,dmu2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
+						print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
 					else:
 						# "Linearly" mix these histograms
 						dl = fabs(self.data['dmu2'][left] - dmu2)
@@ -252,17 +252,17 @@ class isopleth (object):
 							if (not h_m.is_safe()):
 								raise Exception ('extrapolated ln(PI) in histogram is not safe to use')
 						except Exception as e:
-							print 'Error at (mu1,mu2) = ('+str(mu1)+','+str(mu2)+') : '+str(e)+', continuing on...'
+							print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
 						else:
 							# Find most stable phase and extract properties
 							most_stable_phase = _get_most_stable_phase(h_m)
 							Z[i,j] = h_m.data['thermo'][most_stable_phase]['x1']
-							
+
 		return Z, (X,Y)
 
 	def get_iso (self, double x1, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
 		"""
-		Trace out the isopleth from the discretized grid of (mu1, mu2)
+		Trace out the isopleth from the discretized grid of (mu_1, dmu_2)
 
 		Parameters
 		----------
@@ -274,7 +274,7 @@ class isopleth (object):
 			2D array of mu_1 at each "pixel"
 		grid_dmu2 : ndarray
 			2D array of dmu_2 at each "pixel"
-			
+
 		Returns
 		-------
 		mu_vals : array
@@ -310,5 +310,5 @@ if __name__ == '__main__':
 
 	Optimize make_grid and have extrapolation called such that is grouped into same mu1, but for set of dMu2.
 	Needs to be implemented in gc_hist.pyx to accept a variety of dMu2 values so derivatives only need to be calculated once.
-	
+
 	"""
