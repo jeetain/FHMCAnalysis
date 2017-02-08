@@ -667,6 +667,81 @@ class histogram (object):
 
 		return tmp_hist
 
+	def temp_dmu_extrap_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, int order=1, double cutoff=10.0, override=False, skip_mom=False):
+		"""
+		Use temperature and delta Mu extrapolation to estimate lnPI and other extensive properties from current conditions for a grid different beta and dMu values.
+		Creates a 2D grid of conditions where beta is the first dimension, and dMu's are the second.  So all target_betas and target_dmus are evaluated.
+		By default, this first makes a clone of itself so this extrapolation does not modify the original histogram object.
+
+		Should do reweighting (if desired) first, then call this member (curr_mu1 should reflect this).
+
+		Parameters
+		----------
+		target_betas : ndarray
+			Array of 1/kT of the desired distribution
+		target_dmus : ndarray
+			Array of  [desired difference of chemical potentials of species 2-N, dmu_i = mu_i - mu_1]
+		order : int
+			Order of the extapolation to use (default=1)
+		cutoff : double
+			Difference in lnPI between maxima and edge to be considered safe to attempt reweighting (default=10)
+		override : bool
+			Override warnings about inaccuracies in lnPI (default=False)
+		skip_mom : bool
+			Skip extrapolation of moments (default=False)
+
+		Returns
+		-------
+		array
+			2D array of histogram objects with information extrapolated to [1/kT, dMu] values. Histograms are renormalized.  If an extrapolation failed, the array is None at that position.
+
+		"""
+
+		cdef int i, j
+
+		if (np.abs(self.metadata['beta_ref'] - self.data['curr_beta']) > 1.0e-6):
+			raise Exception ('Cannot extrapolate the same histogram class twice')
+
+		for target_dmu in target_dmus:
+			assert (len(target_dmu) == self.data['nspec']-1), 'Must specify delta mu for all components 2-N'
+
+		orig_dmu = self.metadata['mu_ref'][1:] - self.metadata['mu_ref'][0]
+		curr_dmu = self.data['curr_mu'][1:] - self.data['curr_mu'][0]
+		if (np.any(np.abs(orig_dmu - curr_dmu) > 1.0e-6)):
+			raise Exception ('Cannot extrapolate the same histogram class twice')
+
+		if (not skip_mom):
+			needed_order = order+1
+		else:
+			needed_order = order
+
+		if (self.data['max_order'] < needed_order):
+			raise Exception ('Maximum order stored in simulation not high enough to calculate this order of extrapolation')
+
+		if (order == 1):
+			try:
+				hists = self._temp_dmu_extrap_1_multi(target_betas, target_dmus, cutoff, override, skip_mom)
+			except Exception as e:
+				raise Exception('Unable to extrapolate in temperature: '+str(e))
+		elif (order == 2):
+			try:
+				hists = self._temp_dmu_extrap_2_multi(target_betas, target_dmus, cutoff, override, skip_mom)
+			except Exception as e:
+				raise Exception('Unable to extrapolate in temperature: '+str(e))
+		else:
+			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
+
+		# Reset beta after extrapolation is done so the object still knows what beta it originated from during calculation
+		for i in range(len(target_betas)):
+			for j in range(len(target_dmus)):
+				hists[i][j].data['curr_beta'] = target_betas[i]
+				hists[i][j].data['curr_mu'][1:] = hists[i][j].data['curr_mu'][0] + target_dmus[j]
+
+				# Renormalize afterwards as well
+				hists[i][j].normalize()
+
+		return hists
+
 	def temp_dmu_extrap(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_dmu, int order=1, double cutoff=10.0, override=False, clone=True, skip_mom=False):
 		"""
 		Use temperature and delta Mu extrapolation to estimate lnPI and other extensive properties from current conditions.
@@ -720,7 +795,7 @@ class histogram (object):
 		else:
 			tmp_hist = self
 
-		# for numerical stability, always normalize lnPI before extrapolating
+		# For numerical stability, always normalize lnPI before extrapolating
 		tmp_hist.normalize()
 
 		if (order == 1):
@@ -736,14 +811,91 @@ class histogram (object):
 		else:
 			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
 
-		# reset beta after extrapolation is done so the object still knows what beta it originated from during calculation
+		# Reset beta after extrapolation is done so the object still knows what beta it originated from during calculation
 		tmp_hist.data['curr_beta'] = target_beta
 		tmp_hist.data['curr_mu'][1:] = tmp_hist.data['curr_mu'][0] + target_dmu
 
-		# renormalize afterwards as well
+		# Renormalize afterwards as well
 		tmp_hist.normalize()
 
 		return tmp_hist
+
+	def _temp_dmu_extrap_1_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, double cutoff, override=False, skip_mom=False):
+		"""
+		Extrapolate the histogam in an array of different temperatures and dMus using first order corrections.
+
+		Parameters
+		----------
+		target_betas : ndarray
+			Array of 1/kT of the desired distribution
+		target_dmus : ndarray
+			Array of [desired difference of chemical potentials of species 2-N, dmu_i = mu_i - mu_1]
+		cutoff : double
+			Difference in lnPI between maxima and edge to be considered safe to attempt reweighting (default=10)
+		override : bool
+			Override warnings about inaccuracies in lnPI (default=False)
+		skip_mom : bool
+			Skip extrapolation of moments (default=False)
+
+		Returns
+		-------
+		array
+			2D array of histogram clones at each [beta, dMu]
+
+		"""
+
+		cdef double dB
+		cdef np.ndarray[np.double_t, ndim=1] target_dDmu
+		cdef np.ndarray[np.double_t, ndim=2] dlnPI = np.zeros((self.data['nspec']-1, self.data['ub']-self.data['lb']+1), dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=7] dm = np.zeros((self.data['nspec']-1, self.data['nspec'],self.data['max_order']+1,self.data['nspec'],self.data['max_order']+1,self.data['max_order']+1, len(self.data['ln(PI)'])), dtype=np.float64)
+		cdef int i, j, k, m, p, q
+
+		hists = []
+
+		# Extrapolate lnPI
+		if (not override):
+			# If histogram does not extend far enough, cannot calculate average quantities needed for extrapolation accurately
+			assert (np.max(self.data['ln(PI)']) - cutoff > self.data['ln(PI)'][len(self.data['ln(PI)'])-1]), 'Error, histogram edge effect encountered in temperature extrapolation'
+
+		try:
+			# For numerical stability, always normalize lnPI before extrapolating
+			cc = copy.deepcopy(self)
+			cc.normalize()
+			dlnPI, dm = cc._dBMU(skip_mom)
+		except:
+			raise Exception ('Unable to compute first derivative')
+
+		for target_beta in target_betas:
+			dB = target_beta - self.data['curr_beta']
+			hc = []
+
+			for target_dmu in target_dmus:
+				target_dDmu = target_dmu - (self.data['curr_mu'][1:] - self.data['curr_mu'][0])
+
+				try:
+					clone = copy.deepcopy(self)
+
+					clone.data['ln(PI)'] += dB*dlnPI[0]
+					for q in xrange(1,clone.data['nspec']):
+						clone.data['ln(PI)'] += target_dDmu[q-1]*dlnPI[q]
+
+					for i in xrange(clone.data['nspec']):
+						for j in xrange(clone.data['max_order']+1):
+							for k in xrange(clone.data['nspec']):
+								for m in xrange(clone.data['max_order']+1):
+									for p in xrange(clone.data['max_order']+1):
+										clone.data['mom'][i,j,k,m,p] += dB*dm[0,i,j,k,m,p]
+										for q in xrange(1, clone.data['nspec']):
+											clone.data['mom'][i,j,k,m,p] += target_dDmu[q-1]*dm[q,i,j,k,m,p]
+
+				except:
+					hc.append(None)
+				else:
+					hc.append(clone)
+
+			hists.append(hc)
+
+		return hists
 
 	def _temp_dmu_extrap_1(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_dmu, double cutoff=10.0, override=False, skip_mom=False):
 		"""
@@ -770,12 +922,15 @@ class histogram (object):
 		cdef np.ndarray[np.double_t, ndim=7] dm = np.zeros((self.data['nspec']-1, self.data['nspec'],self.data['max_order']+1,self.data['nspec'],self.data['max_order']+1,self.data['max_order']+1, len(self.data['ln(PI)'])), dtype=np.float64)
 		cdef int i, j, k, m, p, q
 
-		# extrapolate lnPI
+		# Extrapolate lnPI
 		if (not override):
-			# if histogram does not extend far enough, cannot calculate average quantities needed for extrapolation accurately
+			# If histogram does not extend far enough, cannot calculate average quantities needed for extrapolation accurately
 			assert (np.max(self.data['ln(PI)']) - cutoff > self.data['ln(PI)'][len(self.data['ln(PI)'])-1]), 'Error, histogram edge effect encountered in temperature extrapolation'
 
-		dlnPI, dm = self._dBMU(skip_mom)
+		try:
+			dlnPI, dm = self._dBMU(skip_mom)
+		except:
+			raise Exception ('Unable to compute first derivative')
 
 		self.data['ln(PI)'] += dB*dlnPI[0]
 		for q in xrange(1,self.data['nspec']):
