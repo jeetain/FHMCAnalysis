@@ -208,8 +208,8 @@ class isopleth (object):
 		self.data['Z'] = np.zeros(self.data['X'].shape, dtype=np.float64)
 
 		# Compute which ones are left/right
-		cdef np.ndarray[np.double_t, ndim=2] lr_matrix = np.zeros((len(dmu2_v), 2), dtype=np.int32)
-		cdef np.ndarray[np.double_t, ndim=2] lr_weights = np.zeros((len(dmu2_v), 2), dtype=np.int32)
+		cdef np.ndarray[np.int32, ndim=2] lr_matrix = np.zeros((len(dmu2_v), 2), dtype=np.int32)
+		cdef np.ndarray[np.double_t, ndim=2] lr_weights = np.zeros((len(dmu2_v), 2), dtype=np.float64)
 		for i in range(len(lr_matrix)):
 			lr_matrix[i][0], lr_matrix[i][1] = _find_left_right(self.data['dmu2'], dmu2_v[i], True)
 
