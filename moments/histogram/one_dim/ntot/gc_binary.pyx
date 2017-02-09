@@ -50,7 +50,7 @@ cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val):
 	elif (val >= np.max(ordered_dmu2)):
 		left = len(ordered_dmu2)
 		right = len(ordered_dmu2)
-	elif (val in ordered_dmu2):
+	elif np.any([np.isclose(val, x) for x in ordered_dmu2]):
 		x = np.where(ordered_dmu2 == val)[0]
 		if (len(x) != 1): raise Exception ('dmu2 values repeat')
 		left = x[0]
