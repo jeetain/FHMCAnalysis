@@ -428,7 +428,7 @@ class isopleth (object):
 
 	def zoom (self, factor, order=3):
 		"""
-		Resample the surface using cubic splines to smooth the isopleth.
+		Resample the surface using cubic splines to smooth the isopleth. Does not change original values within the class.
 
 		Parameters
 		----------
