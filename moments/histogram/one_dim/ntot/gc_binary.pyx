@@ -426,7 +426,7 @@ class isopleth (object):
 		json.dump(info, f, sort_keys=True, indent=4)
 		f.close()
 
-	def zoom (self, factor):
+	def zoom (self, factor, order=3):
 		"""
 		Resample the surface using cubic splines to smooth the isopleth.
 
@@ -434,6 +434,8 @@ class isopleth (object):
 		----------
 		factor : float
 			Zoom factor
+		order : int
+			Order of spline to use (default=3)
 
 		Returns
 		-------
@@ -444,11 +446,11 @@ class isopleth (object):
 
 		"""
 
-		zz = scipy.ndimage.zoom(self.data['Z'], factor)
-		zy = scipy.ndimage.zoom(self.data['X'], factor)
-		zx = scipy.ndimage.zoom(self.data['Y'], factor)
+		zz = scipy.ndimage.zoom(self.data['Z'], factor, order=order)
+		zx = scipy.ndimage.zoom(self.data['X'], factor, order=order)
+		zy = scipy.ndimage.zoom(self.data['Y'], factor, order=order)
 
-		return self.data['Z'], (self.data['X'], self.data['Y'])
+		return zz (zx, zy)
 
 if __name__ == '__main__':
 	print "gc_binary.pyx"
