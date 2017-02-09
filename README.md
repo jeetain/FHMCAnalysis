@@ -25,8 +25,8 @@ $ python install.py
 1. h5py (http://www.h5py.org/)
 2. netCDF4 (http://unidata.github.io/netcdf4-python/)
 3. Cython (http://cython.org/)
-4. Numpy (http://www.numpy.org/)
-5. joblib (https://pythonhosted.org/joblib/index.html)
+4. NumPy (http://www.numpy.org/)
+5. SciPy (https://www.scipy.org/)
 
 Alternatively, I highly recommend simply installing anaconda python (https://www.continuum.io/downloads), and installing netCDF4 and Cython libraries through conda. For example:
 
@@ -34,7 +34,6 @@ Alternatively, I highly recommend simply installing anaconda python (https://www
 $ cd ~/Downloads/
 $ wget https://repo.continuum.io/archive/Anaconda2-4.2.0-MacOSX-x86_64.pkg
 $ bash Anaconda2-4.2.0-MacOSX-x86_64.sh
-$ conda install -c anaconda joblib=0.9.4
 ```
 
 ---

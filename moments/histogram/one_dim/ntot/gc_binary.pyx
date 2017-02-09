@@ -9,6 +9,7 @@ import gc_hist as gch
 import numpy as np
 import matplotlib.pyplot as plt
 import copy, cython, types, operator, bisect, json
+import scipy.ndimage
 
 cimport cython
 cimport numpy as np
@@ -424,6 +425,30 @@ class isopleth (object):
 		info['x_1'] = self.data['Z'].tolist()
 		json.dump(info, f, sort_keys=True, indent=4)
 		f.close()
+
+	def zoom (self, factor):
+		"""
+		Resample the surface using cubic splines to smooth the isopleth.
+
+		Parameters
+		----------
+		factor : float
+			Zoom factor
+
+		Returns
+		-------
+		grid_x1 : ndarray
+			2D array of x_1 (< 0 where thermodynamics could not be calculated)
+		grid_mu : tuple
+			Tuple of 2D arrays of (mu_1, dmu_2) at each "pixel"
+
+		"""
+
+		zz = scipy.ndimage.zoom(self.data['Z'], factor)
+		zy = scipy.ndimage.zoom(self.data['X'], factor)
+		zx = scipy.ndimage.zoom(self.data['Y'], factor)
+
+		return self.data['Z'], (self.data['X'], self.data['Y'])
 
 if __name__ == '__main__':
 	print "gc_binary.pyx"
