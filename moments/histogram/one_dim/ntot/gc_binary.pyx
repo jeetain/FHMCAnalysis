@@ -24,10 +24,11 @@ np.seterr(divide='raise', over='raise', invalid='raise', under='ignore')
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val):
+cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val, bool bound=False):
 	"""
 	Find the indices to the left and right of value in an array ordered from low to high.
-	If left == right, val is in the list, if < 0 or > len(ordered_dmu2) then is past the bounds.
+	When unbounded: if left == right, val is in the list, if < 0 or > len(ordered_dmu2) then is past the bounds.
+	When bounded: returns values which are bounded by valid ordered_dmu2 array indices.
 
 	Parameters
 	----------
@@ -35,6 +36,8 @@ cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val):
 		Ordered array of dmu2 values from low to high
 	val : double
 		dmu2 to find bounds of
+	bound : bool
+		Whether or not to bound the left,right indices (default=False)
 
 	Returns
 	-------
@@ -42,14 +45,23 @@ cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val):
 		left, right
 
 	"""
+
 	cdef int left, right
 
 	if (val <= np.min(ordered_dmu2)):
-		left = -1
-		right = -1
+		if (bound):
+			left = 0
+			right = 0
+		else:
+			left = -1
+			right = -1
 	elif (val >= np.max(ordered_dmu2)):
-		left = len(ordered_dmu2)
-		right = len(ordered_dmu2)
+		if (bound):
+			left = len(ordered_dmu2)-1
+			right = len(ordered_dmu2)-1
+		else:
+			left = len(ordered_dmu2)
+			right = len(ordered_dmu2)
 	elif np.any([np.isclose(val, x) for x in ordered_dmu2]):
 		x = np.where(ordered_dmu2 == val)[0]
 		if (len(x) != 1): raise Exception ('dmu2 values repeat')
@@ -135,7 +147,7 @@ class isopleth (object):
 			if (len(h.data['curr_mu']) != 2): raise Exception ('Only expects 2 chemical potentials, one for each component, cannot construct isopleth')
 			dmu2 = float(h.data['curr_mu'][1] - h.data['curr_mu'][0])
 			dummy[dmu2] = h
-		dummy_sorted = sorted(dummy.items(), key=operator.itemgetter(0)) # dict of {dmu2:histogram}
+		dummy_sorted = sorted(dummy.items(), key=operator.itemgetter(0)) # Dictionary of {dmu2:histogram}
 
 		self.data['dmu2'] = np.array([x[0] for x in dummy_sorted])
 		self.data['histograms'] = [copy.deepcopy(x[1]) for x in dummy_sorted]
@@ -147,6 +159,106 @@ class isopleth (object):
 		"""
 
 		self.data = {}
+
+	def make_grid_multi (self, mu1_bounds, dmu2_bounds, delta):
+		"""
+		Compute the discretized 2D (mu_1, dmu_2) isopleth surface in "chunks".
+		Uses "linear" mixing to combine extrapolated histograms.
+
+		Parameters
+		----------
+		mu1_bounds : array-like
+			min, max of mu_1 to consider
+		dmu2_bounds : array-like
+			min, max of dmu_2 to consider
+		delta : array-like
+			Width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
+
+		Returns
+		-------
+		grid_x1 : ndarray
+			2D array of x_1 (< 0 where thermodynamics could not be calculated)
+		grid_mu : tuple
+			Tuple of 2D arrays of (mu_1, dmu_2) at each "pixel"
+
+		"""
+
+		cdef int i, j, m, n, left, right
+
+		if (not isinstance(mu1_bounds, (list, np.ndarray, tuple))): raise Exception ('Expects an array of mu1 bounds to construct isopleths')
+		if (not isinstance(dmu2_bounds, (list, np.ndarray, tuple))): raise Exception ('Expects an array of dmu2 bounds to construct isopleths')
+		if (not isinstance(delta, (list, np.ndarray, tuple))): raise Exception ('Expects an array of delta mu values to construct isopleths')
+
+		if (len(mu1_bounds) != 2): raise Exception ('mu1_bound error in constructing isopleths')
+		if (len(dmu2_bounds) != 2): raise Exception ('dmu2_bound error in constructing isopleths')
+		if (len(delta) != 2): raise Exception ('delta error in constructing isopleths')
+
+		if (mu1_bounds[1] <= mu1_bounds[0]): raise Exception ('mu1_bound error in constructing isopleths')
+		if (dmu2_bounds[1] <= dmu2_bounds[0]): raise Exception ('dmu2_bound error in constructing isopleths')
+		if (delta[0] <= 0): raise Exception ('delta error in constructing isopleths')
+		if (delta[1] <= 0): raise Exception ('delta error in constructing isopleths')
+
+		# Compute x1 at each point in the grid
+		cdef int nx = np.ceil((mu1_bounds[1]-mu1_bounds[0])/delta[0])+1
+		cdef int ny = np.ceil((dmu2_bounds[1]-dmu2_bounds[0])/delta[1])+1
+
+		cdef np.ndarray[np.double_t, ndim=1] mu1_v = np.linspace(mu1_bounds[0],mu1_bounds[1],nx)
+		cdef np.ndarray[np.double_t, ndim=1] dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
+		self.data['X'], self.data['Y'] = np.meshgrid(mu1_v, dmu2_v)
+		self.data['Z'] = np.zeros(self.data['X'].shape, dtype=np.float64)
+
+		# Compute which ones are left/right
+		cdef np.ndarray[np.double_t, ndim=2] lr_matrix = np.zeros((len(dmu2_v), 2), dtype=np.int32)
+		cdef np.ndarray[np.double_t, ndim=2] lr_weights = np.zeros((len(dmu2_v), 2), dtype=np.int32)
+		for i in range(len(lr_matrix)):
+			lr_matrix[i][0], lr_matrix[i][1] = _find_left_right(self.data['dmu2'], dmu2_v[i], True)
+
+			# "Linearly" mix these histograms
+			dl = fabs(self.data['dmu2'][lr_matrix[i][0]] - dmu2_v[i])
+			dr = fabs(self.data['dmu2'][lr_matrix[i][1]] - dmu2_v[i])
+			if (dl + dr < 1.0e-9):
+				# Have landed "exactly" on a dmu2 simulations
+				assert (lr_matrix[i][0] == lr_matrix[i][1]), 'Unknown mixing distance error'
+				lr_weights[i][0] = 1.0
+				lr_weights[i][1] = 1.0
+			else:
+				lr_weights[i][0] = dr/(dr+dl) # Weights are "complementary" to distances
+				lr_weights[i][1] = dl/(dr+dl) # Weights are "complementary" to distances
+
+		# Consider all of mu1 space, one value at a time
+		for i in range(len(mu1_v)):
+			# Reweight all histograms first
+			h_safe = np.array([True for m in range(len(self.data['histograms']))])
+			for j in range(len(self.data['histograms'])):
+				try:
+					self.data['histograms'][j].reweight(mu1_v[i])
+				except Exception as e:
+					h_safe[j] = False
+
+			# Extrapolate the histograms which are necessary (usually all of them) if they were safely reweighted
+			h_matrix = np.array([[None for m in range(lr_matrix.shape[1])] for n in range(lr_matrix.shape[0])])
+			for j in np.unique(lr_matrix):
+				if (h_safe[j]):
+					loc = np.where(lr_matrix == j)
+					try:
+						hists = self.data['histograms'][j].temp_dmu_extrap_multi([self.meta['beta']], dmu2_v[loc[0]], self.meta['order'], self.meta['cutoff'], False, False)
+					except Exception as e:
+						break
+					else:
+						h_matrix[loc] = hists[0]
+
+			# Mix histograms that were successfully reweighted and extapolated, the compute x1
+			for j in range(lr_matrix.shape[0]):
+				if (not (h_matrix[j][0] is None or h_matrix[j][1] is None)):
+					try:
+						h_m = h_matrix[j][0].mix(h_matrix[j][1], lr_weights[j])
+						h_m.thermo()
+					except:
+						pass
+					else:
+						if (h_m.is_safe()):
+							most_stable_phase = _get_most_stable_phase(h_m)
+							self.data['Z'][i,j] = h_m.data['thermo'][most_stable_phase]['x1']
 
 	def make_grid (self, mu1_bounds, dmu2_bounds, delta):
 		"""
@@ -191,8 +303,8 @@ class isopleth (object):
 		cdef int nx = np.ceil((mu1_bounds[1]-mu1_bounds[0])/delta[0])+1
 		cdef int ny = np.ceil((dmu2_bounds[1]-dmu2_bounds[0])/delta[1])+1
 
-		mu1_v = np.linspace(mu1_bounds[0],mu1_bounds[1],nx)
-		dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
+		cdef np.ndarray[np.double_t, ndim=1] mu1_v = np.linspace(mu1_bounds[0],mu1_bounds[1],nx)
+		cdef np.ndarray[np.double_t, ndim=1] dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
 		self.data['X'], self.data['Y'] = np.meshgrid(mu1_v, dmu2_v)
 		self.data['Z'] = np.zeros(self.data['X'].shape, dtype=np.float64)
 
@@ -202,7 +314,7 @@ class isopleth (object):
 				dmu2 = self.data['Y'][i,j]
 
 				# Identify "bounding" dmu2's
-				left, right = _find_left_right(self.data['dmu2'], dmu2)
+				left, right = _find_left_right(self.data['dmu2'], dmu2, False)
 
 				if (left == right):
 					if (left < 0):
