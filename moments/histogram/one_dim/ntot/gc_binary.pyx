@@ -8,7 +8,7 @@
 import gc_hist as gch
 import numpy as np
 import matplotlib.pyplot as plt
-import copy, cython, types, operator, bisect, sys
+import copy, cython, types, operator, bisect, json
 
 cimport cython
 cimport numpy as np
@@ -172,7 +172,7 @@ class isopleth (object):
 		dmu2_bounds : array-like
 			min, max of dmu_2 to consider
 		delta : array-like
-			Width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
+			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
 
 		Returns
 		-------
@@ -202,14 +202,15 @@ class isopleth (object):
 		cdef int nx = np.ceil((mu1_bounds[1]-mu1_bounds[0])/delta[0])+1
 		cdef int ny = np.ceil((dmu2_bounds[1]-dmu2_bounds[0])/delta[1])+1
 
-		cdef np.ndarray[np.double_t, ndim=1] mu1_v = np.linspace(mu1_bounds[0],mu1_bounds[1],nx)
-		cdef np.ndarray[np.double_t, ndim=1] dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
+		beta_targets = np.array([self.meta['beta']], dtype=np.float64)
+		mu1_v = np.linspace(mu1_bounds[0],mu1_bounds[1],nx)
+		dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
 		self.data['X'], self.data['Y'] = np.meshgrid(mu1_v, dmu2_v)
 		self.data['Z'] = np.zeros(self.data['X'].shape, dtype=np.float64)
 
 		# Compute which ones are left/right
-		cdef np.ndarray[np.int32, ndim=2] lr_matrix = np.zeros((len(dmu2_v), 2), dtype=np.int32)
-		cdef np.ndarray[np.double_t, ndim=2] lr_weights = np.zeros((len(dmu2_v), 2), dtype=np.float64)
+		lr_matrix = np.zeros((len(dmu2_v), 2), dtype=np.int32)
+		lr_weights = np.zeros((len(dmu2_v), 2), dtype=np.float64)
 		for i in range(len(lr_matrix)):
 			lr_matrix[i][0], lr_matrix[i][1] = _find_left_right(self.data['dmu2'], dmu2_v[i], True)
 
@@ -241,9 +242,10 @@ class isopleth (object):
 				if (h_safe[j]):
 					loc = np.where(lr_matrix == j)
 					try:
-						hists = self.data['histograms'][j].temp_dmu_extrap_multi([self.meta['beta']], dmu2_v[loc[0]], self.meta['order'], self.meta['cutoff'], False, False)
+						hists = self.data['histograms'][j].temp_dmu_extrap_multi(beta_targets, np.array([[x] for x in dmu2_v[loc[0]]]), self.meta['order'], self.meta['cutoff'], False, False)
 					except Exception as e:
-						break
+						print 'Error during extrapolation : '+str(e)
+						pass
 					else:
 						h_matrix[loc] = hists[0]
 
@@ -253,12 +255,15 @@ class isopleth (object):
 					try:
 						h_m = h_matrix[j][0].mix(h_matrix[j][1], lr_weights[j])
 						h_m.thermo()
-					except:
+					except Exception as e:
+						print 'Error during mixing and calculation : '+str(e)
 						pass
 					else:
 						if (h_m.is_safe()):
 							most_stable_phase = _get_most_stable_phase(h_m)
-							self.data['Z'][i,j] = h_m.data['thermo'][most_stable_phase]['x1']
+							self.data['Z'][j,i] = h_m.data['thermo'][most_stable_phase]['x1'] # j,i seem backward, but this is the way meshgrid works...
+
+		return self.data['Z'], (self.data['X'], self.data['Y'])
 
 	def make_grid (self, mu1_bounds, dmu2_bounds, delta):
 		"""
@@ -272,7 +277,7 @@ class isopleth (object):
 		dmu2_bounds : array-like
 			min, max of dmu_2 to consider
 		delta : array-like
-			Width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
+			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
 
 		Returns
 		-------
@@ -400,6 +405,25 @@ class isopleth (object):
 		mu_vals = zip(v[:,0], v[:,1])
 
 		return mu_vals
+
+	def dump (self, fname):
+		"""
+		Print surface to a json file to store.
+
+		Parameters
+		----------
+		fname : str
+			Filename to write data to
+
+		"""
+
+		f = open(fname, 'w')
+		info = {}
+		info['mu_1'] = self.data['X'].tolist()
+		info['dmu_2'] = self.data['Y'].tolist()
+		info['x_1'] = self.data['Z'].tolist()
+		json.dump(info, f)
+		f.close()
 
 if __name__ == '__main__':
 	print "gc_binary.pyx"
