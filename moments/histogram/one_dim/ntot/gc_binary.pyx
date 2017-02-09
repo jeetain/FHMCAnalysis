@@ -422,7 +422,7 @@ class isopleth (object):
 		info['mu_1'] = self.data['X'].tolist()
 		info['dmu_2'] = self.data['Y'].tolist()
 		info['x_1'] = self.data['Z'].tolist()
-		json.dump(info, f)
+		json.dump(info, f, sort_keys=True, indent=4)
 		f.close()
 
 if __name__ == '__main__':
