@@ -440,7 +440,7 @@ class isopleth (object):
 		Returns
 		-------
 		grid_x1 : ndarray
-			2D array of x_1 (< 0 where thermodynamics could not be calculated)
+			2D array of x_1
 		grid_mu : tuple
 			Tuple of 2D arrays of (mu_1, dmu_2) at each "pixel"
 
@@ -450,7 +450,76 @@ class isopleth (object):
 		zx = scipy.ndimage.zoom(self.data['X'], factor, order=order)
 		zy = scipy.ndimage.zoom(self.data['Y'], factor, order=order)
 
-		return zz (zx, zy)
+		return zz, (zx, zy)
+
+def combine_isopleth_grids (mu1_arrays, dmu2_arrays, x1_arrays):
+	"""
+	Combine isopleth grids, assuming they are aligned along the dmu_2 axis.
+	Assumes entries in mu1_arrays, dmu2_arrays are ordered from min to max, but the list of entries provided does not need to be.
+	e.g., values of mu_1 ordered from min to max, and dmu_2 ordered from min to max.
+
+	Parameters
+	----------
+	mu1_arrays : list
+		Array of mu_1 grids to combine
+	dmu2_arrays : list
+		Array of dmu_2 grids to combine
+	x1_arrays : list
+		Array of x_1 grids to combine
+
+	Returns
+	-------
+	grid_x1 : ndarray
+		Composite 2D array of x_1
+	grid_mu : tuple
+		Tuple of composite 2D arrays of (mu_1, dmu_2) at each "pixel"
+
+	"""
+
+	if (not isinstance(mu1_arrays, (list, np.ndarray, tuple))): raise Exception ('Expects an array of mu1_arrays to combine isopleths')
+	if (not isinstance(dmu2_arrays, (list, np.ndarray, tuple))): raise Exception ('Expects an array of dmu2_arrays to combine isopleths')
+	if (not isinstance(x1_arrays, (list, np.ndarray, tuple))): raise Exception ('Expects an array of x1_arrays to combine isopleths')
+	if (not (len(mu1_arrays) == len(dmu2_arrays) and len(dmu2_arrays) == len(x1_arrays))): raise Exception ('Must specify one mu_1, dmu_2, and x_1 for each isopleth')
+
+	# Check that all individual isopleth grids have the same dimensions for mu1, dmu2, and x1
+	for i in range(len(mu1_arrays)):
+		if (not (mu1_arrays[i].shape == dmu2_arrays[i].shape and dmu2_arrays[i].shape == x1_arrays[i].shape)): raise Exception ('Each set of isopleth grids must have the same size')
+
+	# Check that dmu2 dimensions across grids to combine are identical
+	for i in range(len(mu1_arrays)-1):
+		if (not (mu1_arrays[i].shape[0] == mu1_arrays[i+1].shape[0])): raise Exception ('dmu2 dimension not aligned')
+		if (not (dmu2_arrays[i].shape[0] == dmu2_arrays[i+1].shape[0])): raise Exception ('dmu2 dimension not aligned')
+		if (not (x1_arrays[i].shape[0] == x1_arrays[i+1].shape[0])): raise Exception ('dmu2 dimension not aligned')
+
+	# Sort based on mu_1
+	min_mu1 = [np.min(m1a) for m1a in mu1_arrays]
+	zz = dict(list(enumerate(zip(min_mu1, mu1_arrays, dmu2_arrays, x1_arrays))))
+	sorted_zz = sorted(zz.items(), key=lambda x: x[1][0])
+
+	X = copy.copy(sorted_zz[0][1][1])
+	Y = copy.copy(sorted_zz[0][1][2])
+	Z = copy.copy(sorted_zz[0][1][3])
+
+	dmu2_ref = sorted_zz[0][1][2][:,1]
+	for i in range(1, len(sorted_zz)):
+		# Check dmu2 values are identical
+		this_entry = sorted_zz[i]
+		last_entry = sorted_zz[i-1]
+
+		if (not np.all(np.abs(this_entry[1][2][:,0] - dmu2_ref) < 1.0e-9)): raise Exception ('dmu2 dimension not aligned')
+
+		# Check mu1 limits don't overlap, else trim
+		mu1_right =  this_entry[1][1][0,:]
+		max_mu1_left = np.max(last_entry[1][1][0,:])
+		ncols = bisect.bisect_left(mu1_right, max_mu1_left) # Which columns are duplicates?
+		if (mu1_right[ncols] == max_mu1_left): ncols += 1 # Account for case where the two are equal at their edges
+
+		# Concatenate
+		X = np.concatenate((X,this_entry[1][1][:,ncols:]), axis=1) # Concatenate everything to the right of ncols
+		Y = np.concatenate((Y,this_entry[1][2][:,ncols:]), axis=1) # Concatenate everything to the right of ncols
+		Z = np.concatenate((Z,this_entry[1][3][:,ncols:]), axis=1) # Concatenate everything to the right of ncols
+
+	return Z, (X, Y)
 
 if __name__ == '__main__':
 	print "gc_binary.pyx"
