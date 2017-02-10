@@ -161,10 +161,9 @@ class isopleth (object):
 
 		self.data = {}
 
-	def make_grid_multi (self, mu1_bounds, dmu2_bounds, delta):
+	def make_grid_multi (self, mu1_bounds, dmu2_bounds, delta, int p=1):
 		"""
 		Compute the discretized 2D (mu_1, dmu_2) isopleth surface in "chunks".
-		Uses "linear" mixing to combine extrapolated histograms.
 
 		Parameters
 		----------
@@ -174,6 +173,8 @@ class isopleth (object):
 			min, max of dmu_2 to consider
 		delta : array-like
 			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
+		p : int
+			Exponent to mix histograms with (default=1, "linear")
 
 		Returns
 		-------
@@ -215,11 +216,11 @@ class isopleth (object):
 		for i in range(len(lr_matrix)):
 			lr_matrix[i][0], lr_matrix[i][1] = _find_left_right(self.data['dmu2'], dmu2_v[i], True)
 
-			# "Linearly" mix these histograms
-			dl = fabs(self.data['dmu2'][lr_matrix[i][0]] - dmu2_v[i])
-			dr = fabs(self.data['dmu2'][lr_matrix[i][1]] - dmu2_v[i])
+			# Mix these histograms
+			dl = fabs(self.data['dmu2'][lr_matrix[i][0]] - dmu2_v[i])**p
+			dr = fabs(self.data['dmu2'][lr_matrix[i][1]] - dmu2_v[i])**p
 			if (dl + dr < 1.0e-9):
-				# Have landed "exactly" on a dmu2 simulations
+				# Have landed "exactly" on a dmu2 simulations so that left == right (or have gone past edge)
 				assert (lr_matrix[i][0] == lr_matrix[i][1]), 'Unknown mixing distance error'
 				lr_weights[i][0] = 1.0
 				lr_weights[i][1] = 1.0
@@ -266,10 +267,9 @@ class isopleth (object):
 
 		return self.data['Z'], (self.data['X'], self.data['Y'])
 
-	def make_grid (self, mu1_bounds, dmu2_bounds, delta):
+	def make_grid (self, mu1_bounds, dmu2_bounds, delta, int p=1):
 		"""
 		Compute the discretized 2D (mu_1, dmu_2) isopleth surface.
-		Uses "linear" mixing to combine extrapolated histograms.
 
 		Parameters
 		----------
@@ -279,6 +279,8 @@ class isopleth (object):
 			min, max of dmu_2 to consider
 		delta : array-like
 			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
+		p : int
+			Exponent to mix histograms with (default=1, "linear")
 
 		Returns
 		-------
@@ -358,9 +360,9 @@ class isopleth (object):
 					except Exception as e:
 						print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
 					else:
-						# "Linearly" mix these histograms
-						dl = fabs(self.data['dmu2'][left] - dmu2)
-						dr = fabs(self.data['dmu2'][right] - dmu2)
+						# Mix these histograms
+						dl = fabs(self.data['dmu2'][left] - dmu2)**p
+						dr = fabs(self.data['dmu2'][right] - dmu2)**p
 						wl = dr/(dr+dl) # Weights are "complementary" to distances
 						wr = dl/(dr+dl) # Weights are "complementary" to distances
 
