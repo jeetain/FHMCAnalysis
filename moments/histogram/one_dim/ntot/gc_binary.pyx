@@ -209,6 +209,8 @@ class isopleth (object):
 		dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
 		self.data['X'], self.data['Y'] = np.meshgrid(mu1_v, dmu2_v)
 		self.data['Z'] = np.zeros(self.data['X'].shape, dtype=np.float64)
+		self.data['density'] = np.zeros(self.data['X'].shape, dtype=np.float64)
+		self.data['F.E./kT'] = np.zeros(self.data['X'].shape, dtype=np.float64)
 
 		# Compute which ones are left/right
 		lr_matrix = np.zeros((len(dmu2_v), 2), dtype=np.int32)
@@ -264,6 +266,8 @@ class isopleth (object):
 						if (h_m.is_safe()):
 							most_stable_phase = _get_most_stable_phase(h_m)
 							self.data['Z'][j,i] = h_m.data['thermo'][most_stable_phase]['x1'] # j,i seem backward, but this is the way meshgrid works...
+							self.data['density'][j,i] = h_m.data['thermo'][most_stable_phase]['density']
+							self.data['F.E./kT'][j,i] = h_m.data['thermo'][most_stable_phase]['F.E./kT']
 
 		return self.data['Z'], (self.data['X'], self.data['Y'])
 
@@ -315,6 +319,8 @@ class isopleth (object):
 		cdef np.ndarray[np.double_t, ndim=1] dmu2_v = np.linspace(dmu2_bounds[0],dmu2_bounds[1],ny)
 		self.data['X'], self.data['Y'] = np.meshgrid(mu1_v, dmu2_v)
 		self.data['Z'] = np.zeros(self.data['X'].shape, dtype=np.float64)
+		self.data['density'] = np.zeros(self.data['X'].shape, dtype=np.float64)
+		self.data['F.E./kT'] = np.zeros(self.data['X'].shape, dtype=np.float64)
 
 		for i in range(self.data['X'].shape[0]):
 			for j in range(self.data['X'].shape[1]):
@@ -345,6 +351,8 @@ class isopleth (object):
 							# Find most stable phase and extract properties
 							most_stable_phase = _get_most_stable_phase(h_l)
 							self.data['Z'][i,j] = h_l.data['thermo'][most_stable_phase]['x1']
+							self.data['density'][i,j] =  h_l.data['thermo'][most_stable_phase]['density']
+							self.data['F.E./kT'][i,j] =  h_l.data['thermo'][most_stable_phase]['F.E./kT']
 					except Exception as e:
 						print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
 				else:
@@ -377,6 +385,8 @@ class isopleth (object):
 							# Find most stable phase and extract properties
 							most_stable_phase = _get_most_stable_phase(h_m)
 							self.data['Z'][i,j] = h_m.data['thermo'][most_stable_phase]['x1']
+							self.data['density'][i,j] = h_m.data['thermo'][most_stable_phase]['density']
+							self.data['F.E./kT'][i,j] = h_m.data['thermo'][most_stable_phase]['F.E./kT']
 
 		return self.data['Z'], (self.data['X'], self.data['Y'])
 
@@ -425,6 +435,8 @@ class isopleth (object):
 		info['mu_1'] = self.data['X'].tolist()
 		info['dmu_2'] = self.data['Y'].tolist()
 		info['x_1'] = self.data['Z'].tolist()
+		info['density'] = self.data['density'].tolist()
+		info['F.E./kT'] = self.data['F.E./kT'].tolist()
 		json.dump(info, f, sort_keys=True, indent=4)
 		f.close()
 
@@ -445,16 +457,22 @@ class isopleth (object):
 			2D array of x_1
 		grid_mu : tuple
 			Tuple of 2D arrays of (mu_1, dmu_2) at each "pixel"
+		grid_rho : ndarray
+			2D array of total (number) density at each "pixel"
+		grid_fe : ndarray
+			2D array of free energy/kT (of the most stable phase) at each "pixel"
 
 		"""
 
-		zz = scipy.ndimage.zoom(self.data['Z'], factor, order=order)
 		zx = scipy.ndimage.zoom(self.data['X'], factor, order=order)
 		zy = scipy.ndimage.zoom(self.data['Y'], factor, order=order)
+		zz = scipy.ndimage.zoom(self.data['Z'], factor, order=order)
+		rho = scipy.ndimage.zoom(self.data['density'], factor, order=order)
+		fe = scipy.ndimage.zoom(self.data['F.E./kT'], factor, order=order)
 
-		return zz, (zx, zy)
+		return zz, (zx, zy), rho, fe
 
-def combine_isopleth_grids (mu1_arrays, dmu2_arrays, x1_arrays):
+def combine_isopleth_grids (mu1_arrays, dmu2_arrays, x1_arrays, rho_arrays=None, fe_arrays=None):
 	"""
 	Combine isopleth grids, assuming they are aligned along the dmu_2 axis.
 	Assumes entries in mu1_arrays, dmu2_arrays are ordered from min to max, but the list of entries provided does not need to be.
@@ -468,6 +486,10 @@ def combine_isopleth_grids (mu1_arrays, dmu2_arrays, x1_arrays):
 		Array of dmu_2 grids to combine
 	x1_arrays : list
 		Array of x_1 grids to combine
+	rho_arrays : list
+		Array of density grids to combine (default=None)
+	fe_arrays : list
+		Array of free energy grids to combine (default=None)
 
 	Returns
 	-------
@@ -475,6 +497,10 @@ def combine_isopleth_grids (mu1_arrays, dmu2_arrays, x1_arrays):
 		Composite 2D array of x_1
 	grid_mu : tuple
 		Tuple of composite 2D arrays of (mu_1, dmu_2) at each "pixel"
+	grid_rho : ndarray
+		Composite 2D array of density, if rho_arrays was given
+	grid_fe : ndarray
+		Composite 2D array of free energy, if fe_arrays was given
 
 	"""
 
@@ -483,24 +509,53 @@ def combine_isopleth_grids (mu1_arrays, dmu2_arrays, x1_arrays):
 	if (not isinstance(x1_arrays, (list, np.ndarray, tuple))): raise Exception ('Expects an array of x1_arrays to combine isopleths')
 	if (not (len(mu1_arrays) == len(dmu2_arrays) and len(dmu2_arrays) == len(x1_arrays))): raise Exception ('Must specify one mu_1, dmu_2, and x_1 for each isopleth')
 
+	if (rho_arrays is not None):
+		if (not isinstance(rho_arrays, (list, np.ndarray, tuple))): raise Exception ('Expects an array of rho_arrays to combine isopleths')
+		if (not (len(mu1_arrays) == len(rho_arrays))): raise Exception ('Must specify one density for each isopleth')
+	if (fe_arrays is not None):
+		if (not isinstance(fe_arrays, (list, np.ndarray, tuple))): raise Exception ('Expects an array of fe_arrays to combine isopleths')
+		if (not (len(mu1_arrays) == len(fe_arrays))): raise Exception ('Must specify one free energy for each isopleth')
+
 	# Check that all individual isopleth grids have the same dimensions for mu1, dmu2, and x1
 	for i in range(len(mu1_arrays)):
 		if (not (mu1_arrays[i].shape == dmu2_arrays[i].shape and dmu2_arrays[i].shape == x1_arrays[i].shape)): raise Exception ('Each set of isopleth grids must have the same size')
+		if (rho_arrays is not None):
+			if (not (mu1_arrays[i].shape == rho_arrays[i].shape)): raise Exception ('Each set of isopleth grids must have the same size')
+		if (fe_arrays is not None):
+			if (not (mu1_arrays[i].shape == fe_arrays[i].shape)): raise Exception ('Each set of isopleth grids must have the same size')
 
 	# Check that dmu2 dimensions across grids to combine are identical
 	for i in range(len(mu1_arrays)-1):
 		if (not (mu1_arrays[i].shape[0] == mu1_arrays[i+1].shape[0])): raise Exception ('dmu2 dimension not aligned')
 		if (not (dmu2_arrays[i].shape[0] == dmu2_arrays[i+1].shape[0])): raise Exception ('dmu2 dimension not aligned')
 		if (not (x1_arrays[i].shape[0] == x1_arrays[i+1].shape[0])): raise Exception ('dmu2 dimension not aligned')
+		if (rho_arrays is not None):
+			if (not (rho_arrays[i].shape[0] == rho_arrays[i+1].shape[0])): raise Exception ('dmu2 dimension not aligned')
+		if (fe_arrays is not None):
+			if (not (fe_arrays[i].shape[0] == fe_arrays[i+1].shape[0])): raise Exception ('dmu2 dimension not aligned')
 
 	# Sort based on mu_1
 	min_mu1 = [np.min(m1a) for m1a in mu1_arrays]
-	zz = dict(list(enumerate(zip(min_mu1, mu1_arrays, dmu2_arrays, x1_arrays))))
+	if (fe_arrays is None and rho_arrays is None):
+		zz = dict(list(enumerate(zip(min_mu1, mu1_arrays, dmu2_arrays, x1_arrays))))
+	elif (fe_arrays is None and rho_arrays is not None):
+		zz = dict(list(enumerate(zip(min_mu1, mu1_arrays, dmu2_arrays, x1_arrays, rho_arrays))))
+	elif (fe_arrays is not None and rho_arrays is None):
+		zz = dict(list(enumerate(zip(min_mu1, mu1_arrays, dmu2_arrays, x1_arrays, fe_arrays))))
+	else:
+		zz = dict(list(enumerate(zip(min_mu1, mu1_arrays, dmu2_arrays, x1_arrays, rho_arrays, fe_arrays))))
 	sorted_zz = sorted(zz.items(), key=lambda x: x[1][0])
 
 	X = copy.copy(sorted_zz[0][1][1])
 	Y = copy.copy(sorted_zz[0][1][2])
 	Z = copy.copy(sorted_zz[0][1][3])
+	A = None
+	B = None
+	if (len(sorted_zz[0][1]) == 5):
+		A = copy.copy(sorted_zz[0][1][4])
+	elif (len(sorted_zz[0][1]) == 6):
+		A = copy.copy(sorted_zz[0][1][4])
+		B = copy.copy(sorted_zz[0][1][5])
 
 	dmu2_ref = sorted_zz[0][1][2][:,1]
 	for i in range(1, len(sorted_zz)):
@@ -520,8 +575,18 @@ def combine_isopleth_grids (mu1_arrays, dmu2_arrays, x1_arrays):
 		X = np.concatenate((X,this_entry[1][1][:,ncols:]), axis=1) # Concatenate everything to the right of ncols
 		Y = np.concatenate((Y,this_entry[1][2][:,ncols:]), axis=1) # Concatenate everything to the right of ncols
 		Z = np.concatenate((Z,this_entry[1][3][:,ncols:]), axis=1) # Concatenate everything to the right of ncols
+		if (len(sorted_zz[0][1]) == 5):
+			A = np.concatenate((A,this_entry[1][4][:,ncols:]), axis=1)
+		elif (len(sorted_zz[0][1]) == 6):
+			A = np.concatenate((A,this_entry[1][4][:,ncols:]), axis=1)
+			B = np.concatenate((B,this_entry[1][5][:,ncols:]), axis=1)
 
-	return Z, (X, Y)
+	if (A is None and B is None):
+		return Z, (X, Y)
+	elif (A is not None and B is None):
+		return Z, (X, Y), A
+	else:
+		return Z, (X, Y), A, B
 
 if __name__ == '__main__':
 	print "gc_binary.pyx"
