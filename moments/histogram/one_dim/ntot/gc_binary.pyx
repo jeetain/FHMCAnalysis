@@ -20,6 +20,7 @@ from cpython cimport bool
 from libc.math cimport exp
 from libc.math cimport log
 from libc.math cimport fabs
+from scipy.interpolate import RegularGridInterpolator
 
 np.seterr(divide='raise', over='raise', invalid='raise', under='ignore')
 
@@ -265,7 +266,7 @@ class isopleth (object):
 					else:
 						if (h_m.is_safe()):
 							most_stable_phase = _get_most_stable_phase(h_m)
-							self.data['Z'][j,i] = h_m.data['thermo'][most_stable_phase]['x1'] # j,i seem backward, but this is the way meshgrid works...
+							self.data['Z'][j,i] = h_m.data['thermo'][most_stable_phase]['x1'] # j,i seem backward, but this is the way meshgrid works under default "xy" convention
 							self.data['density'][j,i] = h_m.data['thermo'][most_stable_phase]['density']
 							self.data['F.E./kT'][j,i] = h_m.data['thermo'][most_stable_phase]['F.E./kT']
 
@@ -390,35 +391,6 @@ class isopleth (object):
 
 		return self.data['Z'], (self.data['X'], self.data['Y'])
 
-	def get_iso (self, double x1, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
-		"""
-		Trace out the isopleth from the discretized grid of (mu_1, dmu_2)
-
-		Parameters
-		----------
-		x1 : double
-			Target mole fraction of species 1
-		grid_x1 : ndarray
-			2D array of x_1
-		grid_mu1 : ndarray
-			2D array of mu_1 at each "pixel"
-		grid_dmu2 : ndarray
-			2D array of dmu_2 at each "pixel"
-
-		Returns
-		-------
-		mu_vals : array
-			array of tuples (mu_1, dmu_2) that trace out the isopleth
-
-		"""
-
-		cs = plt.contour(grid_mu1, grid_dmu2, grid_x1, [x1])
-		p = cs.collections[0].get_paths()[0]
-		v = p.vertices
-		mu_vals = zip(v[:,0], v[:,1])
-
-		return mu_vals
-
 	def dump (self, fname):
 		"""
 		Print surface to a json file to store.
@@ -440,7 +412,7 @@ class isopleth (object):
 		json.dump(info, f, sort_keys=True, indent=4)
 		f.close()
 
-	def zoom (self, factor, order=3):
+	def zoom (self, factor, order=3, inplace=False):
 		"""
 		Resample the surface using cubic splines to smooth the isopleth. Does not change original values within the class.
 
@@ -450,11 +422,13 @@ class isopleth (object):
 			Zoom factor
 		order : int
 			Order of spline to use (default=3)
+		inplace : bool
+			If True, save the results internally and modify the class (default=False)
 
 		Returns
 		-------
 		grid_x1 : ndarray
-			2D array of x_1
+			2D array of x_1 at each "pixel"
 		grid_mu : tuple
 			Tuple of 2D arrays of (mu_1, dmu_2) at each "pixel"
 		grid_rho : ndarray
@@ -470,7 +444,82 @@ class isopleth (object):
 		rho = scipy.ndimage.zoom(self.data['density'], factor, order=order)
 		fe = scipy.ndimage.zoom(self.data['F.E./kT'], factor, order=order)
 
+		if (inplace):
+			self.data['X'] = zx
+			self.data['Y'] = zy
+			self.data['Z'] = zz
+			self.data['density'] = rho
+			self.data['F.E./kT'] = fe
+
 		return zz, (zx, zy), rho, fe
+
+def get_iso (double x1, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
+	"""
+	Trace out the isopleth from the discretized grid of (mu_1, dmu_2).
+
+	Parameters
+	----------
+	x1 : double
+		Target mole fraction of species 1
+	grid_x1 : ndarray
+		2D array of x_1
+	grid_mu1 : ndarray
+		2D array of mu_1 at each "pixel"
+	grid_dmu2 : ndarray
+		2D array of dmu_2 at each "pixel"
+
+	Returns
+	-------
+	mu_vals : array
+		array of tuples (mu_1, dmu_2) that trace out the isopleth
+
+	"""
+
+	cs = plt.contour(grid_mu1, grid_dmu2, grid_x1, [x1])
+	p = cs.collections[0].get_paths()[0]
+	v = p.vertices
+	mu_vals = zip(v[:,0], v[:,1])
+
+	return mu_vals
+
+def parameterize_mesh (mu1_mesh, dmu2_mesh, x_mesh, y_mesh, x_pts):
+	"""
+	Parameterize one mesh in terms of another, e.g., rho (x) vs. P (y) on the (mu1, dmu2) grid.
+	Can be used to parameterize thermodynamic properties along an isopleth.
+
+	Parameters
+	----------
+	mu1_mesh : ndarray
+		2D array of mu_1 at each "pixel" (from isopleth class)
+	dmu2_mesh : ndarray
+		2D array of dmu_1 at each "pixel" (from isopleth class)
+	x_mesh : ndarray
+		2D array of variable x defined on the mu1_mesh and dmu2_mesh
+	y_mesh : ndarray
+		2D array of variable y defined on the mu1_mesh and dmu2_mesh
+	x_pts : array-like
+		Array of tuples (mu_1, dmu_2) to estimate x and y (e.g. from get_iso() function)
+
+	Returns
+	-------
+	xylist : list
+		Array of parameterized (x,y) values
+
+	"""
+
+	if (mu1_mesh.shape != dmu2_mesh.shape): raise Exception ('Unequal grid sizes')
+	if (x_mesh.shape != dmu2_mesh.shape): raise Exception ('Unequal grid sizes')
+	if (x_mesh.shape != y_mesh.shape): raise Exception ('Unequal grid sizes')
+
+	pts = np.array([(a[1], a[0]) for a in x_pts])
+	x = mu1_mesh[0,:]
+	y = dmu2_mesh[:,0]
+	interp = RegularGridInterpolator((y, x), x_mesh)
+	x_vals = interp(pts)
+	interp = RegularGridInterpolator((y, x), y_mesh)
+	y_vals = interp(pts)
+
+	return zip(x_vals, y_vals)
 
 def combine_isopleth_grids (mu1_arrays, dmu2_arrays, x1_arrays, rho_arrays=None, fe_arrays=None):
 	"""
@@ -606,8 +655,5 @@ if __name__ == '__main__':
 	Histograms do not need to be provided in any order.
 
 	* To Do:
-
-	Optimize make_grid and have extrapolation called such that is grouped into same mu1, but for set of dMu2.
-	Needs to be implemented in gc_hist.pyx to accept a variety of dMu2 values so derivatives only need to be calculated once.
 
 	"""
