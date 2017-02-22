@@ -49,6 +49,7 @@ cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val, 
 	"""
 
 	cdef int left, right
+	cdef double tol = 1.0e-9
 
 	if (val <= np.min(ordered_dmu2)):
 		if (bound):
@@ -65,8 +66,8 @@ cdef _find_left_right(np.ndarray[np.double_t, ndim=1] ordered_dmu2, double val, 
 			left = len(ordered_dmu2)
 			right = len(ordered_dmu2)
 	elif np.any([np.isclose(val, x) for x in ordered_dmu2]):
-		x = np.where(ordered_dmu2 == val)[0]
-		if (len(x) != 1): raise Exception ('dmu2 values repeat')
+		x = np.where(np.abs(ordered_dmu2 - val) < tol)[0]
+		if (len(x) != 1): raise Exception ('dmu2 values repeat, '+str(x)+' , '+str(ordered_dmu2)+' , '+str(val))
 		left = x[0]
 		right = left
 	else:
