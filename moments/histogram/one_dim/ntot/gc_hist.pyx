@@ -721,12 +721,12 @@ class histogram (object):
 			try:
 				hists = self._temp_dmu_extrap_1_multi(target_betas, target_dmus, cutoff, override, skip_mom)
 			except Exception as e:
-				raise Exception('Unable to extrapolate in temperature: '+str(e))
+				raise Exception('Unable to extrapolate : '+str(e))
 		elif (order == 2):
 			try:
 				hists = self._temp_dmu_extrap_2_multi(target_betas, target_dmus, cutoff, override, skip_mom)
 			except Exception as e:
-				raise Exception('Unable to extrapolate in temperature: '+str(e))
+				raise Exception('Unable to extrapolate : '+str(e))
 		else:
 			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
 
@@ -800,12 +800,12 @@ class histogram (object):
 			try:
 				tmp_hist._temp_dmu_extrap_1(target_beta, target_dmu, cutoff, override, skip_mom)
 			except Exception as e:
-				raise Exception('Unable to extrapolate in temperature: '+str(e))
+				raise Exception('Unable to extrapolate : '+str(e))
 		elif (order == 2):
 			try:
 				tmp_hist._temp_dmu_extrap_2(target_beta, target_dmu, cutoff, override, skip_mom)
 			except Exception as e:
-				raise Exception('Unable to extrapolate in temperature: '+str(e))
+				raise Exception('Unable to extrapolate : '+str(e))
 		else:
 			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
 
