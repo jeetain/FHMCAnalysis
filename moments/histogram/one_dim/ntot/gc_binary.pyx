@@ -273,7 +273,7 @@ class isopleth (object):
 
 		return self.data['Z'], (self.data['X'], self.data['Y'])
 
-	def make_grid (self, mu1_bounds, dmu2_bounds, delta, int p=1):
+	def make_grid (self, mu1_bounds, dmu2_bounds, delta, float p=2.5):
 		"""
 		Compute the discretized 2D (mu_1, dmu_2) isopleth surface.
 
@@ -285,8 +285,8 @@ class isopleth (object):
 			min, max of dmu_2 to consider
 		delta : array-like
 			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
-		p : int
-			Exponent to mix histograms with (default=1, "linear")
+		p : float
+			Exponent to mix histograms with (default=2.5)
 
 		Returns
 		-------
