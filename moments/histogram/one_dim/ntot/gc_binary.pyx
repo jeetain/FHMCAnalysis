@@ -475,7 +475,7 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 	Returns
 	-------
 	error : list
-		List of tuple of pressure, the absolute error of x_1 relative the mean x_1, and the relatice error of the Gibbs-Duhem equation to the absolute value of the mean free energy per particle between each point along each isobar [(p_1, |x1_err|/x1_bar, |err|/|F.E./N_tot|_bar), (p_2, |x1_err|/x1_bar, |err|/|F.E./N_tot|_bar), ...].
+		List of tuple of pressure and the relatice error of the Gibbs-Duhem equation to the absolute value of the mean free energy per particle between each point along each isobar [(p_1, |err|), (p_2, |err|), ...].
 
 	"""
 
@@ -483,7 +483,7 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 	cdef int i
 
 	try:
-		interp = RegularGridInterpolator((grid_dmu2[:,0], grid_mu1[0,:]), grid_x1, bounds_error=False, fill_value=np.nan)
+		interp = RegularGridInterpolator((grid_dmu2[:,0], grid_mu1[0,:]), grid_x1, method='linear', bounds_error=False, fill_value=np.nan)
 	except (Exception, TypeError, ValueError) as e:
 		raise Exception ('Unable to create grid interpolator to check Gibbs-Duhem consistency : '+str(e))
 
@@ -499,7 +499,6 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 			x1_vals = interp(pts)
 
 			error_p = []
-			error_x1 = []
 
 			for i in xrange(1, len(x1_vals)):
 				if (not np.isnan(x1_vals[i]) and not np.isnan(x1_vals[i-1])):
@@ -510,9 +509,8 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 
 					err = x1_bar*(delta_mu1/delta_x1) + (1.0-x1_bar)*(delta_mu2/delta_x1)
 					error_p.append(fabs(err))
-					error_x1.append(fabs(x1_bar - x1_vals[i-1])/x1_bar)
 
-			error.append((p, error_x1, error_p))
+			error.append((p, error_p))
 
 	return error
 
@@ -577,9 +575,9 @@ def parameterize_mesh (mu1_mesh, dmu2_mesh, x_mesh, y_mesh, x_pts):
 	pts = np.array([(a[1], a[0]) for a in x_pts])
 	x = mu1_mesh[0,:]
 	y = dmu2_mesh[:,0]
-	interp = RegularGridInterpolator((y, x), x_mesh)
+	interp = RegularGridInterpolator((y, x), x_mesh, method='linear')
 	x_vals = interp(pts)
-	interp = RegularGridInterpolator((y, x), y_mesh)
+	interp = RegularGridInterpolator((y, x), y_mesh, method='linear')
 	y_vals = interp(pts)
 
 	return zip(x_vals, y_vals)
