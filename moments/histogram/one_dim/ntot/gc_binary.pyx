@@ -475,7 +475,7 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 	Returns
 	-------
 	error : list
-		List of tuple of pressure and the relatice error of the Gibbs-Duhem equation to the absolute value of the mean free energy per particle between each point along each isobar [(p_1, |err|), (p_2, |err|), ...].
+		List of tuple of pressure, (x1_left, x1_right), and the relative error of the Gibbs-Duhem equation to the absolute value of the mean free energy per particle between each point along each isobar [(p_1, (x1_left,x1_right), |err|), (p_2, (x1_left,x1_right), |err|), ...].
 
 	"""
 
@@ -499,6 +499,7 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 			x1_vals = interp(pts)
 
 			error_p = []
+			x1_t = []
 
 			for i in xrange(1, len(x1_vals)):
 				if (not np.isnan(x1_vals[i]) and not np.isnan(x1_vals[i-1])):
@@ -509,8 +510,9 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 
 					err = x1_bar*(delta_mu1/delta_x1) + (1.0-x1_bar)*(delta_mu2/delta_x1)
 					error_p.append(fabs(err))
+					x1_t.append((x1_vals[i],x1_vals[i-1]))
 
-			error.append((p, error_p))
+			error.append((p, x1_t, error_p))
 
 	return error
 
