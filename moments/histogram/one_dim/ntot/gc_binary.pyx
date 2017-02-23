@@ -454,16 +454,78 @@ class isopleth (object):
 
 		return zz, (zx, zy), rho, fe
 
-def get_iso (double x1, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
+def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_p, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
 	"""
-	Trace out the isopleth from the discretized grid of (mu_1, dmu_2).
+	Compute the deviation from the Gibbs-Duhem equation.  For a binary system, only need to compute for 1 species.
+	This assumes the provided grids have been obtained at some fixed temperature.
 
 	Parameters
 	----------
-	x1 : double
-		Target mole fraction of species 1
+	isobars : ndarray
+		Array of pressures to (isobars) to check consistency along
 	grid_x1 : ndarray
-		2D array of x_1
+		2D array of x_1 on (mu1, dmu2) grid
+	grid_p : ndarray
+		2D array of pressure on (mu1, dmu2) grid
+	grid_mu1 : ndarray
+		2D array of mu_1 at each "pixel"
+	grid_dmu2 : ndarray
+		2D array of dmu_2 at each "pixel"
+
+	Returns
+	-------
+	error : list
+		List of tuple of pressure, the absolute error of x_1 relative the mean x_1, and the relatice error of the Gibbs-Duhem equation to the absolute value of the mean free energy per particle between each point along each isobar [(p_1, |x1_err|/x1_bar, |err|/|F.E./N_tot|_bar), (p_2, |x1_err|/x1_bar, |err|/|F.E./N_tot|_bar), ...].
+
+	"""
+
+	cdef double p, x1_bar, delta_x1, delta_mu1, delta_mu2, err
+	cdef int i
+
+	try:
+		interp = RegularGridInterpolator((grid_dmu2[:,0], grid_mu1[0,:]), grid_x1, bounds_error=False, fill_value=np.nan)
+	except (Exception, TypeError, ValueError) as e:
+		raise Exception ('Unable to create grid interpolator to check Gibbs-Duhem consistency : '+str(e))
+
+	error = []
+	for p in isobars:
+		try:
+			mu_vals_isobar = get_iso (p, grid_p, grid_mu1, grid_dmu2)
+		except (Exception, TypeError, ValueError) as e:
+			print ('Unable to check Gibbs-Duhem consistency along P = '+str(p)+' isobar : '+str(e))
+			error.append((p, None))
+		else:
+			pts = np.array([(a[1], a[0]) for a in mu_vals_isobar])
+			x1_vals = interp(pts)
+
+			error_p = []
+			error_x1 = []
+
+			for i in xrange(1, len(x1_vals)):
+				if (not np.isnan(x1_vals)):
+					x1_bar = 0.5*(x1_vals[i] + x1_vals[i-1])
+					delta_x1 = x1_vals[i] - x1_vals[i-1]
+					delta_mu1 = pts[i][0] - pts[i-1][0]
+					delta_mu2 = (pts[i][1] + pts[i][0]) - (pts[i-1][1] + pts[i-1][0])
+
+					err = x1_bar*(delta_mu1/delta_x1) + (1.0-x1_bar)*(delta_mu2/delta_x1)
+					error_p.append(fabs(err))
+					error_x1.append(fabs(x1_bar - x1_vals[i-1])/x1_bar)
+
+			error.append((p, error_x1, error_p))
+
+	return error
+
+def get_iso (double t, np.ndarray[np.double_t, ndim=2] grid_t, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
+	"""
+	Trace out the isopleth/isobar/iso- from the discretized grid of (mu_1, dmu_2).
+
+	Parameters
+	----------
+	t : double
+		Target mole fraction of species 1, pressure, etc.
+	grid_t : ndarray
+		2D array of x_1, P, etc. that you wish to find the curve along which this variable is constant
 	grid_mu1 : ndarray
 		2D array of mu_1 at each "pixel"
 	grid_dmu2 : ndarray
@@ -476,7 +538,7 @@ def get_iso (double x1, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.d
 
 	"""
 
-	cs = plt.contour(grid_mu1, grid_dmu2, grid_x1, [x1])
+	cs = plt.contour(grid_mu1, grid_dmu2, grid_t, [t])
 	p = cs.collections[0].get_paths()[0]
 	v = p.vertices
 	mu_vals = zip(v[:,0], v[:,1])
