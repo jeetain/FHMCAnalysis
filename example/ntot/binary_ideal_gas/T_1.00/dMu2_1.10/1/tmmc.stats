@@ -1,0 +1,583 @@
+Time: 22/02/2017 12:58:18
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.2214
+delete0 (from M = 0)	86.4366
+translate0 (from M = 0)	96.1997
+swap0_1 (from M = 0)	95.854
+insert1 (from M = 0)	95.0672
+delete1 (from M = 0)	94.7255
+translate1 (from M = 0)	98.7051
+------------------------------------ 
+Time: 22/02/2017 12:59:36
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.2449
+delete0 (from M = 0)	86.3621
+translate0 (from M = 0)	96.1869
+swap0_1 (from M = 0)	95.8317
+insert1 (from M = 0)	94.9008
+delete1 (from M = 0)	94.7707
+translate1 (from M = 0)	98.7504
+------------------------------------ 
+Time: 22/02/2017 13:01:02
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0754
+delete0 (from M = 0)	86.073
+translate0 (from M = 0)	95.9489
+swap0_1 (from M = 0)	95.5953
+insert1 (from M = 0)	94.829
+delete1 (from M = 0)	94.644
+translate1 (from M = 0)	98.6674
+------------------------------------ 
+Time: 22/02/2017 13:02:24
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.8826
+delete0 (from M = 0)	85.8217
+translate0 (from M = 0)	95.7581
+swap0_1 (from M = 0)	95.3859
+insert1 (from M = 0)	94.7477
+delete1 (from M = 0)	94.5294
+translate1 (from M = 0)	98.5895
+------------------------------------ 
+Time: 22/02/2017 13:03:36
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.851
+delete0 (from M = 0)	85.7969
+translate0 (from M = 0)	95.7265
+swap0_1 (from M = 0)	95.3559
+insert1 (from M = 0)	94.7174
+delete1 (from M = 0)	94.5117
+translate1 (from M = 0)	98.5579
+------------------------------------ 
+Time: 22/02/2017 13:05:09
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.943
+delete0 (from M = 0)	85.9376
+translate0 (from M = 0)	95.8352
+swap0_1 (from M = 0)	95.4864
+insert1 (from M = 0)	94.7207
+delete1 (from M = 0)	94.576
+translate1 (from M = 0)	98.6011
+------------------------------------ 
+Time: 22/02/2017 13:06:28
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9655
+delete0 (from M = 0)	85.9319
+translate0 (from M = 0)	95.8423
+swap0_1 (from M = 0)	95.4925
+insert1 (from M = 0)	94.7234
+delete1 (from M = 0)	94.5786
+translate1 (from M = 0)	98.5972
+------------------------------------ 
+Time: 22/02/2017 13:08:15
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0208
+delete0 (from M = 0)	85.995
+translate0 (from M = 0)	95.9049
+swap0_1 (from M = 0)	95.5552
+insert1 (from M = 0)	94.7347
+delete1 (from M = 0)	94.6179
+translate1 (from M = 0)	98.6218
+------------------------------------ 
+Time: 22/02/2017 13:09:40
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.007
+delete0 (from M = 0)	85.9512
+translate0 (from M = 0)	95.882
+swap0_1 (from M = 0)	95.5139
+insert1 (from M = 0)	94.7149
+delete1 (from M = 0)	94.607
+translate1 (from M = 0)	98.6135
+------------------------------------ 
+Time: 22/02/2017 13:11:23
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0389
+delete0 (from M = 0)	85.9761
+translate0 (from M = 0)	95.9104
+swap0_1 (from M = 0)	95.538
+insert1 (from M = 0)	94.733
+delete1 (from M = 0)	94.6288
+translate1 (from M = 0)	98.639
+------------------------------------ 
+Time: 22/02/2017 13:12:38
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9935
+delete0 (from M = 0)	85.8905
+translate0 (from M = 0)	95.8167
+swap0_1 (from M = 0)	95.4646
+insert1 (from M = 0)	94.713
+delete1 (from M = 0)	94.5978
+translate1 (from M = 0)	98.6114
+------------------------------------ 
+Time: 22/02/2017 13:14:06
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0049
+delete0 (from M = 0)	85.9311
+translate0 (from M = 0)	95.8311
+swap0_1 (from M = 0)	95.4795
+insert1 (from M = 0)	94.7012
+delete1 (from M = 0)	94.6047
+translate1 (from M = 0)	98.6105
+------------------------------------ 
+Time: 22/02/2017 13:15:38
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9424
+delete0 (from M = 0)	85.8527
+translate0 (from M = 0)	95.749
+swap0_1 (from M = 0)	95.392
+insert1 (from M = 0)	94.6745
+delete1 (from M = 0)	94.5645
+translate1 (from M = 0)	98.5703
+------------------------------------ 
+Time: 22/02/2017 13:17:24
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9457
+delete0 (from M = 0)	85.8782
+translate0 (from M = 0)	95.7644
+swap0_1 (from M = 0)	95.4237
+insert1 (from M = 0)	94.6801
+delete1 (from M = 0)	94.5759
+translate1 (from M = 0)	98.5789
+------------------------------------ 
+Time: 22/02/2017 13:18:48
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9462
+delete0 (from M = 0)	85.8926
+translate0 (from M = 0)	95.7769
+swap0_1 (from M = 0)	95.4353
+insert1 (from M = 0)	94.6785
+delete1 (from M = 0)	94.5753
+translate1 (from M = 0)	98.5845
+------------------------------------ 
+Time: 22/02/2017 13:20:32
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9534
+delete0 (from M = 0)	85.9267
+translate0 (from M = 0)	95.7931
+swap0_1 (from M = 0)	95.4599
+insert1 (from M = 0)	94.6835
+delete1 (from M = 0)	94.581
+translate1 (from M = 0)	98.5898
+------------------------------------ 
+Time: 22/02/2017 13:21:53
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9455
+delete0 (from M = 0)	85.9305
+translate0 (from M = 0)	95.7786
+swap0_1 (from M = 0)	95.4435
+insert1 (from M = 0)	94.6874
+delete1 (from M = 0)	94.5742
+translate1 (from M = 0)	98.5829
+------------------------------------ 
+Time: 22/02/2017 13:23:32
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9649
+delete0 (from M = 0)	85.9406
+translate0 (from M = 0)	95.792
+swap0_1 (from M = 0)	95.4662
+insert1 (from M = 0)	94.6869
+delete1 (from M = 0)	94.5822
+translate1 (from M = 0)	98.5915
+------------------------------------ 
+Time: 22/02/2017 13:24:54
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.957
+delete0 (from M = 0)	85.9224
+translate0 (from M = 0)	95.7831
+swap0_1 (from M = 0)	95.4614
+insert1 (from M = 0)	94.6847
+delete1 (from M = 0)	94.579
+translate1 (from M = 0)	98.591
+------------------------------------ 
+Time: 22/02/2017 13:26:28
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9081
+delete0 (from M = 0)	85.8746
+translate0 (from M = 0)	95.7356
+swap0_1 (from M = 0)	95.4055
+insert1 (from M = 0)	94.6771
+delete1 (from M = 0)	94.5516
+translate1 (from M = 0)	98.5734
+------------------------------------ 
+Time: 22/02/2017 13:27:41
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9001
+delete0 (from M = 0)	85.8593
+translate0 (from M = 0)	95.7276
+swap0_1 (from M = 0)	95.3954
+insert1 (from M = 0)	94.6694
+delete1 (from M = 0)	94.5455
+translate1 (from M = 0)	98.5688
+------------------------------------ 
+Time: 22/02/2017 13:29:29
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.9278
+delete0 (from M = 0)	85.8768
+translate0 (from M = 0)	95.7568
+swap0_1 (from M = 0)	95.4292
+insert1 (from M = 0)	94.6661
+delete1 (from M = 0)	94.5668
+translate1 (from M = 0)	98.5794
+------------------------------------ 
+Time: 22/02/2017 13:31:08
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	85.962
+delete0 (from M = 0)	85.9075
+translate0 (from M = 0)	95.7892
+swap0_1 (from M = 0)	95.4665
+insert1 (from M = 0)	94.6641
+delete1 (from M = 0)	94.5922
+translate1 (from M = 0)	98.5896
+------------------------------------ 
+Time: 22/02/2017 13:32:53
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0093
+delete0 (from M = 0)	85.9674
+translate0 (from M = 0)	95.8506
+swap0_1 (from M = 0)	95.538
+insert1 (from M = 0)	94.6778
+delete1 (from M = 0)	94.621
+translate1 (from M = 0)	98.6112
+------------------------------------ 
+Time: 22/02/2017 13:34:28
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0215
+delete0 (from M = 0)	86.003
+translate0 (from M = 0)	95.8769
+swap0_1 (from M = 0)	95.5708
+insert1 (from M = 0)	94.6849
+delete1 (from M = 0)	94.6318
+translate1 (from M = 0)	98.6196
+------------------------------------ 
+Time: 22/02/2017 13:35:58
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0207
+delete0 (from M = 0)	86.0183
+translate0 (from M = 0)	95.8819
+swap0_1 (from M = 0)	95.5718
+insert1 (from M = 0)	94.6878
+delete1 (from M = 0)	94.6312
+translate1 (from M = 0)	98.619
+------------------------------------ 
+Time: 22/02/2017 13:37:44
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0275
+delete0 (from M = 0)	86.0502
+translate0 (from M = 0)	95.9047
+swap0_1 (from M = 0)	95.5885
+insert1 (from M = 0)	94.6909
+delete1 (from M = 0)	94.6377
+translate1 (from M = 0)	98.6264
+------------------------------------ 
+Time: 22/02/2017 13:39:42
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0578
+delete0 (from M = 0)	86.0787
+translate0 (from M = 0)	95.936
+swap0_1 (from M = 0)	95.6182
+insert1 (from M = 0)	94.6988
+delete1 (from M = 0)	94.6547
+translate1 (from M = 0)	98.6393
+------------------------------------ 
+Time: 22/02/2017 13:41:11
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.033
+delete0 (from M = 0)	86.0416
+translate0 (from M = 0)	95.9138
+swap0_1 (from M = 0)	95.5928
+insert1 (from M = 0)	94.6923
+delete1 (from M = 0)	94.6417
+translate1 (from M = 0)	98.6321
+------------------------------------ 
+Time: 22/02/2017 13:42:42
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0408
+delete0 (from M = 0)	86.0526
+translate0 (from M = 0)	95.9256
+swap0_1 (from M = 0)	95.6021
+insert1 (from M = 0)	94.6934
+delete1 (from M = 0)	94.6462
+translate1 (from M = 0)	98.637
+------------------------------------ 
+Time: 22/02/2017 13:44:44
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0641
+delete0 (from M = 0)	86.0721
+translate0 (from M = 0)	95.9493
+swap0_1 (from M = 0)	95.6292
+insert1 (from M = 0)	94.699
+delete1 (from M = 0)	94.6612
+translate1 (from M = 0)	98.6453
+------------------------------------ 
+Time: 22/02/2017 13:46:15
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0753
+delete0 (from M = 0)	86.0837
+translate0 (from M = 0)	95.9572
+swap0_1 (from M = 0)	95.6364
+insert1 (from M = 0)	94.6981
+delete1 (from M = 0)	94.6701
+translate1 (from M = 0)	98.6492
+------------------------------------ 
+Time: 22/02/2017 13:47:57
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0785
+delete0 (from M = 0)	86.0817
+translate0 (from M = 0)	95.9556
+swap0_1 (from M = 0)	95.6392
+insert1 (from M = 0)	94.6995
+delete1 (from M = 0)	94.6698
+translate1 (from M = 0)	98.6499
+------------------------------------ 
+Time: 22/02/2017 13:49:11
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0661
+delete0 (from M = 0)	86.071
+translate0 (from M = 0)	95.9447
+swap0_1 (from M = 0)	95.6254
+insert1 (from M = 0)	94.7017
+delete1 (from M = 0)	94.6583
+translate1 (from M = 0)	98.6439
+------------------------------------ 
+Time: 22/02/2017 13:50:39
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0596
+delete0 (from M = 0)	86.0629
+translate0 (from M = 0)	95.9419
+swap0_1 (from M = 0)	95.6242
+insert1 (from M = 0)	94.7057
+delete1 (from M = 0)	94.6548
+translate1 (from M = 0)	98.6432
+------------------------------------ 
+Time: 22/02/2017 13:52:11
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0466
+delete0 (from M = 0)	86.0478
+translate0 (from M = 0)	95.93
+swap0_1 (from M = 0)	95.61
+insert1 (from M = 0)	94.705
+delete1 (from M = 0)	94.6451
+translate1 (from M = 0)	98.6388
+------------------------------------ 
+Time: 22/02/2017 13:53:46
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.054
+delete0 (from M = 0)	86.05
+translate0 (from M = 0)	95.9419
+swap0_1 (from M = 0)	95.6274
+insert1 (from M = 0)	94.7064
+delete1 (from M = 0)	94.6521
+translate1 (from M = 0)	98.6438
+------------------------------------ 
+Time: 22/02/2017 13:55:16
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0565
+delete0 (from M = 0)	86.0573
+translate0 (from M = 0)	95.9475
+swap0_1 (from M = 0)	95.6333
+insert1 (from M = 0)	94.7117
+delete1 (from M = 0)	94.6542
+translate1 (from M = 0)	98.6467
+------------------------------------ 
+Time: 22/02/2017 13:56:29
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0487
+delete0 (from M = 0)	86.0549
+translate0 (from M = 0)	95.9413
+swap0_1 (from M = 0)	95.6269
+insert1 (from M = 0)	94.7119
+delete1 (from M = 0)	94.6506
+translate1 (from M = 0)	98.6454
+------------------------------------ 
+Time: 22/02/2017 13:57:49
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0522
+delete0 (from M = 0)	86.0527
+translate0 (from M = 0)	95.9445
+swap0_1 (from M = 0)	95.6277
+insert1 (from M = 0)	94.7147
+delete1 (from M = 0)	94.6521
+translate1 (from M = 0)	98.6437
+------------------------------------ 
+Time: 22/02/2017 13:59:21
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0585
+delete0 (from M = 0)	86.0565
+translate0 (from M = 0)	95.95
+swap0_1 (from M = 0)	95.6333
+insert1 (from M = 0)	94.7182
+delete1 (from M = 0)	94.6562
+translate1 (from M = 0)	98.6469
+------------------------------------ 
+Time: 22/02/2017 14:00:52
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.074
+delete0 (from M = 0)	86.061
+translate0 (from M = 0)	95.9594
+swap0_1 (from M = 0)	95.6405
+insert1 (from M = 0)	94.7138
+delete1 (from M = 0)	94.6642
+translate1 (from M = 0)	98.65
+------------------------------------ 
+Time: 22/02/2017 14:02:10
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0725
+delete0 (from M = 0)	86.0641
+translate0 (from M = 0)	95.9565
+swap0_1 (from M = 0)	95.6383
+insert1 (from M = 0)	94.7169
+delete1 (from M = 0)	94.6625
+translate1 (from M = 0)	98.6486
+------------------------------------ 
+Time: 22/02/2017 14:03:38
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0846
+delete0 (from M = 0)	86.0785
+translate0 (from M = 0)	95.9681
+swap0_1 (from M = 0)	95.6525
+insert1 (from M = 0)	94.7222
+delete1 (from M = 0)	94.6706
+translate1 (from M = 0)	98.6542
+------------------------------------ 
+Time: 22/02/2017 14:05:21
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.096
+delete0 (from M = 0)	86.0869
+translate0 (from M = 0)	95.9748
+swap0_1 (from M = 0)	95.6627
+insert1 (from M = 0)	94.7232
+delete1 (from M = 0)	94.6755
+translate1 (from M = 0)	98.6573
+------------------------------------ 
+Time: 22/02/2017 14:06:46
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.102
+delete0 (from M = 0)	86.0901
+translate0 (from M = 0)	95.9788
+swap0_1 (from M = 0)	95.6713
+insert1 (from M = 0)	94.7217
+delete1 (from M = 0)	94.6802
+translate1 (from M = 0)	98.6582
+------------------------------------ 
+Time: 22/02/2017 14:08:09
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0889
+delete0 (from M = 0)	86.0825
+translate0 (from M = 0)	95.9701
+swap0_1 (from M = 0)	95.6632
+insert1 (from M = 0)	94.7232
+delete1 (from M = 0)	94.6723
+translate1 (from M = 0)	98.6546
+------------------------------------ 
+Time: 22/02/2017 14:09:37
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0802
+delete0 (from M = 0)	86.0744
+translate0 (from M = 0)	95.9601
+swap0_1 (from M = 0)	95.6521
+insert1 (from M = 0)	94.7241
+delete1 (from M = 0)	94.6656
+translate1 (from M = 0)	98.651
+------------------------------------ 
+Time: 22/02/2017 14:11:14
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.0823
+delete0 (from M = 0)	86.0798
+translate0 (from M = 0)	95.9647
+swap0_1 (from M = 0)	95.6528
+insert1 (from M = 0)	94.7262
+delete1 (from M = 0)	94.6655
+translate1 (from M = 0)	98.6514
+------------------------------------ 
+Time: 22/02/2017 14:13:16
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.1116
+delete0 (from M = 0)	86.1099
+translate0 (from M = 0)	95.994
+swap0_1 (from M = 0)	95.6834
+insert1 (from M = 0)	94.7371
+delete1 (from M = 0)	94.6829
+translate1 (from M = 0)	98.6628
+------------------------------------ 
+Time: 22/02/2017 14:14:44
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.1141
+delete0 (from M = 0)	86.107
+translate0 (from M = 0)	95.9944
+swap0_1 (from M = 0)	95.6836
+insert1 (from M = 0)	94.7386
+delete1 (from M = 0)	94.6835
+translate1 (from M = 0)	98.6636
+------------------------------------ 
+Time: 22/02/2017 14:16:16
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.1134
+delete0 (from M = 0)	86.1119
+translate0 (from M = 0)	95.9983
+swap0_1 (from M = 0)	95.6893
+insert1 (from M = 0)	94.7426
+delete1 (from M = 0)	94.683
+translate1 (from M = 0)	98.6674
+------------------------------------ 
+Time: 22/02/2017 14:17:57
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	86.121
+delete0 (from M = 0)	86.1195
+translate0 (from M = 0)	96.0074
+swap0_1 (from M = 0)	95.6973
+insert1 (from M = 0)	94.7433
+delete1 (from M = 0)	94.686
+translate1 (from M = 0)	98.6698
+------------------------------------ 
