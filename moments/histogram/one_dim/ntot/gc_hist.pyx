@@ -2399,7 +2399,8 @@ class histogram (object):
 										try:
 											z_idx = self._mom_prod([q,1,0,0,0],[i,j,k,m,p])
 											f = self.data['mom'][z_idx[0],z_idx[1],z_idx[2],z_idx[3],z_idx[4]] - self.data['mom'][q,1,0,0,0]*self.data['mom'][i,j,k,m,p]
-											x = self.data['curr_beta']*(self._sg_df_dB(([q,1,0,0,0],0),([i,j,k,m,p],0)) + f)
+											x = self.data['curr_beta']*self._sg_df_dB(([q,1,0,0,0],0),([i,j,k,m,p],0)) + f
+											#x = self.data['curr_beta']*(self._sg_df_dB(([q,1,0,0,0],0),([i,j,k,m,p],0)) + f) # parantheases should not have been distributed on the last f term
 										except Exception as e:
 											raise Exception ('Cannot compute second derivative: '+str(e))
 										else:
