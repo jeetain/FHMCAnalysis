@@ -502,7 +502,7 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 			error_x1 = []
 
 			for i in xrange(1, len(x1_vals)):
-				if (not np.isnan(x1_vals)):
+				if (not np.isnan(x1_vals[i]) and not np.isnan(x1_vals[i-1])):
 					x1_bar = 0.5*(x1_vals[i] + x1_vals[i-1])
 					delta_x1 = x1_vals[i] - x1_vals[i-1]
 					delta_mu1 = pts[i][0] - pts[i-1][0]
