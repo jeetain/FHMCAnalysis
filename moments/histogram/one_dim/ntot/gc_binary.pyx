@@ -174,7 +174,7 @@ class isopleth (object):
 		dmu2_bounds : array-like
 			min, max of dmu_2 to consider
 		delta : array-like
-			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
+			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid. Usually ~ 0.2 is good balance between speed and accuracy.
 		p : int
 			Exponent to mix histograms with (default=1, "linear")
 

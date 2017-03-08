@@ -6,7 +6,7 @@ Nathan A. Mahynski
 
 Status
 
-[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/) [![Code Issues](https://www.quantifiedcode.com/api/v1/project/fe2f9564d3e84213a5ecae6e84c6f1d0/badge.svg)](https://www.quantifiedcode.com/app/project/fe2f9564d3e84213a5ecae6e84c6f1d0)
+[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/) [![Code Issues](https://www.quantifiedcode.com/api/v1/project/fe2f9564d3e84213a5ecae6e84c6f1d0/badge.svg)](https://www.quantifiedcode.com/app/project/fe2f9564d3e84213a5ecae6e84c6f1d0) [![DOI](https://zenodo.org/badge/73996052.svg)](https://zenodo.org/badge/latestdoi/73996052)
 
 ---
 
@@ -16,6 +16,15 @@ Status
 $ git clone https://github.com/mahynski/FHMCAnalysis.git
 $ cd FHMCAnalysis
 $ python install.py
+```
+
+---
+
+## Unittesting
+
+```
+$ cd unittests
+$ python run_tests.py
 ```
 
 ---
@@ -34,15 +43,6 @@ Alternatively, I highly recommend simply installing anaconda python (https://www
 $ cd ~/Downloads/
 $ wget https://repo.continuum.io/archive/Anaconda2-4.2.0-MacOSX-x86_64.pkg
 $ bash Anaconda2-4.2.0-MacOSX-x86_64.sh
-```
-
----
-
-## Unittesting
-
-```
-$ cd unittests
-$ python run_tests.py
 ```
 
 ---
