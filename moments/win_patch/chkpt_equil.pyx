@@ -22,7 +22,7 @@ np.seterr(divide='raise', over='raise', invalid='raise') # Any sort of problem (
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cpdef test_nebr_match (seq1, seq2, double per_err=1.0):
+cdef test_nebr_match_ (seq1, seq2, double per_err=1.0):
 	"""
 	Look at a neighboring pair of windows and see if extensive properties (besides lnPI) at same value of N_tot (order parameter) are within a given error tolerance of each other.
 
@@ -191,7 +191,7 @@ cpdef test_nebr_equil (seq, double per_err, fname='maxEq', bool trust=False):
 
 	safe_seq = []
 	for l_seq,u_seq in ordered_seq:
-		ipass, max_u_err, max_n_err = test_nebr_match (l_seq, u_seq, per_err)
+		ipass, max_u_err, max_n_err = test_nebr_match_ (l_seq, u_seq, per_err)
 		if (ipass):
 			found = True
 
@@ -230,9 +230,9 @@ if __name__ == "__main__":
 	"""
 	* Tutorial:
 
-	1. From chkpt_patch, run get_patch_sequence() in simulation directory where each window is stored in a local directory labelled numerically (1, 2, 3,...) with a directory called "checkpt/" in each
-	2. Run test_nebr_equil() on sequence obtained from get_patch_sequence() to determine continuous sequence of windows up to max window
-	3. From chkpt_patch, feed the output to patch_all_windows() to patch together all results
+	1. From chkpt_patch, run seq = get_patch_sequence() in simulation directory where each window is stored in a local directory labelled numerically (1, 2, 3,...) with a directory called "checkpt/" in each.
+	2. Run new_seq = test_nebr_equil(seq) on sequence obtained from get_patch_sequence() to determine continuous sequence of windows up to max window.
+	3. From chkpt_patch, feed the output to patch_all_windows(new_seq) to patch together all results.
 
 	* Notes:
 
