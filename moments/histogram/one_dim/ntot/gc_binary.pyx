@@ -21,6 +21,7 @@ from libc.math cimport exp
 from libc.math cimport log
 from libc.math cimport fabs
 from scipy.interpolate import RegularGridInterpolator
+from scipy.interpolate import UnivariateSpline
 
 np.seterr(divide='raise', over='raise', invalid='raise', under='ignore')
 
@@ -498,6 +499,24 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 			pts = np.array([(a[1], a[0]) for a in mu_vals_isobar])
 			x1_vals = interp(pts)
 
+			dmu1_dx1 = UnivariateSpline(x1_vals, [a[1] for a in mu_vals_isobar], k=3, s=0).derivative()
+			dmu2_dx1 = UnivariateSpline(x1_vals, [a[0]+a[1] for a in mu_vals_isobar], k=3, s=0).derivative()
+
+			error_p = []
+			x1_t = []
+
+			for x1v in x1_vals:
+				if (not np.isnan(x1v)):
+					err = x1v*dmu1_dx1(x1v) + (1.0-x1v)*dmu2_dx1(x1v)
+					error_p.append(fabs(err))
+					x1_t.append(x1v)
+
+			error.append((p, x1_t, error_p))
+
+			"""
+			pts = np.array([(a[1], a[0]) for a in mu_vals_isobar])
+			x1_vals = interp(pts)
+
 			error_p = []
 			x1_t = []
 
@@ -513,6 +532,7 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 					x1_t.append((x1_vals[i],x1_vals[i-1]))
 
 			error.append((p, x1_t, error_p))
+			"""
 
 	return error
 
