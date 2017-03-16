@@ -342,6 +342,7 @@ class histogram (object):
 		Integrate the lnPI distribution, etc. and compute average thermodynamic properties of each phase identified.
 
 		This adds F.E./kT, nn_mom, un_mom, n1, n2, ..., x1, x2, ..., u, and density keys to data['thermo'][phase_idx] for each phase. Does not check "safety" of the calculation, use is_safe() for that.
+		Note that pressure, P = -1*[F.E./kT]/V/beta.
 
 		Parameters
 		----------
