@@ -476,7 +476,7 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 	Returns
 	-------
 	error : list
-		List of tuple of pressure, (x1_left, x1_right), and the relative error of the Gibbs-Duhem equation to the absolute value of the mean free energy per particle between each point along each isobar [(p_1, (x1_left,x1_right), |err|), (p_2, (x1_left,x1_right), |err|), ...].
+		List of tuple of pressure, the error of the Gibbs-Duhem equation, x1, [mu1, dMu2] at each point
 
 	"""
 
@@ -504,15 +504,19 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 
 			error_p = []
 			x1_t = []
+			mu_t = []
 
-			for x1v in x1_vals:
+			for i in xrange(len(mu_vals_isobar)):
+				x1v = x1_vals[i]
 				if (not np.isnan(x1v)):
 					err = x1v*dmu1_dx1(x1v) + (1.0-x1v)*dmu2_dx1(x1v)
-					error_p.append(fabs(err))
+					error_p.append(err)
 					x1_t.append(x1v)
+					mu_t.append(mu_vals_isobar[i])
 
-			error.append((p, x1_t, error_p))
+			error.append((p, error_p, x1_t, mu_t))
 
+			# Numerical Gibbs-Duhem can be estimated below
 			"""
 			pts = np.array([(a[1], a[0]) for a in mu_vals_isobar])
 			x1_vals = interp(pts)
