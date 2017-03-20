@@ -196,7 +196,6 @@ cpdef test_nebr_equil (seq, double per_err, fname='maxEq', bool trust=False):
 	safe_seq = []
 	for l_seq,u_seq in ordered_seq:
 		ipass, max_u_err, max_n_err = test_nebr_match_ (l_seq, u_seq, per_err)
-		print ipass, max_u_err, max_n_err, l_seq
 		if (ipass):
 			found = True
 
