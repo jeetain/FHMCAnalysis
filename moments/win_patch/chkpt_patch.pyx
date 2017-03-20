@@ -783,7 +783,7 @@ cpdef get_patch_sequence (idir):
 
 	# Find the directories for each window
 	oD = sorted([ tryint(f) for f in listdir(dir) if not isfile(join(dir,f)) ])
-	only_dirs = [dir+'/'+str(d)+'/checkpt' for d in oD if "checkpt" in os.listdir(d)]
+	only_dirs = [dir+'/'+str(d)+'/checkpt' for d in oD if "checkpt" in os.listdir(dir+'/'+str(d))]
 
 	lnPI_fname = []
 	mom_fname = []
