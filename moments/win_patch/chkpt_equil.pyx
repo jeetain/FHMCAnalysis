@@ -84,7 +84,7 @@ cdef test_nebr_match_ (seq1, seq2, double per_err=1.0):
 		max_order[i] = int(data[len(data)-2])
 		f.close()
 		assert (max_order[i] >= 1), 'Must record atleast 1st moment to get average property'
-		uvals.append(info[2,:])
+		uvals.append(info[2,:]/info[1,:]) # Have to normalize energy records
 
 	assert (max_order[0] == max_order[1]), 'Different maximum order in each window'
 	assert (nspec[0] == nspec[1]), 'Different number of species in each window'
@@ -92,12 +92,13 @@ cdef test_nebr_match_ (seq1, seq2, double per_err=1.0):
 	ov2 = uvals[1][:dw]
 	assert (len(ov1) == len(ov2)), 'Bad overlap calculation'
 
-	# ideal gas check (U = 0?)
+	# Ideal gas check (U = 0?) because error is artificially inflated numerically if it is supposed to be 0, or nearly so
+	tol = 1.0e-9
 	max_u_err = -np.inf
 	for i in xrange(len(ov1)):
-		if (ov1[i] != 0.0):
+		if (np.abs(ov1[i]) > tol):
 			err = np.abs((ov1[i]-ov2[i])/ov1[i])*100.0
-		elif (ov2[i] != 0.0):
+		elif (np.abs(ov2[i]) > tol):
 			err = np.abs((ov1[i]-ov2[i])/ov2[i])*100.0
 		else:
 			err = -np.inf
@@ -111,7 +112,7 @@ cdef test_nebr_match_ (seq1, seq2, double per_err=1.0):
 		nj = []
 		for j in xrange(nspec[0]):
 			address = 1 + (0 + mo*0 + mo*mo*0 + mo*mo*nspec[0]*1 + mo*mo*nspec[0]*mo*j)
-			nj.append(info[address,:])
+			nj.append(info[address,:]/info[1,:]) # Must normalize particle number records
 		ni.append(nj)
 
 	max_n_err = 0.0
@@ -159,20 +160,22 @@ cpdef test_nebr_equil (seq, double per_err, fname='maxEq', bool trust=False):
 	ordered_seq = []
 	for i in xrange(len(seq)-1):
 		if (i == 0):
+			# Check the first sequence on the first execution of loop
 			for j in xrange(0, len(seq[i])):
 				x = seq[i][j].split('/')
-				print x
-				w = int(x[len(x)-2])
+				w = int(x[len(x)-3])
 				if (j == 0):
 					l_w = w
 				else:
 					assert (l_w == w), 'Window changes within sequence'
 		else:
+			# In subsequent loops, this one has already been checked because of code below
 			l_w = u_w
 
+		# Check the next one proposed
 		for j in xrange(0, len(seq[i+1])):
 			x = seq[i+1][j].split('/')
-			w = int(x[len(x)-2])
+			w = int(x[len(x)-3])
 			if (j == 0):
 				u_w = w
 			else:
@@ -193,6 +196,7 @@ cpdef test_nebr_equil (seq, double per_err, fname='maxEq', bool trust=False):
 	safe_seq = []
 	for l_seq,u_seq in ordered_seq:
 		ipass, max_u_err, max_n_err = test_nebr_match_ (l_seq, u_seq, per_err)
+		print ipass, max_u_err, max_n_err, l_seq
 		if (ipass):
 			found = True
 
@@ -205,9 +209,9 @@ cpdef test_nebr_equil (seq, double per_err, fname='maxEq', bool trust=False):
 
 			if (print_file):
 				x = l_seq[0].split('/')
-				w1 = int(x[len(x)-2])
+				w1 = int(x[len(x)-3])
 				x = u_seq[0].split('/')
-				w2 = int(x[len(x)-2])
+				w2 = int(x[len(x)-3])
 				output.write('\n#\t('+str(w1)+','+str(w2)+')\t'+str(np.max([max_u_err, max_n_err]))+'\t'+str(max_u_err)+'\t'+str(max_n_err))
 		else:
 			break
