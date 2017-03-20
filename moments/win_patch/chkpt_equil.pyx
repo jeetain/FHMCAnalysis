@@ -161,6 +161,7 @@ cpdef test_nebr_equil (seq, double per_err, fname='maxEq', bool trust=False):
 		if (i == 0):
 			for j in xrange(0, len(seq[i])):
 				x = seq[i][j].split('/')
+				print x
 				w = int(x[len(x)-2])
 				if (j == 0):
 					l_w = w
