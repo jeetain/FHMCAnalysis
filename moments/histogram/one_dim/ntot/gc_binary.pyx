@@ -164,7 +164,7 @@ class isopleth (object):
 
 		self.data = {}
 
-	def make_grid_multi (self, mu1_bounds, dmu2_bounds, delta, int p=1):
+	def make_grid_multi (self, mu1_bounds, dmu2_bounds, delta, float p=2.5):
 		"""
 		Compute the discretized 2D (mu_1, dmu_2) isopleth surface in "chunks".
 
@@ -176,8 +176,8 @@ class isopleth (object):
 			min, max of dmu_2 to consider
 		delta : array-like
 			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid. Usually ~ 0.2 is good balance between speed and accuracy.
-		p : int
-			Exponent to mix histograms with (default=1, "linear")
+		p : float
+			Exponent to mix histograms with (default=2.5)
 
 		Returns
 		-------
@@ -273,6 +273,69 @@ class isopleth (object):
 							self.data['F.E./kT'][j,i] = h_m.data['thermo'][most_stable_phase]['F.E./kT']
 
 		return self.data['Z'], (self.data['X'], self.data['Y'])
+
+	def get_hist (self, mu1, dmu2, double p=2.5):
+		"""
+		Get (a copy of) the "interpolated" histogram for a given (mu1, dmu_2).
+
+		Parameters
+		----------
+		mu1 : double
+			Chemical potential of species 1
+		dmu2 : double
+			Delta mu2
+		p : double
+			Exponent to mix histograms with (default=2.5)
+
+		Returns
+		-------
+		h : histogram
+			Histogram interpolated to (mu1, dmu_2) specified at the beta for this isopleth object
+
+		"""
+
+		# Identify "bounding" dmu2's
+		cdef int left = 0, right = 0
+
+		left, right = _find_left_right(self.data['dmu2'], dmu2, False)
+
+		if (left == right):
+			if (left < 0):
+				# Below lower bound
+				h_l = self.data['histograms'][0]
+			elif (left == len(self.data['dmu2'])):
+				# Above upper bound
+				h_l = self.data['histograms'][-1]
+			else:
+				# Falls exactly on one of the dmu2 values
+				h_l = self.data['histograms'][left]
+
+			try:
+				h_l.reweight(mu1)
+				h_m = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
+			except Exception as e:
+				raise Exception ('Unable to get histogram : '+str(e))
+		else:
+			# In between two measured dmu2 values
+			h_l = self.data['histograms'][left]
+			h_r = self.data['histograms'][right]
+
+			try:
+				h_l.reweight(mu1)
+				h_l = h_l.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
+				h_r.reweight(mu1)
+				h_r = h_r.temp_dmu_extrap(self.meta['beta'], np.array([dmu2], dtype=np.float64), self.meta['order'], self.meta['cutoff'], False, True, False)
+			except Exception as e:
+				raise Exception ('Unable to get histogram : '+str(e))
+			else:
+				# Mix these histograms
+				dl = fabs(self.data['dmu2'][left] - dmu2)**p
+				dr = fabs(self.data['dmu2'][right] - dmu2)**p
+				wl = dr/(dr+dl) # Weights are "complementary" to distances
+				wr = dl/(dr+dl) # Weights are "complementary" to distances
+				h_m = h_l.mix(h_r, [wl, wr])
+
+		return h_m
 
 	def make_grid (self, mu1_bounds, dmu2_bounds, delta, float p=2.5):
 		"""
@@ -476,7 +539,8 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 	Returns
 	-------
 	error : list
-		List of tuple of pressure, the error of the Gibbs-Duhem equation, x1, [mu1, dMu2] at each point
+		List of tuple of pressure, the error of the Gibbs-Duhem equation, x1, [mu1, dMu2], Q1_beta at each point
+		Q1_beta = x_1*(\partial mu_1 / \partial x_1)_{T,P}
 
 	"""
 
@@ -505,16 +569,19 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 			error_p = []
 			x1_t = []
 			mu_t = []
+			q1_t = []
 
 			for i in xrange(len(mu_vals_isobar)):
 				x1v = x1_vals[i]
 				if (not np.isnan(x1v)):
-					err = x1v*dmu1_dx1(x1v) + (1.0-x1v)*dmu2_dx1(x1v)
+					q1 = x1v*dmu1_dx1(x1v)
+					err = q1 + (1.0-x1v)*dmu2_dx1(x1v)
+					q1_t.append(q1)
 					error_p.append(err)
 					x1_t.append(x1v)
 					mu_t.append(mu_vals_isobar[i])
 
-			error.append((p, error_p, x1_t, mu_t))
+			error.append((p, error_p, x1_t, mu_t, q1_t))
 
 			# Numerical Gibbs-Duhem can be estimated below
 			"""
