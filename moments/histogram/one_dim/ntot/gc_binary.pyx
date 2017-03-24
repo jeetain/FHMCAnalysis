@@ -539,8 +539,8 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 	Returns
 	-------
 	error : list
-		List of tuple of pressure, the error of the Gibbs-Duhem equation, x1, [mu1, dMu2], Q1_beta at each point
-		Q1_beta = x_1*(\partial mu_1 / \partial x_1)_{T,P}
+		List of tuple of pressure, the error of the Gibbs-Duhem equation, x1, [mu1, dMu2], Q1/beta at each point
+		Q1/beta = x_1*(\partial mu_1 / \partial x_1)_{T,P}
 
 	"""
 
