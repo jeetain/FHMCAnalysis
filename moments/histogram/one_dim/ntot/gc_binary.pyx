@@ -21,7 +21,6 @@ from libc.math cimport exp
 from libc.math cimport log
 from libc.math cimport fabs
 from scipy.interpolate import RegularGridInterpolator
-#from scipy.interpolate import UnivariateSpline
 from scipy import interpolate
 
 np.seterr(divide='raise', over='raise', invalid='raise', under='ignore')
@@ -564,8 +563,8 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 			pts = np.array([(a[1], a[0]) for a in mu_vals_isobar])
 			x1_vals = interp(pts)
 
-			mu1_x1 = interpolate.splrep(x1_vals, [a[0] for a in mu_vals_isobar], s=0, k=3) #UnivariateSpline(x1_vals, [a[1] for a in mu_vals_isobar], k=3, s=0).derivative()
-			mu2_x1 = interpolate.splrep(x1_vals, [a[1]+a[0] for a in mu_vals_isobar], s=0, k=3) #UnivariateSpline(x1_vals, [a[0]+a[1] for a in mu_vals_isobar], k=3, s=0).derivative()
+			mu1_x1 = interpolate.splrep(x1_vals, [a[0] for a in mu_vals_isobar], s=0, k=3)
+			mu2_x1 = interpolate.splrep(x1_vals, [a[1]+a[0] for a in mu_vals_isobar], s=0, k=3)
 
 			error_p = []
 			x1_t = []
@@ -575,36 +574,14 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 			for i in xrange(len(mu_vals_isobar)):
 				x1v = x1_vals[i]
 				if (not np.isnan(x1v)):
-					q1 = x1v*interpolate.splev(x1v, mu1_x1, der=1)#dmu1_dx1(x1v)
-					err = q1 + (1.0-x1v)*interpolate.splev(x1v, mu2_x1, der=1)#dmu2_dx1(x1v)
+					q1 = x1v*interpolate.splev(x1v, mu1_x1, der=1)
+					err = q1 + (1.0-x1v)*interpolate.splev(x1v, mu2_x1, der=1)
 					q1_t.append(q1)
 					error_p.append(err)
 					x1_t.append(x1v)
 					mu_t.append(mu_vals_isobar[i])
 
 			error.append((p, error_p, x1_t, mu_t, q1_t))
-
-			# Numerical Gibbs-Duhem can be estimated below
-			"""
-			pts = np.array([(a[1], a[0]) for a in mu_vals_isobar])
-			x1_vals = interp(pts)
-
-			error_p = []
-			x1_t = []
-
-			for i in xrange(1, len(x1_vals)):
-				if (not np.isnan(x1_vals[i]) and not np.isnan(x1_vals[i-1])):
-					x1_bar = 0.5*(x1_vals[i] + x1_vals[i-1])
-					delta_x1 = x1_vals[i] - x1_vals[i-1]
-					delta_mu1 = pts[i][0] - pts[i-1][0]
-					delta_mu2 = (pts[i][1] + pts[i][0]) - (pts[i-1][1] + pts[i-1][0])
-
-					err = x1_bar*(delta_mu1/delta_x1) + (1.0-x1_bar)*(delta_mu2/delta_x1)
-					error_p.append(fabs(err))
-					x1_t.append((x1_vals[i],x1_vals[i-1]))
-
-			error.append((p, x1_t, error_p))
-			"""
 
 	return error
 
