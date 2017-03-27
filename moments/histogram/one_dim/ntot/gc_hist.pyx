@@ -34,7 +34,7 @@ cdef inline double double_max(double a, double b): return a if a > b else b
 @cython.cdivision(True)
 cdef inline double spec_exp(double a, double b):
 	"""
-	Compute the natural logarithm of the sum of a pair of exponentials.  i.e. ln(exp(a) + exp(b))
+	Compute the natural logarithm of the sum of a pair of exponentials.  i.e. ln(exp(a) + exp(b)).
 
 	Parameters
 	----------
@@ -56,7 +56,7 @@ cdef inline double spec_exp(double a, double b):
 @cython.cdivision(True)
 cdef _cython_normalize(self):
 	"""
-	Cythonized normalization of histogram_gc_ntot. (histogram_gc_ntot.normalize)
+	Cythonized normalization of histogram. (histogram.normalize).
 
 	"""
 
@@ -70,7 +70,7 @@ cdef _cython_normalize(self):
 @cython.cdivision(True)
 cdef _cython_reweight(self, double mu1_new):
 	"""
-	Cythonized normalization of histogram_gc_ntot. (histogram_gc_ntot.reweight)
+	Cythonized normalization of histogram. (histogram.reweight).
 
 	"""
 
@@ -2499,8 +2499,6 @@ if __name__ == '__main__':
 
 	* To Do:
 
-	Delta mu extrapolation (other field variables)
-	Create new phase_eq_error to use temp_dmu extrapolation
 	Add Butterworth filter
 	Check Lowess filter implementation
 	Add mixing for energy and particle number histograms in mix()
