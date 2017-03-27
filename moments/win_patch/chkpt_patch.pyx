@@ -1,5 +1,5 @@
 """@docstring
-@brief Tools for patching windows (Nmin < Ntot < Nmax) together to build a single flat histogram from FHMC simulations using their checkpoints
+@brief Tools for patching windows (Nmin < N < Nmax) together to build a single flat histogram from FHMC simulations using their checkpoints
 @author Nathan A. Mahynski
 @date 03/15/2017
 @filename checkpt_patch.pyx
@@ -85,7 +85,7 @@ cdef _cython_normalize_lnPI (self):
 class local_hist (object):
 	def __init__ (self, fname):
 		"""
-		Initialize a local histogram of information stored during simulation at each Ntot.
+		Initialize a local histogram of information stored during simulation at each N.
 		Normalizes the rows because it is assumed this is loaded from a checkpoint, which does not contain normalized data.
 
 		Parameters
@@ -126,10 +126,10 @@ class local_hist (object):
 		with open(fname, 'r') as f:
 			for line in f:
 				if (line[0] == "#"):
-					if ("species_total_upper_bound" in line):
+					if ("species_total_upper_bound" in line or "species_1_upper_bound" in line):
 						info = line.strip().split(":")
 						self.win_end = int(info[len(info)-1])
-					elif ("species_total_lower_bound" in line):
+					elif ("species_total_lower_bound" in line or "species_1_lower_bound" in line):
 						info = line.strip().split(":")
 						self.win_start = int(info[len(info)-1])
 				else:
@@ -294,7 +294,7 @@ class window (object):
 
 	"""
 
-	def __init__ (self, lnPI_fname, mom_fname, ehist_fname, pkhist_prefix, offset=2, smooth=False, op_name="N_{tot}"):
+	def __init__ (self, lnPI_fname, mom_fname, ehist_fname, pkhist_prefix, offset=2, smooth=False):
 		"""
 		Instatiate the class
 
@@ -312,10 +312,10 @@ class window (object):
 			The amount to trim off the edge of window overlap when patching (default=2)
 		smooth : bool
 			Whether or not to smooth the data between this histogram and another that is merged into it. No smoothing just uses histogram at lower Ntot's values. (default=False)
-		op_name : str
-			Name of order parameter used in flat histogram simulation (default="N_{tot}")
 
 		"""
+
+		self.clear()
 
 		self.lnPI_fname = lnPI_fname
 		self.mom_fname = mom_fname
@@ -323,7 +323,6 @@ class window (object):
 		self.pkhist_prefix = pkhist_prefix
 		self.offset = offset
 		self.smooth = smooth
-		self.op_name = op_name
 
 		assert (self.lnPI_fname[len(lnPI_fname)-4:] == '.dat'), 'Expects .dat file'
 		assert (self.mom_fname[len(mom_fname)-4:] == '.dat'), 'Expects .dat file'
@@ -373,6 +372,7 @@ class window (object):
 		self.ub = 0
 		self.nspec = 0
 		self.V = 0
+		self.op_name = ""
 
 	def normalize (self):
 		"""
@@ -384,20 +384,44 @@ class window (object):
 
 	def reload (self):
 		"""
-		Reload data from .dat files
+		Reload data from .dat files.
+		This also looks at the raw data to figure out what the order parameter was.
 
 		"""
 
 		self.clear()
+		self.op_name = ""
 
 		# Get metadata from moments file
 		with open(self.mom_fname, 'r') as f:
 			for line in f:
 				if (line[0] == "#"):
 					if ("species_total_upper_bound" in line):
+						if (self.op_name == "" or self.op_name == "N_{tot}"):
+							self.op_name = "N_{tot}"
+						else:
+							raise Exception ("Order parameter seems to change inside a window")
+						info = line.strip().split(":")
+						self.ub = int(info[len(info)-1])
+					elif ("species_1_upper_bound" in line):
+						if (self.op_name == "" or self.op_name == "N_{1}"):
+							self.op_name = "N_{1}"
+						else:
+							raise Exception ("Order parameter seems to change inside a window")
 						info = line.strip().split(":")
 						self.ub = int(info[len(info)-1])
 					elif ("species_total_lower_bound" in line):
+						if (self.op_name == "" or self.op_name == "N_{tot}"):
+							self.op_name = "N_{tot}"
+						else:
+							raise Exception ("Order parameter seems to change inside a window")
+						info = line.strip().split(":")
+						self.lb = int(info[len(info)-1])
+					elif ("species_1_lower_bound" in line):
+						if (self.op_name == "" or self.op_name == "N_{1}"):
+							self.op_name = "N_{1}"
+						else:
+							raise Exception ("Order parameter seems to change inside a window")
 						info = line.strip().split(":")
 						self.lb = int(info[len(info)-1])
 					elif ("volume" in line):
@@ -415,7 +439,7 @@ class window (object):
 		# Load information
 		self.lnPI = np.loadtxt(self.lnPI_fname, dtype=np.float, comments="#", unpack=True)
 		self.mom = np.loadtxt(self.mom_fname, dtype=np.float, comments="#", unpack=True)
-		self.mom = self.mom[1:]/self.mom[1] # Trim N_tot column, and normalize
+		self.mom = self.mom[1:]/self.mom[1] # Trim order parameter column, and normalize
 		assert (self.mom.shape[1] == len(self.lnPI)), 'Inconsistent number of entries in files'
 		self.e_hist = local_hist (self.ehist_fname) # This is normalized internally when instantiated
 		self.pk_hist = []
@@ -431,7 +455,7 @@ class window (object):
 		Parameters
 		----------
 		other : window
-			window object to combine with - this should be a lower range of N_tot than this one
+			window object to combine with - this should be a lower range of N than this one
 		skip_hist : bool
 			Whether or not to skip merging histograms, if skipping, fills all values with 1's (default=False)
 
@@ -509,7 +533,7 @@ class window (object):
 		dataset.nspec = self.nspec
 		dataset.max_order = self.max_order
 
-		dim_N_tot = dataset.createDimension(self.op_name, len(self.lnPI))
+		dim_OP = dataset.createDimension(self.op_name, len(self.lnPI))
 		dim_i = dataset.createDimension("i", self.nspec)
 		dim_j = dataset.createDimension("j", self.max_order+1)
 		dim_k = dataset.createDimension("k", self.nspec)
@@ -544,7 +568,7 @@ class window (object):
 
 		# Histograms for pk number and energy
 		max_bin = 0
-		for n in xrange(len(dim_N_tot)):
+		for n in xrange(len(dim_OP)):
 			max_bin = np.max([max_bin, len(self.e_hist.h[n])])
 			for i in xrange(self.nspec):
 				max_bin = np.max([max_bin, len(self.pk_hist[i].h[n])])
@@ -559,7 +583,7 @@ class window (object):
 			var_pkhist_lb[i,:] = self.pk_hist[i].lb
 			var_pkhist_ub[i,:] = self.pk_hist[i].ub
 			var_pkhist_bw[i,:] = self.pk_hist[i].bw
-			for n in xrange(len(dim_N_tot)):
+			for n in xrange(len(dim_OP)):
 				var_pkhist[i,n,0:len(self.pk_hist[i].h[n])] = self.pk_hist[i].h[n]
 				var_pkhist[i,n,len(self.pk_hist[i].h[n]):] = 0.0
 
@@ -571,7 +595,7 @@ class window (object):
 		var_ehist_lb[:] = self.e_hist.lb
 		var_ehist_ub[:] = self.e_hist.ub
 		var_ehist_bw[:] = self.e_hist.bw
-		for n in xrange(len(dim_N_tot)):
+		for n in xrange(len(dim_OP)):
 			var_ehist[n,0:len(self.e_hist.h[n])] = self.e_hist.h[n]
 			var_ehist[n,len(self.e_hist.h[n]):] = 0.0
 
@@ -839,14 +863,8 @@ if __name__ == '__main__':
 	* Notes:
 
 	If desired, an intermediate check can be applied between steps 1 and 2 to remove
-		windows deemed "unequilibrated".  This is designed to operate with OMCS code
+		windows deemed "unequilibrated".  This is designed to operate with FHMCSimulation code
 		by N. A. Mahynski.  The expected file storage format reflect this, but can be
 		modified as necessary. I would recommend making a new module for other interfaces.
 
-	Although this code is designed to work with a single order parameter, N_tot, which
-		defines the dimension along which all variables are measured, in principle, this
-		will work for other order parameters also, assuming they are continuously
-		separated by integers.  For instance, N_1, instead of N_tot should work.
-		The class local_hist will require some small modifications to make this work with
-		other order parameters since vectors are addressed assuming integer separations.
 	"""

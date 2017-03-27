@@ -24,7 +24,7 @@ np.seterr(divide='raise', over='raise', invalid='raise') # Any sort of problem (
 @cython.cdivision(True)
 cdef test_nebr_match_ (seq1, seq2, double per_err=1.0):
 	"""
-	Look at a neighboring pair of windows and see if extensive properties (besides lnPI) at same value of N_tot (order parameter) are within a given error tolerance of each other.
+	Look at a neighboring pair of windows and see if extensive properties (besides lnPI) at same value of N_tot, or N_1 (order parameter) are within a given error tolerance of each other.
 
 	Requires that window1 < window2, else returns an error. This routine determines two neighbors are "converged" if the maximum deviation of the extensive properties in the overlapping region is below some threshold prescribed by the user.
 
