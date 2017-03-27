@@ -2,12 +2,12 @@
 @brief Library to estimate the quality of equilibration achieved by windows during a TMMC simulation
 @author Nathan A. Mahynski
 @date 07/19/2016
-@filename omcs_equil.pyx
+@filename fhmc_equil.pyx
 """
 
 import os, sys, re, copy, cython, types
 import numpy as np
-import omcs_patch as oP
+import fhmc_patch as oP
 
 cimport numpy as np
 cimport cython
@@ -434,15 +434,15 @@ cpdef test_nebr_equil (seq, double per_err, fname='maxEq', bool trust=False):
 	return safe_seq
 
 if __name__ == "__main__":
-	print "omcs_equil.pyx"
+	print "fhmc_equil.pyx"
 
 	"""
 
 	* Tutorial:
 
-	1. From omcs_patch, run get_patch_sequence() in simulation directory where each window is stored in a local directory labelled numerically (1, 2, 3,...)
+	1. From fhmc_patch, run get_patch_sequence() in simulation directory where each window is stored in a local directory labelled numerically (1, 2, 3,...)
 	2. Run test_nebr_equil() on sequence obtained from get_patch_sequence() to determine continuous sequence of windows up to max window
-	3. From omcs_patch, feed the output to patch_all_windows() to patch together all results
+	3. From fhmc_patch, feed the output to patch_all_windows() to patch together all results
 
 	* Notes:
 

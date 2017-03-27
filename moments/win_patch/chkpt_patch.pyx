@@ -1,5 +1,5 @@
 """@docstring
-@brief Tools for patching windows (Nmin < N < Nmax) together to build a single flat histogram from FHMC simulations using their checkpoints
+@brief Tools for patching windows (Nmin < N < Nmax) together to build a single flat histogram from FHMCSimulation simulations using their checkpoints
 @author Nathan A. Mahynski
 @date 03/15/2017
 @filename checkpt_patch.pyx
@@ -305,13 +305,13 @@ class window (object):
 		mom_fname : str
 			File (.dat) containing N_i^jN_k^mU^p moments
 		ehist_fname : str
-			Energy histogram filename (.dat) containing the histogram of energy at each Ntot
+			Energy histogram filename (.dat) containing the histogram of energy at each N
 		pkhist_prefix : str
-			Particle histogram filename (.dat) prefix containing the histogram of particle numbers at each Ntot
+			Particle histogram filename (.dat) prefix containing the histogram of particle numbers at each N
 		offset : int
 			The amount to trim off the edge of window overlap when patching (default=2)
 		smooth : bool
-			Whether or not to smooth the data between this histogram and another that is merged into it. No smoothing just uses histogram at lower Ntot's values. (default=False)
+			Whether or not to smooth the data between this histogram and another that is merged into it. No smoothing just uses histogram at lower N's values. (default=False)
 
 		"""
 
@@ -390,7 +390,6 @@ class window (object):
 		"""
 
 		self.clear()
-		self.op_name = ""
 
 		# Get metadata from moments file
 		with open(self.mom_fname, 'r') as f:
@@ -508,7 +507,7 @@ class window (object):
 			# Simply concatenate the data
 			self.lnPI = np.concatenate([other.lnPI[:len(other.lnPI)-other.offset], self.lnPI[index-self.offset:]])
 			self.mom = np.hstack([other.mom[:,:other.mom.shape[1]-other.offset], self.mom[:,index-self.offset:]])
-			self.e_hist.merge(other.e_hist, 1.0, skip_hist) # Use lower Ntot results completely when overlap occurs
+			self.e_hist.merge(other.e_hist, 1.0, skip_hist) # Use lower N results completely when overlap occurs
 			self.e_hist.normalize()
 			for i in xrange(self.nspec):
 				self.pk_hist[i].merge(other.pk_hist[i], 1.0, skip_hist)
@@ -540,7 +539,7 @@ class window (object):
 		dim_m = dataset.createDimension("m", self.max_order+1)
 		dim_p = dataset.createDimension("p", self.max_order+1)
 
-		var_N_tot = dataset.createVariable(self.op_name, np.int, (self.op_name,))
+		var_OP = dataset.createVariable(self.op_name, np.int, (self.op_name,))
 		var_lnPI = dataset.createVariable("ln(PI)", np.float64, (self.op_name,))
 		var_i = dataset.createVariable("i", np.int, ("i",))
 		var_j = dataset.createVariable("j", np.int, ("j",))
@@ -549,7 +548,7 @@ class window (object):
 		var_p = dataset.createVariable("p", np.int, ("p",))
 		var_moments = dataset.createVariable("N_{i}^{j}*N_{k}^{m}*U^{p}", np.float64, ("i", "j", "k", "m", "p", self.op_name,))
 
-		var_N_tot[:] = np.arange(self.lb, self.ub+1)
+		var_OP[:] = np.arange(self.lb, self.ub+1)
 		var_i[:] = np.arange(1, self.nspec+1)
 		var_j[:] = np.arange(0, self.max_order+1)
 		var_k[:] = np.arange(1, self.nspec+1)

@@ -1,8 +1,8 @@
 """@docstring
-@brief Tools for patching windows (Nmin < Ntot < Nmax) together to build a single flat histogram from OMCS simulations
-@author Nathan A. Mahynski	
+@brief Tools for patching windows (Nmin < N < Nmax) together to build a single flat histogram from FHMCSimulation simulations
+@author Nathan A. Mahynski
 @date 07/18/2016
-@filename omcs_patch.pyx
+@filename fhmc_patch.pyx
 """
 
 import operator, sys, re, os, cython, types, copy, time
@@ -28,17 +28,17 @@ np.seterr(divide='raise', over='raise', invalid='raise') # Any sort of problem (
 
 def tryint(s):
 	"""
-	Test if something is an integer or not.  If so, return its integer form, otherwise itself	
-	
-	Parameters	
-	----------								
+	Test if something is an integer or not.  If so, return its integer form, otherwise itself
+
+	Parameters
+	----------
 	s : str
-		Thing to test if integer or not							
-	
+		Thing to test if integer or not
+
 	Returns
 	int
-		Integer form if possible, else string form			
-		
+		Integer form if possible, else string form
+
 	"""
 
 	try:
@@ -48,57 +48,57 @@ def tryint(s):
 
 def alphanum_key(s):
 	"""
-	Get list of numeric keys in a string								
-	
+	Get list of numeric keys in a string
+
 	Parameters
 	----------
 	s : str
-		String to look for numeric characters in					
+		String to look for numeric characters in
 
 	Returns
 	-------
 	list
-		List of numeric keys found							
+		List of numeric keys found
 
-	"""	
+	"""
 
 	return [ tryint(c) for c in re.split('([0-9]+)', s) ]
 
-def sort_nicely(l):	
+def sort_nicely(l):
 	"""
 	Sort a list of strings based on the numeric keys found in them
 
-	Parameters	
-	----------								
+	Parameters
+	----------
 	l : list
-		List of strings to look for numeric characters in	
+		List of strings to look for numeric characters in
 
 	Returns
 	-------
-	list			
-		Sorted list (lowest to highest)		
-					
+	list
+		Sorted list (lowest to highest)
+
 	"""
 
 	l.sort(key=alphanum_key)
-	
+
 @cython.boundscheck(False)
 @cython.cdivision(True)
 cdef inline double spec_exp (double a, double b):
 	"""
-	Compute the natural logarithm of the sum of a pair of exponentials.  i.e. ln(exp(a) + exp(b)) 
-	
+	Compute the natural logarithm of the sum of a pair of exponentials.  i.e. ln(exp(a) + exp(b))
+
 	Parameters
-	----------										
+	----------
 	a : double
-		Argument of first exponential							
+		Argument of first exponential
 	b : double
-		Argument of second exponential	
+		Argument of second exponential
 
 	Returns
-	-------						
+	-------
 	double
-		ln(exp(a) + exp(b))								
+		ln(exp(a) + exp(b))
 
 	"""
 
@@ -121,7 +121,7 @@ cdef _cython_normalize_lnPI (self):
 class local_hist (object):
 	def __init__ (self, fname):
 		"""
-		Initialize a local histogram of information stored during simulation at each Ntot
+		Initialize a local histogram of information stored during simulation at each N.
 
 		Parameters
 		----------
@@ -134,7 +134,7 @@ class local_hist (object):
 			self.load(fname)
 		except Exception as e:
 			raise Exception ('Unable to load local histogram from '+fname+' : '+str(e))
-	
+
 	def clear (self):
 		"""
 		Clear data
@@ -147,30 +147,30 @@ class local_hist (object):
 		self.h = []
 		self.win_start = 0
 		self.win_end = 0
-		
+
 	def load (self, fname):
 		"""
 		Load information from filename (.dat)
 
-		"""	
+		"""
 
 		self.clear()
-		
+
 		# metadata first
 		with open(fname, 'r') as f:
 			for line in f:
 				if (line[0] == "#"):
-					if ("species_total_upper_bound" in line):
+					if ("species_total_upper_bound" in line or "species_1_upper_bound" in line):
 						info = line.strip().split(":")
 						self.win_end = int(info[len(info)-1])
-					elif ("species_total_lower_bound" in line):
+					elif ("species_total_lower_bound" in line or "species_1_lower_bound" in line):
 						info = line.strip().split(":")
 						self.win_start = int(info[len(info)-1])
 				else:
 					break
-		
+
 		assert (self.win_start < self.win_end), 'Bounds out of order'
-		
+
 		# raw data next
 		with open(fname, 'r') as f:
 			next = None
@@ -181,11 +181,11 @@ class local_hist (object):
 					elif ("Bin lower bound for each" in line):
 						next = 'lb'
 					elif ("Bin upper bound for each" in line):
-						next = 'ub'	
+						next = 'ub'
 					elif ("Normalized histogram for each" in line):
 						next = 'h'
 					else:
-						next = None	
+						next = None
 				else:
 					if (next == 'bw'):
 						self.bw = np.array([float(x) for x in line.split('\t') if x != '\n'])
@@ -196,14 +196,14 @@ class local_hist (object):
 					elif (next == 'h'):
 						self.h.append(np.array([float(x) for x in line.split('\t') if x != '\n']))
 					else:
-						pass		
-		
+						pass
+
 		assert (len(self.lb) == len(self.ub)), 'Bad bounds in local_hist'
 		assert (len(self.lb) == len(self.bw)), 'Bad bin width in local_hist'
-		
+
 	def merge (self, other, other_weight, skip_hist=False):
 		"""
-		Merge two histograms. 
+		Merge two histograms.
 
 		Ensures/requires alignment of histograms when overlapped. Does not renormalize.
 
@@ -226,7 +226,7 @@ class local_hist (object):
 		new_lb = np.zeros(new_end-new_start+1, dtype=np.float64)
 		new_ub = np.zeros(new_end-new_start+1, dtype=np.float64)
 		new_h = []
-		
+
 		for n in xrange(new_start, new_end+1):
 			belong_self = False
 			belong_other = False
@@ -234,7 +234,7 @@ class local_hist (object):
 				belong_self = True
 			if (n >= other.win_start and n <= other.win_end):
 				belong_other = True
-			
+
 			if (belong_self and not belong_other):
 				# just take distribution from self
 				new_bw[n-new_start] = self.bw[n-self.win_start]
@@ -286,7 +286,7 @@ class local_hist (object):
 							a = self.h[n-self.win_start][bin]
 						else:
 							a = 0.0
-				
+
 						if (x >= other.lb[n-other.win_start] and x <= other.ub[n-other.win_start]):
 							bin = int(np.ceil((x-other.lb[n-other.win_start])/other.bw[n-other.win_start]))
 							assert (bin <= len(other.h[n-other.win_start]) and bin >= 0), 'Bin calculation error'
@@ -295,21 +295,21 @@ class local_hist (object):
 							b = other.h[n-other.win_start][bin]
 						else:
 							b = 0.0
-			
+
 						new_h[n-new_start][i] = a*(1.0-other_weight) + b*(other_weight)
 			else:
 				raise Exception ('Bounds error in merging local_hist objects')
-		
+
 		self.ub = copy.deepcopy(new_ub)
 		self.lb = copy.deepcopy(new_lb)
 		self.bw = copy.deepcopy(new_bw)
 		self.h = copy.deepcopy(new_h)
 		self.win_start = new_start
 		self.win_end = new_end
-		
+
 	def normalize (self):
 		"""
-		Normalize the histogram. 
+		Normalize the histogram.
 
 		Though this should be superfluous if initial histograms are already normalized. If not, should normalized, then merge.
 
@@ -319,79 +319,78 @@ class local_hist (object):
 			sum = np.sum(row)
 			new_row = np.array(row)/sum
 			row = new_row.tolist()
-		
+
 class window (object):
 	"""
 	Class to store histogram information from a window of WL-TMMC simulations.
-	
-	Also contains methods to perform basic manipulations.	
+
+	Also contains methods to perform basic manipulations.
 
 	"""
 
-	def __init__ (self, lnPI_fname, mom_fname, ehist_fname, pkhist_prefix, offset=2, smooth=False, op_name="N_{tot}"):
+	def __init__ (self, lnPI_fname, mom_fname, ehist_fname, pkhist_prefix, offset=2, smooth=False):
 		"""
 		Instatiate the class
 
-		Parameters										
-		----------									
+		Parameters
+		----------
 		lnPI_fname : str
-			File (.dat) containing lnPI distribution from WL-TMMC simulations		
+			File (.dat) containing lnPI distribution from WL-TMMC simulations
 		mom_fname : str
 			File (.dat) containing N_i^jN_k^mU^p moments
 		ehist_fname : str
-			Energy histogram filename (.dat) containing the histogram of energy at each Ntot
+			Energy histogram filename (.dat) containing the histogram of energy at each N
 		pkhist_prefix : str
-			Particle histogram filename (.dat) prefix containing the histogram of particle numbers at each Ntot
+			Particle histogram filename (.dat) prefix containing the histogram of particle numbers at each N
 		offset : int
 			The amount to trim off the edge of window overlap when patching (default=2)
 		smooth : bool
-			Whether or not to smooth the data between this histogram and another that is merged into it. No smoothing just uses histogram at lower Ntot's values. (default=False)	
-		op_name : str
-			Name of order parameter used in flat histogram simulation (default="N_{tot}")
+			Whether or not to smooth the data between this histogram and another that is merged into it. No smoothing just uses histogram at lower N's values. (default=False)
 
 		"""
 
-		self.lnPI_fname = lnPI_fname 
+		self.clear()
+
+		self.lnPI_fname = lnPI_fname
 		self.mom_fname = mom_fname
 		self.ehist_fname = ehist_fname
 		self.pkhist_prefix = pkhist_prefix
 		self.offset = offset
-		self.smooth = smooth 
-		self.op_name = op_name
-		
+		self.smooth = smooth
+
 		assert (self.lnPI_fname[len(lnPI_fname)-4:] == '.dat'), 'Expects .dat file'
 		assert (self.mom_fname[len(mom_fname)-4:] == '.dat'), 'Expects .dat file'
 		assert (self.ehist_fname[len(ehist_fname)-4:] == '.dat'), 'Expects .dat file'
 		assert (self.offset >= 1), 'Offset must be >= 1'
 
 		self.reload()
-	
+
 	def __repr__ (self):
 		"""
-		Represent self	
+		Represent self
 
-		Returns							
-		-------									
+		Returns
+		-------
 		str
-			"lnPI_fname::mom_fname::ehist_fname::pkhist_prefix-[lowerNBound, upperNBound]"			
+			"lnPI_fname::mom_fname::ehist_fname::pkhist_prefix-[lowerNBound, upperNBound]"
 
 		"""
 
 		return self.lnPI_fname+"::"+self.mom_fname+"::"+self.ehist_fname+"::"+self.pkhist_prefix+"-["+str(self.lb)+","+str(self.ub)+"]"
-	
+
 	def __lt__ (self, other):
 		"""
 		Sort these objects based on their lower N bounds
 
-		Parameters					
-		----------									
+		Parameters
+		----------
 		other : window
-			window object to combine with 
-				
+			window object to combine with
+
 		"""
 
 		return self.lb < other.lb
-		
+
 	def clear (self):
 		"""
 		Clear all data in the class
@@ -407,15 +406,16 @@ class window (object):
 		self.ub = 0
 		self.nspec = 0
 		self.V = 0
-	
+		self.op_name = ""
+
 	def normalize (self):
 		"""
-		Normalize so that lnPI represents a normalized set of PI values		
-	
+		Normalize so that lnPI represents a normalized set of PI values
+
 		"""
 
 		self._cy_normalize ()
-		
+
 	def reload (self):
 		"""
 		Reload data from .dat files
@@ -423,15 +423,37 @@ class window (object):
 		"""
 
 		self.clear()
-		
+
 		# get metadata from moments file
 		with open(self.mom_fname, 'r') as f:
 			for line in f:
 				if (line[0] == "#"):
 					if ("species_total_upper_bound" in line):
+						if (self.op_name == "" or self.op_name == "N_{tot}"):
+							self.op_name = "N_{tot}"
+						else:
+							raise Exception ("Order parameter seems to change inside a window")
+						info = line.strip().split(":")
+						self.ub = int(info[len(info)-1])
+					elif ("species_1_upper_bound" in line):
+						if (self.op_name == "" or self.op_name == "N_{1}"):
+							self.op_name = "N_{1}"
+						else:
+							raise Exception ("Order parameter seems to change inside a window")
 						info = line.strip().split(":")
 						self.ub = int(info[len(info)-1])
 					elif ("species_total_lower_bound" in line):
+						if (self.op_name == "" or self.op_name == "N_{tot}"):
+							self.op_name = "N_{tot}"
+						else:
+							raise Exception ("Order parameter seems to change inside a window")
+						info = line.strip().split(":")
+						self.lb = int(info[len(info)-1])
+					elif ("species_1_lower_bound" in line):
+						if (self.op_name == "" or self.op_name == "N_{1}"):
+							self.op_name = "N_{1}"
+						else:
+							raise Exception ("Order parameter seems to change inside a window")
 						info = line.strip().split(":")
 						self.lb = int(info[len(info)-1])
 					elif ("volume" in line):
@@ -445,27 +467,27 @@ class window (object):
 						self.nspec = int(info[len(info)-1])
 				else:
 					break
-		
-		# load information
+
+		# Load information
 		self.lnPI = np.loadtxt(self.lnPI_fname, dtype=np.float, comments="#", unpack=True)
 		self.mom = np.loadtxt(self.mom_fname, dtype=np.float, comments="#", unpack=True)
-		self.mom = self.mom[1:] # trim N_tot column
+		self.mom = self.mom[1:] # Trim order parameter column
 		assert (self.mom.shape[1] == len(self.lnPI)), 'Inconsistent number of entries in files'
 		self.e_hist = local_hist (self.ehist_fname)
 		self.pk_hist = []
 		for i in xrange(self.nspec):
 			self.pk_hist.append(local_hist (self.pkhist_prefix+'_'+str(i+1)+'.dat'))
-			
+
 	def merge (self, other, skip_hist=False):
 		"""
-		Merge this window with another and store in this object (self is modified). 
+		Merge this window with another and store in this object (self is modified).
 
 		Automatically renormalizes the histograms of particle number and energy, just in case.
 
 		Parameters
-		----------									
+		----------
 		other : window
-			window object to combine with - this should be a lower range of N_tot than this one
+			window object to combine with - this should be a lower range of N than this one
 		skip_hist : bool
 			Whether or not to skip merging histograms, if skipping, fills all values with 1's (default=False)
 
@@ -474,13 +496,13 @@ class window (object):
 		assert (self.nspec == other.nspec), 'Number of components different, cannot merge'
 		shift, err2 = patch_window_pair (self, other)
 		self.lnPI += shift
-		
+
 		assert (self.lb > other.lb), 'Can only patch from high '+self.op_name+' to lower'
 		assert (self.offset == other.offset), 'Cannot patch, inconsistent offsets'
 		assert (self.offset >= 1), 'Invalid offset found during merge'
 		cdef int index = other.ub - self.lb + 1, i
 		self.lb = other.lb
-		
+
 		if (self.smooth):
 			# smooth the data
 			partA = other.lnPI[:len(other.lnPI)-index+self.offset]
@@ -491,7 +513,7 @@ class window (object):
 			partB = (o_B*o_W + s_B*s_W)/(o_W+s_W)
 			partC = self.lnPI[index-other.offset:]
 			self.lnPI = np.concatenate([partA, partB, partC])
-		
+
 			partA = other.mom[:,:other.mom.shape[1]-index+self.offset]
 			o_B = other.mom[:,other.mom.shape[1]-index+self.offset:other.mom.shape[1]-other.offset]
 			s_B = self.mom[:,self.offset:index-other.offset]
@@ -508,7 +530,7 @@ class window (object):
 			partB = (o_B*o_W + s_B*s_W)/(o_W+s_W)
 			partC = self.mom[:,index-other.offset:]
 			self.mom = np.hstack([partA, partB, partC])
-	
+
 			self.e_hist.merge(other.e_hist, 0.5, skip_hist) # just merge 'evenly' rather by position-dependent weight
 			self.e_hist.normalize()
 			for i in xrange(self.nspec):
@@ -518,23 +540,23 @@ class window (object):
 			# simply concatenate the data
 			self.lnPI = np.concatenate([other.lnPI[:len(other.lnPI)-other.offset], self.lnPI[index-self.offset:]])
 			self.mom = np.hstack([other.mom[:,:other.mom.shape[1]-other.offset], self.mom[:,index-self.offset:]])
-			self.e_hist.merge(other.e_hist, 1.0, skip_hist) # use lower Ntot results completely when overlap occurs
+			self.e_hist.merge(other.e_hist, 1.0, skip_hist) # use lower N results completely when overlap occurs
 			self.e_hist.normalize()
 			for i in xrange(self.nspec):
 				self.pk_hist[i].merge(other.pk_hist[i], 1.0, skip_hist)
 				self.pk_hist[i].normalize()
-	
-		return shift, err2		
-	
-	def to_nc (self, fname): 
-		"""
-		Print the composite information to a netCDF4 file	
 
-		Parameters				
-		----------									
+		return shift, err2
+
+	def to_nc (self, fname):
+		"""
+		Print the composite information to a netCDF4 file
+
+		Parameters
+		----------
 		fname : str
 			Name of file to print to (should contain .nc suffix)
-			
+
 		"""
 
 		dataset = Dataset(fname, "w", format="NETCDF4")
@@ -542,15 +564,15 @@ class window (object):
 		dataset.volume = self.V
 		dataset.nspec = self.nspec
 		dataset.max_order = self.max_order
-		
-		dim_N_tot = dataset.createDimension(self.op_name, len(self.lnPI))
+
+		dim_OP = dataset.createDimension(self.op_name, len(self.lnPI))
 		dim_i = dataset.createDimension("i", self.nspec)
 		dim_j = dataset.createDimension("j", self.max_order+1)
 		dim_k = dataset.createDimension("k", self.nspec)
 		dim_m = dataset.createDimension("m", self.max_order+1)
 		dim_p = dataset.createDimension("p", self.max_order+1)
-		
-		var_N_tot = dataset.createVariable(self.op_name, np.int, (self.op_name,))
+
+		var_OP = dataset.createVariable(self.op_name, np.int, (self.op_name,))
 		var_lnPI = dataset.createVariable("ln(PI)", np.float64, (self.op_name,))
 		var_i = dataset.createVariable("i", np.int, ("i",))
 		var_j = dataset.createVariable("j", np.int, ("j",))
@@ -559,14 +581,14 @@ class window (object):
 		var_p = dataset.createVariable("p", np.int, ("p",))
 		var_moments = dataset.createVariable("N_{i}^{j}*N_{k}^{m}*U^{p}", np.float64, ("i", "j", "k", "m", "p", self.op_name,))
 
-		var_N_tot[:] = np.arange(self.lb, self.ub+1)
+		var_OP[:] = np.arange(self.lb, self.ub+1)
 		var_i[:] = np.arange(1, self.nspec+1)
 		var_j[:] = np.arange(0, self.max_order+1)
 		var_k[:] = np.arange(1, self.nspec+1)
 		var_m[:] = np.arange(0, self.max_order+1)
 		var_p[:] = np.arange(0, self.max_order+1)
 		var_lnPI[:] = self.lnPI
-		
+
 		cdef int address = 0, i, j, k, m, p
 		for i in xrange(self.nspec):
 			for j in xrange(self.max_order+1):
@@ -575,10 +597,10 @@ class window (object):
 						for p in xrange(self.max_order+1):
 							var_moments[i,j,k,m,p,:] = self.mom[address]
 							address += 1
-		
+
 		# histograms for pk number and energy
 		max_bin = 0
-		for n in xrange(len(dim_N_tot)): 
+		for n in xrange(len(dim_OP)):
 			max_bin = np.max([max_bin, len(self.e_hist.h[n])])
 			for i in xrange(self.nspec):
 				max_bin = np.max([max_bin, len(self.pk_hist[i].h[n])])
@@ -588,27 +610,27 @@ class window (object):
 		var_pkhist_lb = dataset.createVariable("P_{N_i}("+self.op_name+")_{lb}", np.float64, ("i", self.op_name,))
 		var_pkhist_ub = dataset.createVariable("P_{N_i}("+self.op_name+")_{ub}", np.float64, ("i", self.op_name,))
 		var_pkhist_bw = dataset.createVariable("P_{N_i}("+self.op_name+")_{bw}", np.float64, ("i", self.op_name,))
-	
+
 		for i in xrange(self.nspec):
 			var_pkhist_lb[i,:] = self.pk_hist[i].lb
 			var_pkhist_ub[i,:] = self.pk_hist[i].ub
 			var_pkhist_bw[i,:] = self.pk_hist[i].bw
-			for n in xrange(len(dim_N_tot)): 
+			for n in xrange(len(dim_OP)):
 				var_pkhist[i,n,0:len(self.pk_hist[i].h[n])] = self.pk_hist[i].h[n]
 				var_pkhist[i,n,len(self.pk_hist[i].h[n]):] = 0.0
-			
+
 		var_ehist = dataset.createVariable("P_{U}("+self.op_name+")", np.float64, (self.op_name, "bin",))
 		var_ehist_lb = dataset.createVariable("P_{U}("+self.op_name+")_{lb}", np.float64, (self.op_name,))
 		var_ehist_ub = dataset.createVariable("P_{U}("+self.op_name+")_{ub}", np.float64, (self.op_name,))
 		var_ehist_bw = dataset.createVariable("P_{U}("+self.op_name+")_{bw}", np.float64, (self.op_name,))
-		
+
 		var_ehist_lb[:] = self.e_hist.lb
 		var_ehist_ub[:] = self.e_hist.ub
 		var_ehist_bw[:] = self.e_hist.bw
-		for n in xrange(len(dim_N_tot)): 
+		for n in xrange(len(dim_OP)):
 			var_ehist[n,0:len(self.e_hist.h[n])] = self.e_hist.h[n]
 			var_ehist[n,len(self.e_hist.h[n]):] = 0.0
-				
+
 		dataset.close()
 
 window._cy_normalize = types.MethodType(_cython_normalize_lnPI, None, window)
@@ -617,21 +639,21 @@ window._cy_normalize = types.MethodType(_cython_normalize_lnPI, None, window)
 @cython.cdivision(True)
 cdef double window_patch_error (double x, np.ndarray[np.float_t, ndim=1] this_lnPI, np.ndarray[np.float_t, ndim=1] other_lnPI):
 	"""
-	Estimate the square error from two overlapping lnPI distributions	
+	Estimate the square error from two overlapping lnPI distributions
 
-	Parameters			
-	----------									
+	Parameters
+	----------
 	x : double
-		Shift to apply to selfData to try to match otherData (= selfData + x)		
+		Shift to apply to selfData to try to match otherData (= selfData + x)
 	selfData : ndarray
-		lnPI to be shifted by x to match otherData				
+		lnPI to be shifted by x to match otherData
 	otherData : ndarray
-		lnPI distribution trying to match					
-	
+		lnPI distribution trying to match
+
 	Returns
-	-------												
+	-------
 	double
-		Total square error								
+		Total square error
 
 	"""
 
@@ -640,22 +662,22 @@ cdef double window_patch_error (double x, np.ndarray[np.float_t, ndim=1] this_ln
 	for i in xrange(len(this_lnPI)):
 		e2 += ((this_lnPI[i]+x)-other_lnPI[i])**2
 	return e2
-			
+
 @cython.boundscheck(False)
 @cython.cdivision(True)
 cdef patch_window_pair (window_hist1, window_hist2, double ftol=0.000001):
 	"""
-	Patch to another histogram assuming same boltzmann factors		
+	Patch to another histogram assuming same boltzmann factors
 
-	Parameters		
-	----------									
+	Parameters
+	----------
 	window_hist1 : window
 		window_hist object to combine with window_hist2. Should be greater than window_hist2.
 	window_hist2 : window
 		window_hist object to combine with window_hist1. Should be less than window_hist1.
 	ftol : double
 		Patching tolerance (default=0.000001)
-	
+
 	Returns
 	-------
 	double
@@ -667,7 +689,7 @@ cdef patch_window_pair (window_hist1, window_hist2, double ftol=0.000001):
 	assert (window_hist1.lb > window_hist2.lb), 'Histograms out of order, cannot patch' # guarantee data1 > data2
 	assert (window_hist1.ub > window_hist2.ub), 'Histograms out of order, cannot patch' # guarantee data1 > data2
 	assert (window_hist1.lb < window_hist2.ub), 'Histograms do not overlap, cannot patch' # guarantee to overlap
-		
+
 	# align the overlapping data
 	cdef int index = window_hist2.ub - window_hist1.lb + 1
 	data_slice1 = window_hist1.lnPI[window_hist1.offset:index-window_hist1.offset] # exclude the first and last points from fitting because of artificial edge effects there
@@ -675,50 +697,50 @@ cdef patch_window_pair (window_hist1, window_hist2, double ftol=0.000001):
 
 	assert (len(data_slice1) > 1), 'Error, unable to patch windown because there is no overlap'
 	assert (len(data_slice2) > 1), 'Error, unable to patch windows because there is no overlap'
-		
+
 	cdef double lnPIshift_guess = data_slice2[0] - data_slice1[0]
-		
+
 	# optimize
 	full_out = fmin(window_patch_error, lnPIshift_guess, ftol=ftol, args=(data_slice1, data_slice2, ), maxiter=10000, maxfun=10000, full_output=True)
-		
+
 	if (full_out[:][4] != 0): # full_out[:][4] = warning flag
 		raise Exception("Error, unable to mimize "+str(window_hist1)+" and "+str(window_hist2)+" : "+str(full_out))
-		
-	return full_out[0][0], full_out[1]/len(data_slice1) 
-		
+
+	return full_out[0][0], full_out[1]/len(data_slice1)
+
 @cython.boundscheck(False)
 @cython.cdivision(True)
 cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log", offset=2, smooth=False, tol=np.inf, skip_hist=False, last_safe_idx=-1):
 	"""
-	Take a series of filenames for files containing the raw histogram data for different windows	
-	and iteratively patch neighbors.  
+	Take a series of filenames for files containing the raw histogram data for different windows
+	and iteratively patch neighbors.
 
 	The result is a sequence of shifts in lnPI for each window and the single, self-consistent, normalized histogram is printed to file. Automatically sorts bounds.
 
-	Parameters		
-	----------										
+	Parameters
+	----------
 	fnames : list
-		List of (lnPI_fname, moment_fname, ehist_fname, pkhist_prefix) filenames to create window_hist's	
+		List of (lnPI_fname, moment_fname, ehist_fname, pkhist_prefix) filenames to create window_hist's
 	out_fname : str
-		Name of final composite histogram (default=composite.nc)		
+		Name of final composite histogram (default=composite.nc)
 	log_fname : str
-		Filename to store the shifts of each lnPI histogram in (default=patch.log)	
+		Filename to store the shifts of each lnPI histogram in (default=patch.log)
 	offset : double
 		The amount to trim off the edge of window overlap when patching (default=2)
 	smooth : bool
-		Smooth the overlapping lnPI and N1, etc.? (default=False)		
+		Smooth the overlapping lnPI and N1, etc.? (default=False)
 	tol : double
 		Max error tolerance for mean err^2 in ln(PI) patching. (default=np.inf)
 	skip_hist : bool
 		Whether to disregard pk and U histograms (default=False)
 	last_safe_idx : int
-		Index of sorted histogram that is safe to patch into (i.e. below threshold).  By default this is -1 (test all), but routine will recursively call itself to locate this properly.  Do not specify yourself.	
+		Index of sorted histogram that is safe to patch into (i.e. below threshold).  By default this is -1 (test all), but routine will recursively call itself to locate this properly.  Do not specify yourself.
 
 	Returns
 	-------
 	str, double, double
-		Name of the histogram responsible for the worst patching error, Value of the worst normalized, squared patching error	
-				
+		Name of the histogram responsible for the worst patching error, Value of the worst normalized, squared patching error
+
 	"""
 
 	cdef int i, next, end, start
@@ -745,7 +767,7 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 			# but does not overlap the next one
 			if (histograms[i].ub > histograms[i+2].lb):
 				raise Exception ("Histograms from "+str(histograms[i])+", "+str(histograms[i+1])+", and "+str(histograms[i+2])+" overlap")
-		else: 
+		else:
 			# ensure its upper bound overlaps the lower bound of the next
 			if (histograms[i].ub <= histograms[i+1].lb):
 				raise Exception ("Histograms from "+str(histograms[i])+" and "+str(histograms[i+1])+" do not overlap")
@@ -774,7 +796,7 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 	else:
 		max_err = max(err_vals.iteritems(), key=operator.itemgetter(1))
 	histograms[end].normalize()
-	
+
 	# double check
 	cdef double isum = -sys.float_info.max
 	for i in xrange(len(histograms[end].lnPI)):
@@ -783,7 +805,7 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 
 	if (np.fabs(isum - 1.0) > 2.0e-12):
 		raise Exception("Failed to patch: composite PI sums to "+str(sum)+" which differs from 1 by "+str(np.fabs(sum - 1.0)))
-	
+
 	# print composite
 	histograms[end].to_nc(out_fname)
 
@@ -794,25 +816,25 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 @cython.cdivision(True)
 cpdef get_patch_sequence (idir, int cP=-1, int min_cp=1, long unsigned int bound=1000000):
 	"""
-	Look through local windows (numbered) to find the histograms to patch. 
+	Look through local windows (numbered) to find the histograms to patch.
 
 	Returns ordered, continuous list of tuple containing the filenames for each window class.
-	
+
 	Parameters
-	----------									
+	----------
 	idir : str
-		Directory to look for windows in (directories: 1, 2, 3...)			
+		Directory to look for windows in (directories: 1, 2, 3...)
 	cP : int
 		Checkpoint to use for each window (default=-1, means used last available)
 	min_cp : int
-		Minimum TMMC checkpoint a window must reach to be considered. Only matters if cP=-1. (default=1)	
+		Minimum TMMC checkpoint a window must reach to be considered. Only matters if cP=-1. (default=1)
 	bound : int
-		Last window to use (default=1000000)		
+		Last window to use (default=1000000)
 
 	Returns
 	-------
-	list			
-		Ordered list of filenames: (lnPI_fname, mom_fname, ehist_fname, pkhist_prefix)	
+	list
+		Ordered list of filenames: (lnPI_fname, mom_fname, ehist_fname, pkhist_prefix)
 
 	"""
 
@@ -821,15 +843,15 @@ cpdef get_patch_sequence (idir, int cP=-1, int min_cp=1, long unsigned int bound
 		dir = idir[:len(idir)-1]
 	else:
 		dir = copy.copy(idir)
-		
+
 	# find the directories for each window
-	oD = [ tryint(f) for f in listdir(dir) if not isfile(join(dir,f)) ]	
-	oD = sorted(oD) 
-	
+	oD = [ tryint(f) for f in listdir(dir) if not isfile(join(dir,f)) ]
+	oD = sorted(oD)
+
 	only_dirs = []
 	for d in oD:
 		if (tryint(d) <= int(bound)):
-			only_dirs.append(dir+'/'+str(d))		
+			only_dirs.append(dir+'/'+str(d))
 
 	lnPI_fname = []
 	mom_fname = []
@@ -838,7 +860,7 @@ cpdef get_patch_sequence (idir, int cP=-1, int min_cp=1, long unsigned int bound
 
 	for d in only_dirs:
 		files = listdir(d)
-		if (cP >= 0):	
+		if (cP >= 0):
 			# look for a specific checkpoint
 			found = {'tmmc':False, 'mom':False, 'eh':False, 'ph':False}
 			fn = {'tmmc':'', 'mom':'', 'eh':'', 'ph':''}
@@ -914,26 +936,21 @@ cpdef get_patch_sequence (idir, int cP=-1, int min_cp=1, long unsigned int bound
 	return zip(lnPI_fname, mom_fname, ehist_fname, pkhist_prefix)
 
 if __name__ == '__main__':
-	print "omcs_patch.pyx"
-	
+	print "fhmc_patch.pyx"
+
 	"""
+
 	* Tutorial:
-	
-	1. Run get_patch_sequence() in simulation directory where each window is stored in a 
+
+	1. Run get_patch_sequence() in simulation directory where each window is stored in a
 		local directory labelled numerically (1, 2, 3,...)
 	2. Feed the output to patch_all_windows() to patch together all results
-	
+
 	* Notes:
-	
-	If desired, an intermediate check can be applied between steps 1 and 2 to remove 
-		windows deemed "unequilibrated".  This is designed to operate with OMCS code
+
+	If desired, an intermediate check can be applied between steps 1 and 2 to remove
+		windows deemed "unequilibrated".  This is designed to operate with FHMCSimulation code
 		by N. A. Mahynski.  The expected file storage format reflect this, but can be
 		modified as necessary. I would recommend making a new module for other interfaces.
-		
-	Although this code is designed to work with a single order parameter, N_tot, which
-		defines the dimension along which all variables are measured, in principle, this
-		will work for other order parameters also, assuming they are continuously 
-		separated by integers.  For instance, N_1, instead of N_tot should work.
-		The class local_hist will require some small modifications to make this work with
-		other order parameters since vectors are addressed assuming integer separations.
+
 	"""
