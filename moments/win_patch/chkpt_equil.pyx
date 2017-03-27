@@ -7,7 +7,7 @@
 
 import os, sys, re, copy, cython, types
 import numpy as np
-import omcs_patch as oP
+import fhmc_patch as oP
 
 cimport numpy as np
 cimport cython
@@ -232,7 +232,7 @@ if __name__ == "__main__":
 	print "chkpt_equil.pyx"
 
 	"""
-	
+
 	* Tutorial:
 
 	1. From chkpt_patch, run seq = get_patch_sequence() in simulation directory where each window is stored in a local directory labelled numerically (1, 2, 3,...) with a directory called "checkpt/" in each.

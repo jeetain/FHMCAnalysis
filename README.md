@@ -49,11 +49,11 @@ $ bash Anaconda2-4.2.0-MacOSX-x86_64.sh
 
 ## Input
 
-+ After running simulations using [FHMCSimulation](https://mahynski.github.io/FHMCSimulation/), this will output the requisite information in each "window" directory that was performed.  In this library, moments.win_patch.omcs_patch and moments.win_patch.omcs_equil, provide utilities for identifying consecutive windows which are sufficiently "equilibrated" for use and patching those windows together to form a single macrostate distribution, e.g. result.nc (saved as netCDF4 file).
++ After running simulations using [FHMCSimulation](https://mahynski.github.io/FHMCSimulation/), this will output the requisite information in each "window" directory that was performed.  In this library, moments.win_patch.fhmc_patch and moments.win_patch.fhmc_equil, provide utilities for identifying consecutive windows which are sufficiently "equilibrated" for use and patching those windows together to form a single macrostate distribution, e.g. result.nc (saved as netCDF4 file).
 
 ```python
-import FHMCAnalysis.moments.win_patch.omcs_patch as wp
-import FHMCAnalysis.moments.win_patch.omcs_equil as we
+import FHMCAnalysis.moments.win_patch.fhmc_patch as wp
+import FHMCAnalysis.moments.win_patch.fhmc_equil as we
 src = './'
 per_err = 1.0 # accept max of 1% deviation between overlapping windows
 seq = wp.get_patch_sequence(src, per_err)
