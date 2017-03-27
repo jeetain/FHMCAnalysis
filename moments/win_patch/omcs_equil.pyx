@@ -24,7 +24,7 @@ np.seterr(divide='raise', over='raise', invalid='raise') # Any sort of problem (
 @cython.cdivision(True)
 cpdef test_nebr_match (seq1, seq2, double per_err=1.0):
 	"""
-	Look at a neighboring pair of windows and see if extensive properties (besides lnPI) at same value of N_tot (order parameter) are within a given error tolerance of each other.
+	Look at a neighboring pair of windows and see if extensive properties (besides lnPI) at same value of N_tot or N_1 (order parameter) are within a given error tolerance of each other.
 
 	Requires that window1 < window2, else returns an error. This routine determines two neighbors are "converged" if the maximum deviation of the extensive properties in the overlapping region is below some threshold prescribed by the user.
 
@@ -131,7 +131,7 @@ cpdef test_nebr_match (seq1, seq2, double per_err=1.0):
 @cython.cdivision(True)
 cpdef test_window_match (win1_dir, win2_dir, double per_err=1.0, int min_cp=-1):
 	"""
-	Look at a neighboring pair of windows and see if extensive properties (besides lnPI) at same value of N_tot (order parameter) are within a given error tolerance of each other.
+	Look at a neighboring pair of windows and see if extensive properties (besides lnPI) at same value of N_tot or N_1 (order parameter) are within a given error tolerance of each other.
 
 	Requires that window1 < window2, else returns an error. This routine determines two neighbors are "converged" if the maximum deviation of the extensive properties in the overlapping region is below some threshold prescribed by the user.
 
@@ -437,6 +437,7 @@ if __name__ == "__main__":
 	print "omcs_equil.pyx"
 
 	"""
+
 	* Tutorial:
 
 	1. From omcs_patch, run get_patch_sequence() in simulation directory where each window is stored in a local directory labelled numerically (1, 2, 3,...)
@@ -446,4 +447,5 @@ if __name__ == "__main__":
 	* Notes:
 
 	In the future oP.alphanum_key() can be used to more generally identify numbers in strings.  This would make metadata parsing easier as well as checkpoint number identification more straightforward.
+
 	"""
