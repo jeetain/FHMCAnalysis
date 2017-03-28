@@ -799,7 +799,7 @@ class histogram (object):
 
 	def _temp_mu_extrap_2 (self, double target_beta, np.ndarray[np.double_t, ndim=1] target_mus, double cutoff=10.0, override=False, skip_mom=False):
 		"""
-		Extrapolate the histogam in temperature and dMu using second order corrections.
+		Extrapolate the histogam in temperature and mu using second order corrections.
 
 		Parameters
 		----------
@@ -877,7 +877,7 @@ class histogram (object):
 		cdef np.ndarray[np.double_t, ndim=1] f = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
 		cdef int i, j, k, m, p, q, r
 
-		# get dmu contributions
+		# get mu contributions
 		for i in xrange(self.data['nspec']-1):
 			for j in xrange(self.data['nspec']-1):
 				f = self.data['mom'][i+1,1,j+1,1,0] - self.data['mom'][i+1,1,j+1,0,0]*self.data['mom'][i+1,0,j+1,1,0]
@@ -902,7 +902,7 @@ class histogram (object):
 		# get beta contribution (if skip_mom, returns null matrix for H_mom)
 		H_lnPI[0,0], H_mom[0,0] = self._dB2(skip_mom)
 
-		# get beta-dmu contributions
+		# get beta-mu contributions
 		for q in xrange(1, self.data['nspec']):
 			tmp = self.data['mom'][q,1,0,0,0] - np.sum(np.exp(self.data['ln(PI)'])*self.data['mom'][q,1,0,0,0])/np.sum(np.exp(self.data['ln(PI)']))
 			tmp += self.data['curr_beta']*(self._sg_dX_dB([q,1,0,0,0]) - self._gc_dX_dB([q,1,0,0,0]))
@@ -1048,6 +1048,37 @@ class histogram (object):
 		der = self._sg_dX_dMU(j,z_idx) - self.data['mom'][x_idx[0],x_idx[1],x_idx[2],x_idx[3],x_idx[4]]*self._sg_dX_dMU(j,y_idx) - self.data['mom'][y_idx[0],y_idx[1],y_idx[2],y_idx[3],y_idx[4]]*self._sg_dX_dMU(j,x_idx)
 
 		return der
+
+	def _order_mom_address(self, idx):
+		"""
+		Order the address of a moment by particle indices starting from the lowest to the highest.
+
+		e.g. N1^j*N2^m*U^p instead of N2^j*N1^m*U^p
+
+		Parameters
+		----------
+		idx : array
+			Address, i.e., [i,j,k,m,p]
+
+		Returns
+		-------
+		array
+			ordered address
+
+		"""
+
+		assert (len(idx) == 5), 'Bad indices, cannot reorder'
+		ord = np.zeros(5, dtype=np.int)
+		if (idx[0] > idx[2]):
+			ord[0] = idx[2]
+			ord[1] = idx[3]
+			ord[2] = idx[0]
+			ord[3] = idx[1]
+			ord[4] = idx[4] # energy power is unaffected
+		else:
+			ord = copy.copy(idx)
+
+		return ord
 
 	def _mom_prod(self, x_idx, y_idx):
 		"""
@@ -1303,11 +1334,127 @@ class histogram (object):
 
 		return der
 
-	# def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object mu=[], int extrap_order=1, double cutoff=10.0, bool override=False):
+	def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object mus=[], int extrap_order=1, double cutoff=10.0, bool override=False):
+		"""
+		Search for coexistence between two phases.
+
+		Creates a local copy of self so self is NOT modified by this search.
+
+		Parameters
+		----------
+		lnZ_tol : double
+			Permissible difference in integral of lnZ (free energy/kT) between phases in equilibrium.
+		mu_guess : double
+			Chemical potential of species 1 to start iterating from.
+		beta : double
+			Temperature at which to search for equilibrium.  If <=0 uses curr_beta so no extrapolation. (default=0.0)
+		mus : ndarray
+			Target values of [mu_2, mu_3, ..., mu_N].  If mus == [], assumes the current mu values are to be used. (default=[])
+		extrap_order : int
+			Order of extrapolation to use if going to a different temperature. (default=1)
+		cutoff : double
+			Difference in lnPI between maxima and edge to be considered safe to attempt reweighting. (default=10.0)
+		override : bool
+			Override warnings about inaccuracies in lnPI after temperature extrapolation at coexistence. (default=False)
+
+		Returns
+		-------
+		histogram
+			Copy of this histogram, but reweighted to the point of phase coexistence.
+
+		"""
+
+		# Clone self to avoid any changes
+		tmp_hist = copy.deepcopy(self)
+		curr_mu = np.array([self.data['curr_mu'][1:]], dtype=np.float64)
+
+		if (len(mus) == 0):
+			# assume no change to the mu values
+			new_mu = copy.copy(curr_mu)
+		else:
+			# must be specified for all components
+			assert (len(mus) == self.data['nspec']-1), 'Need to specify mu for components 2-N'
+			new_mu = copy.copy(np.array(mus, dtype=np.float64))
+
+		if (beta <= 0.0):
+			beta = self.data['curr_beta']
+
+		# search for equilibrium
+		tmp_hist.normalize()
+		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_mu,extrap_order,cutoff,True,), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
+		if (full_out[:][4] != 0): # full_out[:][4] = warning flag
+			raise Exception ('Error, unable to locate phase coexistence : '+str(full_out))
+
+		try:
+			tmp_hist.reweight(full_out[0][0])
+			if (beta != self.data['curr_beta'] or np.all(new_mu == curr_mu) == False):
+				tmp_hist.temp_mu_extrap(beta, new_mu, extrap_order, cutoff, override, False)
+			tmp_hist.thermo()
+		except Exception as e:
+			raise Exception ('Found coexistence, but unable to compute properties afterwards: '+str(e))
+
+		return tmp_hist
+
 	# def temp_mu_extrap_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_mus, int order=1, double cutoff=10.0, override=False, skip_mom=False):
 
 histogram._cy_normalize = types.MethodType(_cython_normalize, None, histogram)
 histogram._cy_reweight = types.MethodType(_cython_reweight, None, histogram)
+
+@cython.boundscheck(False)
+@cython.cdivision(True)
+cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] mus, int order, double cutoff, bool override):
+	"""
+	Compute the difference between the area under the lnPI distribution (free energy/kT) for different phases at a given chemical potential of species 1.
+
+	If calculation is requested at a different temperature, reweighting is first done, then temperature extrapolation.
+
+	Parameters
+	----------
+	mu_guess : double
+		Guess for chemical potential of species 1 at coexistence
+	orig_hist : histogram
+		Histogram to be reweighted in search of coexistence
+	beta : double
+		Temperature at which to seek equilibrium
+	mus : ndarray
+		Desired chemical potentials of species 2 through N
+	order : int
+		Order of temperature extrapolation to use if beta and mu are not the same as in hist
+	cutoff : double
+		Difference in lnPI between maxima and edge to be considered safe to attempt reweighting
+	override : bool
+		Override warnings about inaccuracies in lnPI after temperature extrapolation
+
+	Returns
+	-------
+	double
+		square error in (free energy)/kT between phases
+
+	"""
+
+	# if 99.99% of phase is under one peak, has lnPI = ln(0.9999) = 1e-4, and ln(1-0.9999) = -9.21, so feasible diff ~ 10
+	cdef int i, j
+	hist = copy.deepcopy(orig_hist)
+	hist.reweight(mu_guess)
+	curr_mu = copy.copy(np.array(hist.data['curr_mu'][1:]))
+	if (beta != orig_hist.data['curr_beta'] or np.all(curr_mu == mus) == False):
+		hist.temp_mu_extrap(beta, mus, order, cutoff, override, False, True)
+	hist.thermo(False)
+
+	cdef int counter = 0, num_phases = len(hist.data['thermo'])
+	cdef np.ndarray[np.double_t, ndim=1] err2_array = np.zeros(num_phases*(num_phases-1)/2)
+	cdef double err2
+
+	if (num_phases == 1):
+		err2 = 100.0 # 10.0**2
+	else:
+		for i in xrange(num_phases):
+			for j in xrange(i+1, num_phases):
+				err2_array[counter] = (hist.data['thermo'][i]['F.E./kT'] - hist.data['thermo'][j]['F.E./kT'])**2
+				counter += 1
+		err2 = np.min(err2_array) # min because want to find the phases closest in free energy
+
+	return err2
 
 if __name__ == '__main__':
 	print "gc_hist.pyx"

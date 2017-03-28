@@ -2428,8 +2428,10 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 		Histogram to be reweighted in search of coexistence
 	beta : double
 		Temperature at which to seek equilibrium
+	dMu : ndarray
+		Desired difference of chemical potentials of species 2-N, dmu_i = mu_i - mu_1
 	order : int
-		Order of temperature extrapolation to use if beta is not the same as in hist
+		Order of temperature extrapolation to use if beta and dMu are not the same as in hist
 	cutoff : double
 		Difference in lnPI between maxima and edge to be considered safe to attempt reweighting
 	override : bool
