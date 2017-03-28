@@ -80,6 +80,9 @@ cdef _cython_reweight(self, double mu1_new):
 class histogram (object):
 	"""
 	Class which reads 1D histogram and computes the thermodynamic properties by reweighting, initialized from a netcdf4 file. This is designed to perform thermodynamic operations (reweighting, etc.) when N_1 is the order parameter from grand canonical ensemble.
+
+	Not currently equipped to handle kinetic energy contributions.
+
 	"""
 
 	def __init__(self, fname, double beta_ref, mu_ref, int smooth=0, bool ke=False):
@@ -117,7 +120,6 @@ class histogram (object):
 		self.metadata['smooth']
 		assert(isinstance(fname, str)), 'Expects filename as a string'
 		self.metadata['fname'] = fname
-		self.metadata['used_ke'] = ke
 		self.reload()
 
 	def clear(self):
@@ -199,7 +201,6 @@ class histogram (object):
 
 		# Ensure these histograms are compatible
 		if (self.metadata['nspec'] != other.metadata['nspec']): raise Exception ('Difference in conditions, cannot mix histograms')
-		if (self.metadata['used_ke'] != other.metadata['used_ke']): raise Exception ('Difference in conditions, cannot mix histograms')
 
 		if (self.data['nspec'] != other.data['nspec']): raise Exception ('Difference in conditions, cannot mix histograms')
 		if (fabs(self.data['curr_beta'] - other.data['curr_beta']) > tol): raise Exception ('Difference in conditions, cannot mix histograms')
@@ -283,7 +284,7 @@ class histogram (object):
 		Parameters
 		----------
 		x : ndarray
-			x values, e.g., Ntot usually
+			x values, e.g., N1 usually
 		y : ndarray
 			y values, e.g., ln(PI) usually
 		frac : double
@@ -449,7 +450,7 @@ class histogram (object):
 				except Exception as e:
 					raise Exception ('Unable to find relative extrema in ln(PI) : '+str(e))
 
-			# since phases are ordered in increasing Ntot, just compare last maxima to end of ln(PI) distribution
+			# since phases are ordered in increasing N1, just compare last maxima to end of ln(PI) distribution
 			maxima = self.data['ln(PI)'][self.data['ln(PI)_maxima_idx']]
 
 			if (maxima[len(maxima)-1] - self.data['ln(PI)'][len(self.data['ln(PI)'])-1] < cutoff):
@@ -498,8 +499,8 @@ class histogram (object):
 		assert (len(target_mus) == self.data['nspec']-1), 'Must specify mu values for all components 2-N'
 
 		orig_mu = copy.copy(self.metadata['mu_ref'][1:])
-		curr_dmu = copy.copy(self.data['curr_mu'][1:] - self.data['curr_mu'][0])
-		if (np.any(np.abs(orig_dmu - curr_dmu) > 1.0e-6)):
+		curr_mu = copy.copy(self.data['curr_mu'][1:])
+		if (np.any(np.abs(orig_mu - curr_mu) > 1.0e-6)):
 			raise Exception ('Cannot extrapolate the same histogram class twice')
 
 		if (not skip_mom):
@@ -520,25 +521,280 @@ class histogram (object):
 
 		if (order == 1):
 			try:
-				tmp_hist._temp_dmu_extrap_1(target_beta, target_dmu, cutoff, override, skip_mom)
+				tmp_hist._temp_mu_extrap_1(target_beta, target_mus, cutoff, override, skip_mom)
 			except Exception as e:
 				raise Exception('Unable to extrapolate : '+str(e))
 		elif (order == 2):
 			try:
-				tmp_hist._temp_dmu_extrap_2(target_beta, target_dmu, cutoff, override, skip_mom)
+				tmp_hist._temp_mu_extrap_2(target_beta, target_mus, cutoff, override, skip_mom)
 			except Exception as e:
 				raise Exception('Unable to extrapolate : '+str(e))
 		else:
-			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
+			raise Exception('No implementation for temperature + mu extrapolation of order '+str(order))
 
 		tmp_hist.data['curr_beta'] = target_beta
-		tmp_hist.data['curr_mu'][1:] = tmp_hist.data['curr_mu'][0] + target_dmu
+		tmp_hist.data['curr_mu'][1:] = copy.copy(target_mus)
 
 		# Renormalize afterwards as well
 		tmp_hist.normalize()
 
 		return tmp_hist
 
+	def _temp_mu_extrap_1(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_mus, double cutoff=10.0, override=False, skip_mom=False):
+		"""
+		Extrapolate the histogam in temperature and dMu using first order corrections.
+
+		Parameters
+		----------
+		target_beta : double
+			1/kT of the desired distribution
+		target_mus : ndarray
+			Desired chemical potentials of species 2 through N
+		cutoff : double
+			Difference in lnPI between maxima and edge to be considered safe to attempt reweighting (default=10)
+		override : bool
+			Override warnings about inaccuracies in lnPI (default=False)
+		skip_mom : bool
+			Skip extrapolation of moments (default=False)
+
+		"""
+
+		cdef double dB = target_beta - self.data['curr_beta']
+		cdef np.ndarray[np.double_t, ndim=1] target_dmu = target_mus - self.data['curr_mu'][1:]
+		cdef np.ndarray[np.double_t, ndim=2] dlnPI = np.zeros((self.data['nspec']-1, self.data['ub']-self.data['lb']+1), dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=7] dm = np.zeros((self.data['nspec']-1, self.data['nspec'],self.data['max_order']+1,self.data['nspec'],self.data['max_order']+1,self.data['max_order']+1, len(self.data['ln(PI)'])), dtype=np.float64)
+		cdef int i, j, k, m, p, q
+
+		# Extrapolate lnPI
+		if (not override):
+			# If histogram does not extend far enough, cannot calculate average quantities needed for extrapolation accurately
+			assert (np.max(self.data['ln(PI)']) - cutoff > self.data['ln(PI)'][len(self.data['ln(PI)'])-1]), 'Error, histogram edge effect encountered in temperature extrapolation'
+
+		try:
+			dlnPI, dm = self._dBMU(skip_mom)
+		except:
+			raise Exception ('Unable to compute first derivative')
+
+		self.data['ln(PI)'] += dB*dlnPI[0]
+		for q in xrange(1,self.data['nspec']):
+			self.data['ln(PI)'] += target_dmu[q-1]*dlnPI[q]
+
+		for i in xrange(self.data['nspec']):
+			for j in xrange(self.data['max_order']+1):
+				for k in xrange(self.data['nspec']):
+					for m in xrange(self.data['max_order']+1):
+						for p in xrange(self.data['max_order']+1):
+							self.data['mom'][i,j,k,m,p] += dB*dm[0,i,j,k,m,p]
+							for q in xrange(1, self.data['nspec']):
+								self.data['mom'][i,j,k,m,p] += target_dmu[q-1]*dm[q,i,j,k,m,p]
+
+
+	def _dBMU(self, skip_mom=False):
+		"""
+		Calculate first order corrections to properties and lnPI for simultaneous dMu and dB extrapolation.
+
+		Cannot compute changes for anything of order = max_order so these quantities have 0 change.
+
+		Parameters
+		----------
+		skip_mom : bool
+			Skip extrapolation of moments (default=False)
+
+		Returns
+		-------
+		ndarray, ndarray
+			dlnPI, dm
+
+		"""
+
+		cdef int i, j, k, m, p, q
+		cdef double sum_prob
+		cdef np.ndarray[np.double_t, ndim=1] prob, ave_n = np.zeros(self.data['nspec']-1, dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=2] dlnPI = np.zeros((self.data['nspec'], self.data['ub']-self.data['lb']+1), dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=7] dm = np.zeros((self.data['nspec'], self.data['nspec'],self.data['max_order']+1,self.data['nspec'],self.data['max_order']+1,self.data['max_order']+1, len(self.data['ln(PI)'])), dtype=np.float64)
+		prob = np.exp(self.data['ln(PI)'])
+		sum_prob = np.sum(prob)
+
+		dlnPI[0], dm[0,:,:,:,:,:,:] = self._dB(skip_mom)
+		for i in xrange(1,self.data['nspec']):
+			ave_n[i-1] = np.sum(prob*self.data['mom'][i,1,0,0,0])/sum_prob
+			dlnPI[i] = self.data['curr_beta']*(self.data['mom'][i,1,0,0,0] - ave_n[i-1])
+
+		if (not skip_mom):
+			for q in xrange(1,self.data['nspec']):
+				for i in xrange(self.data['nspec']):
+					for j in xrange(self.data['max_order']+1):
+						for k in xrange(self.data['nspec']):
+							for m in xrange(self.data['max_order']+1):
+								for p in xrange(self.data['max_order']+1):
+									if (j+m+p+1 <= self.data['max_order']):
+										try:
+											x = self._sg_dX_dMU(q-1,[i,j,k,m,p])
+										except Exception as e:
+											raise Exception ('Cannot compute first derivative: '+str(e))
+										else:
+											dm[q,i,j,k,m,p,:] = copy.copy(x)
+
+		return dlnPI, dm
+
+	def _dB(self, skip_mom=False):
+		"""
+		Calculate first order corrections to properties and lnPI for temperature extrapolation.
+
+		Cannot compute changes for anything of order = max_order so these quantities have 0 change.
+
+		Parameters
+		----------
+		skip_mom : double
+			Skip extrapolation of moments (default=False)
+
+		Returns
+		-------
+		ndarray, ndarray
+			dlnPI_dB, dm_dB
+
+		"""
+
+		cdef int i, j, k, m, p
+		cdef double sum_prob, ave_u = 0.0
+		cdef np.ndarray[np.double_t, ndim=1] prob, ave_n = np.zeros(self.data['nspec'], dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=1] dlnPI_dB = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=6] dm_dB = np.zeros((self.data['nspec'],self.data['max_order']+1,self.data['nspec'],self.data['max_order']+1,self.data['max_order']+1, len(self.data['ln(PI)'])), dtype=np.float64)
+		prob = np.exp(self.data['ln(PI)'])
+		sum_prob = np.sum(prob)
+
+		# average only the necessary moments at current conditions (up to first power)
+		ave_u = np.sum(prob*self.data['mom'][0,0,0,0,1])/sum_prob
+		for i in xrange(self.data['nspec']):
+			ave_n[i] = np.sum(prob*self.data['mom'][i,1,0,0,0])/sum_prob
+
+		for i in xrange(self.data['nspec']):
+			dlnPI_dB += self.data['curr_mu'][i]*(self.data['mom'][i,1,0,0,0] - ave_n[i])
+		dlnPI_dB -= (self.data['mom'][0,0,0,0,1] - ave_u)
+
+		if (not skip_mom):
+			for i in xrange(self.data['nspec']):
+				for j in xrange(self.data['max_order']+1):
+					for k in xrange(self.data['nspec']):
+						for m in xrange(self.data['max_order']+1):
+							for p in xrange(self.data['max_order']+1):
+								if (j+m+p+1 <= self.data['max_order']):
+									try:
+										x = self._sg_dX_dB([i,j,k,m,p])
+									except Exception as e:
+										raise Exception ('Cannot compute first derivative: '+str(e))
+									else:
+										dm_dB[i,j,k,m,p,:] = copy.copy(x)
+
+		return dlnPI_dB, dm_dB
+
+	def _sg_dX_dB(self, x_idx):
+		"""
+		Compute the first derivative of a semi-grand-averaged quantity with respect to beta.
+		Treats X = mom[x_idx].
+
+		Parameters
+		----------
+		x_idx : array
+			Indices of moment to take derivative of, [i,j,k,m,p]
+
+		Returns
+		-------
+		ndarray
+			derivative
+
+		"""
+
+		assert (len(x_idx) == 5), 'Bad indices'
+		cdef np.ndarray[np.double_t, ndim=1] der = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=1] RU = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=1] f_XU = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=1] f_XNi = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=1] XNi = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
+		cdef int i
+
+		# All to zero power implies no change
+		if (np.all([x_idx[1], x_idx[3], x_idx[4]] == [0,0,0])):
+			return der
+
+		if (x_idx[4] >= self.data['max_order']):
+			raise Exception ('max_order too low to take this derivative')
+		if (x_idx[3] >= self.data['max_order']):
+			raise Exception ('max_order too low to take this derivative')
+		if (x_idx[1] >= self.data['max_order']):
+			raise Exception ('max_order too low to take this derivative')
+		f_XU = self.data['mom'][x_idx[0],x_idx[1],x_idx[2],x_idx[3],x_idx[4]+1] - self.data['mom'][x_idx[0],x_idx[1],x_idx[2],x_idx[3],x_idx[4]]*(self.data['mom'][0,0,0,0,1])
+
+		der -= f_XU
+		for i in xrange(1, self.data['nspec']):
+			if (x_idx[0] == i and x_idx[1]+1 <= self.data['max_order']):
+				XNi = self.data['mom'][x_idx[0],x_idx[1]+1,x_idx[2],x_idx[3],x_idx[4]]
+			elif (x_idx[2] == i and x_idx[3]+1 <= self.data['max_order']):
+				XNi = self.data['mom'][x_idx[0],x_idx[1],x_idx[2],x_idx[3]+1,x_idx[4]]
+			elif (x_idx[1] == 0):
+				XNi = self.data['mom'][i,1,x_idx[2],x_idx[3],x_idx[4]]
+			elif (x_idx[3] == 0):
+				XNi = self.data['mom'][x_idx[0],x_idx[1],i,1,x_idx[4]]
+			elif (x_idx[0] == x_idx[2] and (x_idx[1]+x_idx[3] <= self.data['max_order'])):
+				XNi = self.data['mom'][x_idx[0],x_idx[1]+x_idx[3],i,1,x_idx[4]]
+			else:
+				raise Exception ('max_order too low to take this derivative')
+			f_XNi = XNi - self.data['mom'][x_idx[0],x_idx[1],x_idx[2],x_idx[3],x_idx[4]]*self.data['mom'][i,1,0,0,0]
+			der += self.data['curr_mu'][i]*f_XNi
+
+		return der
+
+	def _sg_dX_dMU(self, int q, x_idx):
+		"""
+		Compute the first derivative of a semi-grand-averaged quantity with respect to Mu.
+
+		Parameters
+		----------
+		q : int
+			Index of Mu (species 2 - N) to take derivative with respect to (0 <= q < nspec-1, adjusted for absence of species 1)
+		x_idx : array
+			Indices of moment to take derivative of, [i,j,k,m,p]
+
+		Returns
+		-------
+		ndarray
+			derivative
+
+		"""
+
+		assert (len(x_idx) == 5), 'Bad indices'
+		assert (q >= 0 and q < self.data['nspec']-1), 'Bad Mu index'
+		cdef np.ndarray[np.double_t, ndim=1] der = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
+		cdef np.ndarray[np.double_t, ndim=1] XNi = np.zeros(self.data['ub']-self.data['lb']+1, dtype=np.float64)
+		cdef int i = q+1
+
+		# All to zero power implies no change
+		if (np.all([x_idx[1], x_idx[3], x_idx[4]] == [0,0,0])):
+			return der
+
+		if (x_idx[4] >= self.data['max_order']):
+			raise Exception ('max_order too low to take this derivative')
+		if (x_idx[3] >= self.data['max_order']):
+			raise Exception ('max_order too low to take this derivative')
+		if (x_idx[1] >= self.data['max_order']):
+			raise Exception ('max_order too low to take this derivative')
+
+		if (x_idx[0] == i and x_idx[1]+1 <= self.data['max_order']):
+			XNi = self.data['mom'][x_idx[0],x_idx[1]+1,x_idx[2],x_idx[3],x_idx[4]]
+		elif (x_idx[2] == i and x_idx[3]+1 <= self.data['max_order']):
+			XNi = self.data['mom'][x_idx[0],x_idx[1],x_idx[2],x_idx[3]+1,x_idx[4]]
+		elif (x_idx[1] == 0):
+			XNi = self.data['mom'][i,1,x_idx[2],x_idx[3],x_idx[4]]
+		elif (x_idx[3] == 0):
+			XNi = self.data['mom'][x_idx[0],x_idx[1],i,1,x_idx[4]]
+		elif (x_idx[0] == x_idx[2] and (x_idx[1]+x_idx[3] <= self.data['max_order'])):
+			XNi = self.data['mom'][x_idx[0],x_idx[1]+x_idx[3],i,1,x_idx[4]]
+		else:
+			raise Exception ('max_order too low to take this derivative')
+
+		der = self.data['curr_beta']*(XNi - self.data['mom'][x_idx[0],x_idx[1],x_idx[2],x_idx[3],x_idx[4]]*self.data['mom'][i,1,0,0,0])
+
+		return der
 
 	# def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object mu=[], int extrap_order=1, double cutoff=10.0, bool override=False):
 	# def temp_mu_extrap_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_mus, int order=1, double cutoff=10.0, override=False, skip_mom=False):
