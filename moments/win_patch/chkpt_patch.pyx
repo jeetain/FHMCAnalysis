@@ -853,6 +853,7 @@ if __name__ == '__main__':
 	print "checkpt_patch.pyx"
 
 	"""
+	
 	* Tutorial:
 
 	1. Run get_patch_sequence() in simulation directory where each window is stored in a
