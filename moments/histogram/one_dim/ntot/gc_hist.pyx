@@ -776,8 +776,8 @@ class histogram (object):
 
 		assert (len(target_dmu) == self.data['nspec']-1), 'Must specify delta mu for all components 2-N'
 
-		orig_dmu = self.metadata['mu_ref'][1:] - self.metadata['mu_ref'][0]
-		curr_dmu = self.data['curr_mu'][1:] - self.data['curr_mu'][0]
+		orig_dmu = copy.copy(self.metadata['mu_ref'][1:] - self.metadata['mu_ref'][0])
+		curr_dmu = copy.copy(self.data['curr_mu'][1:] - self.data['curr_mu'][0])
 		if (np.any(np.abs(orig_dmu - curr_dmu) > 1.0e-6)):
 			raise Exception ('Cannot extrapolate the same histogram class twice')
 
@@ -811,7 +811,7 @@ class histogram (object):
 			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
 
 		tmp_hist.data['curr_beta'] = target_beta
-		tmp_hist.data['curr_mu'][1:] = tmp_hist.data['curr_mu'][0] + target_dmu
+		tmp_hist.data['curr_mu'][1:] = copy.copy(tmp_hist.data['curr_mu'][0] + target_dmu)
 
 		# Renormalize afterwards as well
 		tmp_hist.normalize()

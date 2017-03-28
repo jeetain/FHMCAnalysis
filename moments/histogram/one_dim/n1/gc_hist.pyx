@@ -462,6 +462,87 @@ class histogram (object):
 			else:
 				return True
 
+
+	def temp_mu_extrap(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_mus, int order=1, double cutoff=10.0, override=False, clone=True, skip_mom=False):
+		"""
+		Use temperature and chemical potential extrapolation to estimate lnPI and other extensive properties from current conditions (mu_1, beta).
+		Should do reweighting (if desired) first, then call this function to extrapolate to other temperatures and mu_2, ..., mu_N.
+
+		Parameters
+		----------
+		target_beta : double
+			1/kT of the desired distribution
+		target_mus : ndarray
+			Desired chemical potentials of species 2 through N
+		order : int
+			Order of the extapolation to use (default=1)
+		cutoff : double
+			Difference in lnPI between maxima and edge to be considered safe to attempt reweighting (default=10)
+		override : bool
+			Override warnings about inaccuracies in lnPI (default=False)
+		clone : bool
+			If True, creates a copy of self and extrapolates the copy so this object is not modified, else extrapolates self (default=True)
+		skip_mom : bool
+			Skip extrapolation of moments (default=False)
+
+		Returns
+		-------
+		histogram
+			Cloned object with information extrapolated to new 1/kT value, histogram is renormalized
+
+		"""
+
+		if (np.abs(self.metadata['beta_ref'] - self.data['curr_beta']) > 1.0e-6):
+			raise Exception ('Cannot extrapolate the same histogram class twice')
+
+		assert (len(target_mus) == self.data['nspec']-1), 'Must specify mu values for all components 2-N'
+
+		orig_mu = copy.copy(self.metadata['mu_ref'][1:])
+		curr_dmu = copy.copy(self.data['curr_mu'][1:] - self.data['curr_mu'][0])
+		if (np.any(np.abs(orig_dmu - curr_dmu) > 1.0e-6)):
+			raise Exception ('Cannot extrapolate the same histogram class twice')
+
+		if (not skip_mom):
+			needed_order = order+1
+		else:
+			needed_order = order
+
+		if (self.data['max_order'] < needed_order):
+			raise Exception ('Maximum order stored in simulation not high enough to calculate this order of extrapolation')
+
+		if (clone):
+			tmp_hist = copy.deepcopy(self)
+		else:
+			tmp_hist = self
+
+		# For numerical stability, always normalize lnPI before extrapolating
+		tmp_hist.normalize()
+
+		if (order == 1):
+			try:
+				tmp_hist._temp_dmu_extrap_1(target_beta, target_dmu, cutoff, override, skip_mom)
+			except Exception as e:
+				raise Exception('Unable to extrapolate : '+str(e))
+		elif (order == 2):
+			try:
+				tmp_hist._temp_dmu_extrap_2(target_beta, target_dmu, cutoff, override, skip_mom)
+			except Exception as e:
+				raise Exception('Unable to extrapolate : '+str(e))
+		else:
+			raise Exception('No implementation for temperature + dMu extrapolation of order '+str(order))
+
+		tmp_hist.data['curr_beta'] = target_beta
+		tmp_hist.data['curr_mu'][1:] = tmp_hist.data['curr_mu'][0] + target_dmu
+
+		# Renormalize afterwards as well
+		tmp_hist.normalize()
+
+		return tmp_hist
+
+
+	# def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object mu=[], int extrap_order=1, double cutoff=10.0, bool override=False):
+	# def temp_mu_extrap_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_mus, int order=1, double cutoff=10.0, override=False, skip_mom=False):
+
 histogram._cy_normalize = types.MethodType(_cython_normalize, None, histogram)
 histogram._cy_reweight = types.MethodType(_cython_reweight, None, histogram)
 
