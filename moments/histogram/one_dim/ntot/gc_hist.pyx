@@ -2015,8 +2015,6 @@ class histogram (object):
 		"""
 		Calculate second order corrections to properties and lnPI for temperature extrapolation.
 
-		This is only valid for binary or pure component systems since for N > 2, 3-particle correlations are necessary.
-
 		Parameters
 		----------
 		skip_mom : bool
