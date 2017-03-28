@@ -705,8 +705,8 @@ class histogram (object):
 		for target_dmu in target_dmus:
 			assert (len(target_dmu) == self.data['nspec']-1), 'Must specify delta mu for all components 2-N'
 
-		orig_dmu = self.metadata['mu_ref'][1:] - self.metadata['mu_ref'][0]
-		curr_dmu = self.data['curr_mu'][1:] - self.data['curr_mu'][0]
+		orig_dmu = copy.copy(self.metadata['mu_ref'][1:] - self.metadata['mu_ref'][0])
+		curr_dmu = copy.copy(self.data['curr_mu'][1:] - self.data['curr_mu'][0])
 		if (np.any(np.abs(orig_dmu - curr_dmu) > 1.0e-6)):
 			raise Exception ('Cannot extrapolate the same histogram class twice')
 
@@ -733,8 +733,8 @@ class histogram (object):
 
 		for i in range(len(target_betas)):
 			for j in range(len(target_dmus)):
-				hists[i][j].data['curr_beta'] = target_betas[i]
-				hists[i][j].data['curr_mu'][1:] = hists[i][j].data['curr_mu'][0] + target_dmus[j]
+				hists[i][j].data['curr_beta'] = copy.copy(target_betas[i])
+				hists[i][j].data['curr_mu'][1:] = copy.copy(hists[i][j].data['curr_mu'][0] + target_dmus[j])
 
 				# Renormalize afterwards as well
 				hists[i][j].normalize()
