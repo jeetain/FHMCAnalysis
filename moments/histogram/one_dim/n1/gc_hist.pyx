@@ -1366,7 +1366,7 @@ class histogram (object):
 
 		# Clone self to avoid any changes
 		tmp_hist = copy.deepcopy(self)
-		curr_mu = np.array([self.data['curr_mu'][1:]], dtype=np.float64)
+		curr_mu = np.array(self.data['curr_mu'][1:], dtype=np.float64)
 
 		if (len(mus) == 0):
 			# assume no change to the mu values
@@ -1382,6 +1382,7 @@ class histogram (object):
 		# search for equilibrium
 		tmp_hist.normalize()
 		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_mu,extrap_order,cutoff,True,), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
+
 		if (full_out[:][4] != 0): # full_out[:][4] = warning flag
 			raise Exception ('Error, unable to locate phase coexistence : '+str(full_out))
 
@@ -1688,7 +1689,6 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 				err2_array[counter] = (hist.data['thermo'][i]['F.E./kT'] - hist.data['thermo'][j]['F.E./kT'])**2
 				counter += 1
 		err2 = np.min(err2_array) # min because want to find the phases closest in free energy
-
 	return err2
 
 if __name__ == '__main__':
