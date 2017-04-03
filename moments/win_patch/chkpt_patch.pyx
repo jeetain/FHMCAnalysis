@@ -824,7 +824,7 @@ cpdef get_patch_sequence (idir):
 		else:
 			# Check if TMMC stage has started
 			if data["crossoverDone"] is True:
-				found = {'tmmc':False, 'mom':False, 'eh':False, 'ph':False}
+				found = {'tmmc':False, 'mom':False, 'eh':False, 'ph':False, 'measured':False}
 				fn = {'tmmc':'', 'mom':'', 'eh':'', 'ph':''}
 				for f in files:
 					if ("tmmc_lnPI.dat" in f):
@@ -833,6 +833,11 @@ cpdef get_patch_sequence (idir):
 					if ("extMom.dat" in f):
 						found['mom'] = True
 						fn['mom'] = d+"/"+f
+						f = open(fn['mom'], 'r') # Also check that all entries were measured
+						dummy = np.loadtxt(f, usecols=(1,), unpack=True) # Entries are order_param, then N1^0*...N_n^0*^0 which is just the counter for how many times it was measured
+						f.close()
+						if (np.all(dummy >= 1.0)):
+							found['measured'] = True
 					if ("eHist.dat" in f):
 						found['eh'] = True
 						fn['eh'] = d+"/"+f
