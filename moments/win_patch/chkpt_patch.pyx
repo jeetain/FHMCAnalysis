@@ -833,9 +833,9 @@ cpdef get_patch_sequence (idir):
 					if ("extMom.dat" in f):
 						found['mom'] = True
 						fn['mom'] = d+"/"+f
-						f = open(fn['mom'], 'r') # Also check that all entries were measured
-						dummy = np.loadtxt(f, usecols=(1,), unpack=True) # Entries are order_param, then N1^0*...N_n^0*^0 which is just the counter for how many times it was measured
-						f.close()
+						fff = open(fn['mom'], 'r') # Also check that all entries were measured
+						dummy = np.loadtxt(fff, usecols=(1,), unpack=True) # Entries are order_param, then N1^0*...N_n^0*^0 which is just the counter for how many times it was measured
+						fff.close()
 						if (np.all(dummy >= 1.0)):
 							found['measured'] = True
 					if ("eHist.dat" in f):
