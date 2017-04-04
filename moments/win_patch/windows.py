@@ -35,7 +35,7 @@ def n1_window_scaling(n_f, w_max, n_ov):
 		lb = bounds[i-1][1] - n_ov
 		ub = lb + dw
 		bounds.append((lb, ub))
-	bounds.append((bounds[len(bounds)-1][1]-n_ov, n_f))
+	bounds.append((bounds[-1][1]-n_ov, n_f))
 
 	return bounds
 
