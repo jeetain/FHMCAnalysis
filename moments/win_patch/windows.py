@@ -79,7 +79,7 @@ if __name__ == '__main__':
     print "windows.py"
 
     """
-	
+
     * Example use
 
     bounds = ntot_window_scaling(800.0, 25.0, 20.0, 5)
