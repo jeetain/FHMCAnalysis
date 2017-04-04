@@ -7,7 +7,7 @@
 
 import numpy as np
 
-def n1_window_scaling (n_f, w_max, n_ov):
+def n1_window_scaling(n_f, w_max, n_ov):
 	"""
 	Compute the upper bounds for windows of a flat histogram simulation using N_{1} as the order parameter.
 
@@ -31,7 +31,7 @@ def n1_window_scaling (n_f, w_max, n_ov):
 	assert (n_ov < dw/2.0), 'Non-nearest neighbors will overlap, use a smaller number of windows (w_max) or a smaller overlap (n_ov)'
 
 	bounds = [(0, dw)]
-	for i in range(1,w_max):
+	for i in range(1, w_max):
 		lb = bounds[i-1][1] - n_ov
 		ub = lb + dw
 		bounds.append((lb, ub))
@@ -39,7 +39,7 @@ def n1_window_scaling (n_f, w_max, n_ov):
 
 	return bounds
 
-def ntot_window_scaling (n_f, dw, w_max, n_ov):
+def ntot_window_scaling(n_f, dw, w_max, n_ov):
     """
     Compute the upper bounds for windows of a flat histogram simulation using N_{tot} as the order parameter.
 
@@ -73,7 +73,7 @@ def ntot_window_scaling (n_f, dw, w_max, n_ov):
     for i in xrange(1, int(w_max)):
         lb.append(ub[i-1]-n_ov+1)
 
-    return zip(lb,ub)
+    return zip(lb, ub)
 
 if __name__ == '__main__':
     print "windows.py"
