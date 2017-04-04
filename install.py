@@ -5,7 +5,6 @@
 @filename install.py
 """
 
-import __init__ as ii
 import os
 import subprocess as sp
 
