@@ -6,7 +6,7 @@ Nathan A. Mahynski
 
 Status
 
-[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/) [![Code Issues](https://www.quantifiedcode.com/api/v1/project/fe2f9564d3e84213a5ecae6e84c6f1d0/badge.svg)](https://www.quantifiedcode.com/app/project/fe2f9564d3e84213a5ecae6e84c6f1d0) [![DOI](https://zenodo.org/badge/73996052.svg)](https://zenodo.org/badge/latestdoi/73996052)
+[![Build Status](https://travis-ci.org/mahynski/FHMCAnalysis.svg?branch=master)](https://travis-ci.org/mahynski/FHMCAnalysis) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/) [![Code Issues](https://www.quantifiedcode.com/api/v1/project/fe2f9564d3e84213a5ecae6e84c6f1d0/badge.svg)](https://www.quantifiedcode.com/app/project/fe2f9564d3e84213a5ecae6e84c6f1d0) [![CodeFactor](https://www.codefactor.io/repository/github/mahynski/fhmcanalysis/badge)](https://www.codefactor.io/repository/github/mahynski/fhmcanalysis) [![DOI](https://zenodo.org/badge/73996052.svg)](https://zenodo.org/badge/latestdoi/73996052)
 
 ---
 
