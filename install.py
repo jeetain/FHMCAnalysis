@@ -9,7 +9,7 @@ import __init__ as ii
 import os
 import subprocess as sp
 
-def loop_dirs (head):
+def loop_dirs(head):
         tree = []
         for root, dirs, files in os.walk(head, topdown=False):
                 for name in dirs:
