@@ -607,7 +607,7 @@ def get_iso (double t, np.ndarray[np.double_t, ndim=2] grid_t, np.ndarray[np.dou
 
 	"""
 
-	cs = plt.contour(grid_mu1, grid_dmu2, grid_t, [t])
+	cs = plt.contour(grid_mu1, grid_dmu2, grid_t, [t], colors='k')
 	p = cs.collections[0].get_paths()[0]
 	v = p.vertices
 	mu_vals = zip(v[:,0], v[:,1])
