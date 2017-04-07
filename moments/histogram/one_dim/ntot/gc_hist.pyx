@@ -552,7 +552,6 @@ class histogram (object):
 
 		try:
 			tmp_hist.reweight(full_out[0][0])
-			print 'ans = ', full_out[0][0]
 			if (beta != self.data['curr_beta'] or np.all(new_dMu == curr_dMu) == False):
 				tmp_hist.temp_dmu_extrap(beta, new_dMu, extrap_order, cutoff, override, False)
 			tmp_hist.thermo()
