@@ -345,13 +345,13 @@ class histogram (object):
 			# Skewed strongly one way or the other ("straight line")
 			# self.is_safe() will throw error, but for now assume the user actually wants this calculation
 			# As a "hack" - assigned "minima" to bounds, and maxima to be the "interior" max on the largest "side"
-			ave_q1 = np.mean(self.data['ln(PI)'][:len(self.data['ln(PI)']/2)])
-			ave_q2 = np.mean(self.data['ln(PI)'][len(self.data['ln(PI)']/2):])
+			ave_q1 = np.mean(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2])
+			ave_q2 = np.mean(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:])
 			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
 			if (ave_q1 < ave_q2):
-				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][len(self.data['ln(PI)']/2):] == np.max(self.data['ln(PI)'][len(self.data['ln(PI)']/2):]))[0]
+				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:] == np.max(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:]))[0]
 			else:
-				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][:len(self.data['ln(PI)']/2)] == np.max(self.data['ln(PI)'][:len(self.data['ln(PI)']/2)]))[0]
+				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2] == np.max(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2]))[0]
 
 		"""
 		# For now, just compare neighbors
@@ -482,6 +482,7 @@ class histogram (object):
 			for j in xrange(left, right):
 				lnX = spec_exp (lnX, self.data['ln(PI)'][j]-self.data['ln(PI)'][0])
 			phase[p]['F.E./kT'] = -lnX
+			phase[p]['bound_idx'] = (left,right)
 
 			if (props):
 				prob = np.exp(self.data['ln(PI)'][left:right])
@@ -514,6 +515,7 @@ class histogram (object):
 		"""
 		Check that the current ln(PI) distribution extends far enough to trust a thermo() calculation.
 		First do thermo() calculation, then check is_safe().
+		This can be thrown off by poorly smoothed data, so may have to manually check.
 
 		Parameters
 		----------
@@ -549,7 +551,7 @@ class histogram (object):
 
 	def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object dMu=[], int extrap_order=1, double cutoff=10.0, bool override=False, bool reterr=False):
 		"""
-		Search for coexistence between two phases.
+		Search for coexistence between two phases which have a "width" of at least the size of self.metadata['smooth'].
 
 		Creates a local copy of self so self is NOT modified by this search.
 
@@ -596,7 +598,7 @@ class histogram (object):
 
 		# Search for equilibrium
 		tmp_hist.normalize()
-		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_dMu,extrap_order,cutoff,True,), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
+		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_dMu,extrap_order,cutoff,True,tmp_hist.metadata['smooth'],), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
 		if (full_out[:][4] != 0): # full_out[:][4] = warning flag
 			raise Exception ('Error, unable to locate phase coexistence : '+str(full_out))
 
@@ -2503,7 +2505,7 @@ histogram._cy_reweight = types.MethodType(_cython_reweight, None, histogram)
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] dMu, int order, double cutoff, bool override):
+cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] dMu, int order, double cutoff, bool override, int min_width):
 	"""
 	Compute the difference between the area under the lnPI distribution (free energy/kT) for different phases at a given chemical potential of species 1.
 
@@ -2525,6 +2527,8 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 		Difference in lnPI between maxima and edge to be considered safe to attempt reweighting
 	override : bool
 		Override warnings about inaccuracies in lnPI after temperature extrapolation
+	min_width : int
+		Minimum width of a phase to be considered a "real" one instead of background noise (default=2)
 
 	Returns
 	-------
@@ -2542,17 +2546,20 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 		hist.temp_dmu_extrap(beta, dMu, order, cutoff, override, False, True)
 	hist.thermo(False)
 
+	cdef double default = 100.0 # 10.0**2
 	cdef int counter = 0, num_phases = len(hist.data['thermo'])
-	cdef np.ndarray[np.double_t, ndim=1] err2_array = np.zeros(num_phases*(num_phases-1)/2)
+	cdef np.ndarray[np.double_t, ndim=1] err2_array = np.ones(num_phases*(num_phases-1)/2)*default
 	cdef double err2
 
 	if (num_phases == 1):
-		err2 = 100.0 # 10.0**2
+		err2 = default
 	else:
 		for i in xrange(num_phases):
-			for j in xrange(i+1, num_phases):
-				err2_array[counter] = (hist.data['thermo'][i]['F.E./kT'] - hist.data['thermo'][j]['F.E./kT'])**2
-				counter += 1
+			if (hist.data['thermo'][i]['bound_idx'][1] - hist.data['thermo'][i]['bound_idx'][0] >= min_width):
+				for j in xrange(i+1, num_phases):
+					if (hist.data['thermo'][j]['bound_idx'][1] - hist.data['thermo'][j]['bound_idx'][0] >= min_width):
+						err2_array[counter] = (hist.data['thermo'][i]['F.E./kT'] - hist.data['thermo'][j]['F.E./kT'])**2
+						counter += 1
 		err2 = np.min(err2_array) # min because want to find the phases closest in free energy
 
 	return err2
