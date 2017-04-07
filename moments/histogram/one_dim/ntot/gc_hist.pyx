@@ -2528,7 +2528,7 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 	override : bool
 		Override warnings about inaccuracies in lnPI after temperature extrapolation
 	min_width : int
-		Minimum width of a phase to be considered a "real" one instead of background noise (default=2)
+		Minimum width of a phase to be considered a "real" one instead of background noise
 
 	Returns
 	-------

@@ -315,7 +315,47 @@ class histogram (object):
 		self.data['ln(PI)_maxima_idx'] = argrelextrema(self.data['ln(PI)'], np.greater, 0, self.metadata['smooth'], 'clip')[0]
 		self.data['ln(PI)_minima_idx'] = argrelextrema(self.data['ln(PI)'], np.less, 0, self.metadata['smooth'], 'clip')[0]
 
-		# argrelextrema does NOT include endpoints even if ln(PI) is a "straight" line, so manually include the bounds as well - for now, just compare neighbors
+		# argrelextrema does NOT include endpoints even if ln(PI) is a "straight" line, so manually include the bounds as well
+		if (len(self.data['ln(PI)_maxima_idx']) > 0 and len(self.data['ln(PI)_minima_idx']) > 0):
+			# Found some max and min
+			if (0 not in self.data['ln(PI)_maxima_idx'] and 0 not in self.data['ln(PI)_minima_idx']):
+				# Force "alternation" based on what occurs first (max or min?)
+				if (self.data['ln(PI)_maxima_idx'][0] < self.data['ln(PI)_minima_idx'][0]):
+					self.data['ln(PI)_minima_idx'] = np.append(0, self.data['ln(PI)_minima_idx'])
+				elif (self.data['ln(PI)_maxima_idx'][0] > self.data['ln(PI)_minima_idx'][0]):
+					self.data['ln(PI)_maxima_idx'] = np.append(0, self.data['ln(PI)_maxima_idx'])
+				else:
+					raise Exception ('Bad relative extrema calculation')
+
+			if (last_idx not in self.data['ln(PI)_maxima_idx'] and last_idx not in self.data['ln(PI)_minima_idx']):
+				# Force "alternation" based on what occured last (max or min?)
+				if (self.data['ln(PI)_maxima_idx'][len(self.data['ln(PI)_maxima_idx'])-1] < self.data['ln(PI)_minima_idx'][len(self.data['ln(PI)_minima_idx'])-1]):
+					self.data['ln(PI)_maxima_idx'] = np.append(self.data['ln(PI)_maxima_idx'], last_idx)
+				elif (self.data['ln(PI)_maxima_idx'][len(self.data['ln(PI)_maxima_idx'])-1] > self.data['ln(PI)_minima_idx'][len(self.data['ln(PI)_minima_idx'])-1]):
+					self.data['ln(PI)_minima_idx'] = np.append(self.data['ln(PI)_minima_idx'], last_idx)
+				else:
+					raise Exception ('Bad relative extrema calculation')
+		elif (len(self.data['ln(PI)_maxima_idx']) > 0 and len(self.data['ln(PI)_minima_idx']) == 0):
+			# Found a max, but no min (e.g. supercritical with one peak in the middle and local minima at edges which are not detected by argrelextrema)
+			# Therefore, assign minima indices to endpoints
+			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
+		elif (len(self.data['ln(PI)_maxima_idx']) == 0 and len(self.data['ln(PI)_minima_idx']) > 0):
+			# Found a min, but no maxima. Therefore assign maxima to endpoints
+			self.data['ln(PI)_maxima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
+		else:
+			# Skewed strongly one way or the other ("straight line")
+			# self.is_safe() will throw error, but for now assume the user actually wants this calculation
+			# As a "hack" - assigned "minima" to bounds, and maxima to be the "interior" max on the largest "side"
+			ave_q1 = np.mean(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2])
+			ave_q2 = np.mean(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:])
+			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
+			if (ave_q1 < ave_q2):
+				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:] == np.max(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:]))[0]
+			else:
+				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2] == np.max(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2]))[0]
+				
+		"""
+		# For now, just compare neighbors
 		if (0 not in self.data['ln(PI)_maxima_idx'] and 0 not in self.data['ln(PI)_minima_idx']):
 			if (self.data['ln(PI)'][0] < self.data['ln(PI)'][1]):
 				self.data['ln(PI)_minima_idx'] = np.append(0, self.data['ln(PI)_minima_idx'])
@@ -326,8 +366,9 @@ class histogram (object):
 				self.data['ln(PI)_minima_idx'] = np.append(self.data['ln(PI)_minima_idx'], last_idx)
 			else:
 				self.data['ln(PI)_maxima_idx'] = np.append(self.data['ln(PI)_maxima_idx'], last_idx)
+		"""
 
-		# check that maxima and minima alternate
+		# Check that maxima and minima alternate
 		assert (np.abs(len(self.data['ln(PI)_maxima_idx']) - len(self.data['ln(PI)_minima_idx'])) <= 1), 'There are '+str(len(self.data['ln(PI)_maxima_idx']))+' local maxima and '+str(len(self.data['ln(PI)_minima_idx']))+' local minima, so cannot be alternating, try adjusting the value of smooth'
 		order = np.zeros(len(self.data['ln(PI)_maxima_idx'])+len(self.data['ln(PI)_minima_idx']))
 		if (self.data['ln(PI)_maxima_idx'][0] < self.data['ln(PI)_minima_idx'][0]):
@@ -337,6 +378,40 @@ class histogram (object):
 			order[::2] = self.data['ln(PI)_minima_idx']
 			order[1::2] = self.data['ln(PI)_maxima_idx']
 		assert(np.all([order[i] <= order[i+1] for i in xrange(len(order)-1)])), 'Local maxima and minima not sorted correctly, try adjusting the value of smooth'
+
+	def coexisting (self, rtol=1.0e-3):
+		"""
+		Search for all phases that are in equilibrium (equal free energy) and return the indices in self.data['thermo'] that correspond to them.
+		If either only one phase exists or if no phases in equilibrium, returns empty matrix.
+
+		Parameters
+		----------
+		rtol : double
+			Relative olerance of F.E./kT to define being equal (default=1.0e-3 or 0.1%)
+
+		Returns
+		-------
+		array
+			(1,p) array of coexisting phases, indices of phases at equilibrium
+
+		"""
+
+		if ('thermo' not in self.data):
+			raise Exception ('Thermodynamic properties should be called first (self.thermo())')
+
+		if (len(self.data['thermo']) == 1):
+			return [[]]
+		else:
+			eq = []
+			for i in range(len(self.data['thermo'])):
+				x = [i]
+				for j in range(i+1, len(self.data['thermo'])):
+					if (fabs((self.data['thermo'][i]['F.E./kT'] - self.data['thermo'][j]['F.E./kT'])/self.data['thermo'][i]['F.E./kT']) < rtol):
+						x.append(j)
+				if (len(x) > 1):
+					eq.append(x)
+
+			return eq
 
 	def thermo(self, bool props=True, bool complete=False):
 		"""
@@ -399,6 +474,7 @@ class histogram (object):
 			for j in xrange(left, right):
 				lnX = spec_exp (lnX, self.data['ln(PI)'][j]-self.data['ln(PI)'][0])
 			phase[p]['F.E./kT'] = -lnX
+			phase[p]['bound_idx'] = (left,right)
 
 			if (props):
 				prob = np.exp(self.data['ln(PI)'][left:right])
@@ -1381,7 +1457,7 @@ class histogram (object):
 
 		# search for equilibrium
 		tmp_hist.normalize()
-		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_mu,extrap_order,cutoff,True,), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
+		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_mu,extrap_order,cutoff,True,tmp_hist.metadata['smooth'],), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
 
 		if (full_out[:][4] != 0): # full_out[:][4] = warning flag
 			raise Exception ('Error, unable to locate phase coexistence : '+str(full_out))
@@ -1638,7 +1714,7 @@ histogram._cy_reweight = types.MethodType(_cython_reweight, None, histogram)
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] mus, int order, double cutoff, bool override):
+cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] mus, int order, double cutoff, bool override, int min_width):
 	"""
 	Compute the difference between the area under the lnPI distribution (free energy/kT) for different phases at a given chemical potential of species 1.
 
@@ -1660,6 +1736,8 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 		Difference in lnPI between maxima and edge to be considered safe to attempt reweighting
 	override : bool
 		Override warnings about inaccuracies in lnPI after temperature extrapolation
+	min_width : int
+		Minimum width of a phase to be considered a "real" one instead of background noise
 
 	Returns
 	-------
@@ -1677,18 +1755,22 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 		hist.temp_mu_extrap(beta, mus, order, cutoff, override, False, True)
 	hist.thermo(False)
 
+	cdef double default = 100.0 # 10.0**2
 	cdef int counter = 0, num_phases = len(hist.data['thermo'])
-	cdef np.ndarray[np.double_t, ndim=1] err2_array = np.zeros(num_phases*(num_phases-1)/2)
+	cdef np.ndarray[np.double_t, ndim=1] err2_array = np.ones(num_phases*(num_phases-1)/2)*default
 	cdef double err2
 
 	if (num_phases == 1):
-		err2 = 100.0 # 10.0**2
+		err2 = default
 	else:
 		for i in xrange(num_phases):
-			for j in xrange(i+1, num_phases):
-				err2_array[counter] = (hist.data['thermo'][i]['F.E./kT'] - hist.data['thermo'][j]['F.E./kT'])**2
-				counter += 1
+			if (hist.data['thermo'][i]['bound_idx'][1] - hist.data['thermo'][i]['bound_idx'][0] >= min_width):
+				for j in xrange(i+1, num_phases):
+					if (hist.data['thermo'][j]['bound_idx'][1] - hist.data['thermo'][j]['bound_idx'][0] >= min_width):
+						err2_array[counter] = (hist.data['thermo'][i]['F.E./kT'] - hist.data['thermo'][j]['F.E./kT'])**2
+						counter += 1
 		err2 = np.min(err2_array) # min because want to find the phases closest in free energy
+
 	return err2
 
 if __name__ == '__main__':
