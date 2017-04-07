@@ -337,6 +337,40 @@ class histogram (object):
 			order[1::2] = self.data['ln(PI)_maxima_idx']
 		assert(np.all([order[i] <= order[i+1] for i in xrange(len(order)-1)])), 'Local maxima and minima not sorted correctly, try adjusting the value of smooth'
 
+	def coexisting (self, rtol=1.0e-3):
+		"""
+		Search for all phases that are in equilibrium (equal free energy) and return the indices in self.data['thermo'] that correspond to them.
+		If either only one phase exists or if no phases in equilibrium, returns empty matrix.
+
+		Parameters
+		----------
+		rtol : double
+			Relative olerance of F.E./kT to define being equal (default=1.0e-3 or 0.1%)
+
+		Returns
+		-------
+		array
+			(1,p) array of coexisting phases, indices of phases at equilibrium
+
+		"""
+
+		if ('thermo' not in self.data):
+			raise Exception ('Thermodynamic properties should be called first (self.thermo())')
+
+		if (len(self.data['thermo']) == 1):
+			return [[]]
+		else:
+			eq = []
+			for i in range(len(self.data['thermo'])):
+				x = [i]
+				for j in range(i+1, len(self.data['thermo'])):
+					if (fabs((self.data['thermo'][i]['F.E./kT'] - self.data['thermo'][j]['F.E./kT'])/self.data['thermo'][i]['F.E./kT']) < rtol):
+						x.append(j)
+				if (len(x) > 1):
+					eq.append(x)
+
+			return eq
+
 	def thermo(self, bool props=True, bool complete=False):
 		"""
 		Integrate the lnPI distribution, etc. and compute average thermodynamic properties of each phase identified.
@@ -463,7 +497,7 @@ class histogram (object):
 			else:
 				return True
 
-	def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object dMu=[], int extrap_order=1, double cutoff=10.0, bool override=False):
+	def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object dMu=[], int extrap_order=1, double cutoff=10.0, bool override=False, bool reterr=False):
 		"""
 		Search for coexistence between two phases.
 
@@ -485,30 +519,32 @@ class histogram (object):
 			Difference in lnPI between maxima and edge to be considered safe to attempt reweighting. (default=10.0)
 		override : bool
 			Override warnings about inaccuracies in lnPI after temperature extrapolation at coexistence. (default=False)
+		reterr : bool
+			Return the error associated with numerical optimization. (default=False)
 
 		Returns
 		-------
-		histogram
-			Copy of this histogram, but reweighted to the point of phase coexistence.
+		histogram, err (optional)
+			Copy of this histogram, but reweighted to the point of phase coexistence, error if requested
 
 		"""
+		# Clone self to avoid any changes
 
-		# clone self to avoid any changes
 		tmp_hist = copy.deepcopy(self)
 		curr_dMu = np.array([self.data['curr_mu'][i] - self.data['curr_mu'][0] for i in xrange(1,self.data['nspec'])], dtype=np.float64)
 
 		if (len(dMu) == 0):
-			# assume no change to the dMu values
+			# Assume no change to the dMu values
 			new_dMu = copy.copy(curr_dMu)
 		else:
-			# must be specified for all components
+			# Must be specified for all components
 			assert (len(dMu) == self.data['nspec']-1), 'Need to specify dMu for components 2-N'
 			new_dMu = copy.copy(np.array(dMu, dtype=np.float64))
 
 		if (beta <= 0.0):
 			beta = self.data['curr_beta']
 
-		# search for equilibrium
+		# Search for equilibrium
 		tmp_hist.normalize()
 		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_dMu,extrap_order,cutoff,True,), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
 		if (full_out[:][4] != 0): # full_out[:][4] = warning flag
@@ -516,13 +552,17 @@ class histogram (object):
 
 		try:
 			tmp_hist.reweight(full_out[0][0])
+			print 'ans = ', full_out[0][0]
 			if (beta != self.data['curr_beta'] or np.all(new_dMu == curr_dMu) == False):
 				tmp_hist.temp_dmu_extrap(beta, new_dMu, extrap_order, cutoff, override, False)
 			tmp_hist.thermo()
 		except Exception as e:
 			raise Exception ('Found coexistence, but unable to compute properties afterwards: '+str(e))
 
-		return tmp_hist
+		if (reterr):
+			return tmp_hist, full_out[1]
+		else:
+			return tmp_hist
 
 	def temp_extrap(self, double target_beta, int order=1, double cutoff=10.0, override=False, clone=True, skip_mom=False):
 		"""
@@ -2448,7 +2488,7 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 	cdef int i, j
 	hist = copy.deepcopy(orig_hist)
 	hist.reweight(mu_guess)
-	curr_dMu = np.array([hist.data['curr_mu'][i] - hist.data['curr_mu'][0] for i in xrange(2, hist.data['nspec'])])
+	curr_dMu = np.array([hist.data['curr_mu'][i] - hist.data['curr_mu'][0] for i in xrange(1, hist.data['nspec'])])
 	if (beta != orig_hist.data['curr_beta'] or np.all(curr_dMu == dMu) == False):
 		hist.temp_dmu_extrap(beta, dMu, order, cutoff, override, False, True)
 	hist.thermo(False)
