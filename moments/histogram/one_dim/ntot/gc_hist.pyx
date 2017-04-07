@@ -549,7 +549,7 @@ class histogram (object):
 			else:
 				return True
 
-	def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object dMu=[], int extrap_order=1, double cutoff=10.0, bool override=False, bool reterr=False):
+	def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object dMu=[], int extrap_order=1, double cutoff=10.0, bool override=False, bool reterr=False, bool first_order_mom=False):
 		"""
 		Search for coexistence between two phases which have a "width" of at least the size of self.metadata['smooth'].
 
@@ -573,6 +573,8 @@ class histogram (object):
 			Override warnings about inaccuracies in lnPI after temperature extrapolation at coexistence. (default=False)
 		reterr : bool
 			Return the error associated with numerical optimization. (default=False)
+		first_order_mom : bool
+			If True, only use first order extrapolation to extrapolate moments when using higher order extrapolation of ln(PI) (default=False)
 
 		Returns
 		-------
@@ -605,7 +607,7 @@ class histogram (object):
 		try:
 			tmp_hist.reweight(full_out[0][0])
 			if (beta != self.data['curr_beta'] or np.all(new_dMu == curr_dMu) == False):
-				tmp_hist.temp_dmu_extrap(beta, new_dMu, extrap_order, cutoff, override, False)
+				tmp_hist.temp_dmu_extrap(beta, new_dMu, extrap_order, cutoff, override, False, False, first_order_mom)
 			tmp_hist.thermo()
 		except Exception as e:
 			raise Exception ('Found coexistence, but unable to compute properties afterwards: '+str(e))
@@ -758,7 +760,7 @@ class histogram (object):
 
 		return tmp_hist
 
-	def temp_dmu_extrap_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, int order=1, double cutoff=10.0, override=False, skip_mom=False):
+	def temp_dmu_extrap_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, int order=1, double cutoff=10.0, override=False, skip_mom=False, bool first_order_mom=False):
 		"""
 		Use temperature and delta Mu extrapolation to estimate lnPI and other extensive properties from current conditions for a grid different beta and dMu values.
 		Creates a 2D grid of conditions where beta is the first dimension, and dMu's are the second.  So all target_betas and target_dmus are evaluated.
@@ -780,6 +782,8 @@ class histogram (object):
 			Override warnings about inaccuracies in lnPI (default=False)
 		skip_mom : bool
 			Skip extrapolation of moments (default=False)
+		first_order_mom : bool
+			If True, only use first order extrapolation to extrapolate moments when using higher order extrapolation of ln(PI) (default=False)
 
 		Returns
 		-------
@@ -816,7 +820,7 @@ class histogram (object):
 				raise Exception('Unable to extrapolate : '+str(e))
 		elif (order == 2):
 			try:
-				hists = self._temp_dmu_extrap_2_multi(target_betas, target_dmus, cutoff, override, skip_mom)
+				hists = self._temp_dmu_extrap_2_multi(target_betas, target_dmus, cutoff, override, skip_mom, first_order_mom)
 			except Exception as e:
 				raise Exception('Unable to extrapolate : '+str(e))
 		else:
@@ -832,7 +836,7 @@ class histogram (object):
 
 		return hists
 
-	def temp_dmu_extrap(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_dmu, int order=1, double cutoff=10.0, override=False, clone=True, skip_mom=False):
+	def temp_dmu_extrap(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_dmu, int order=1, double cutoff=10.0, override=False, bool clone=True, bool skip_mom=False, bool first_order_mom=False):
 		"""
 		Use temperature and delta Mu extrapolation to estimate lnPI and other extensive properties from current conditions.
 
@@ -854,6 +858,8 @@ class histogram (object):
 			If True, creates a copy of self and extrapolates the copy so this object is not modified, else extrapolates self (default=True)
 		skip_mom : bool
 			Skip extrapolation of moments (default=False)
+		first_order_mom : bool
+			If True, only use first order extrapolation to extrapolate moments when using higher order extrapolation of ln(PI) (default=False)
 
 		Returns
 		-------
@@ -895,7 +901,7 @@ class histogram (object):
 				raise Exception('Unable to extrapolate : '+str(e))
 		elif (order == 2):
 			try:
-				tmp_hist._temp_dmu_extrap_2(target_beta, target_dmu, cutoff, override, skip_mom)
+				tmp_hist._temp_dmu_extrap_2(target_beta, target_dmu, cutoff, override, skip_mom, first_order_mom)
 			except Exception as e:
 				raise Exception('Unable to extrapolate : '+str(e))
 		else:
@@ -1034,7 +1040,7 @@ class histogram (object):
 							for q in xrange(1, self.data['nspec']):
 								self.data['mom'][i,j,k,m,p] += target_dDmu[q-1]*dm[q,i,j,k,m,p]
 
-	def _temp_dmu_extrap_2_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, double cutoff=10.0, override=False, skip_mom=False):
+	def _temp_dmu_extrap_2_multi(self, np.ndarray[np.double_t, ndim=1] target_betas, np.ndarray[np.double_t, ndim=2] target_dmus, double cutoff=10.0, override=False, skip_mom=False, bool first_order_mom=False):
 		"""
 		Extrapolate the histogam in an array of different temperatures and dMus using second order corrections.
 
@@ -1050,6 +1056,8 @@ class histogram (object):
 			Override warnings about inaccuracies in lnPI (default=False)
 		skip_mom : bool
 			Skip extrapolation of moments (default=False)
+		first_order_mom : bool
+			If True, only use first order extrapolation to extrapolate moments (default=False)
 
 		Returns
 		-------
@@ -1109,7 +1117,8 @@ class histogram (object):
 										for q in xrange(clone.data['nspec']):
 											clone.data['mom'][i,j,k,m,p] += xi[q]*dm[q,i,j,k,m,p] # 1st order corrections
 											x[q,:] = np.dot(xi, H_mom[:,q,i,j,k,m,p,:])*xi[q] # 2nd order corrections
-										clone.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
+										if (not first_order_mom):
+											clone.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
 
 				except:
 					hc.append(None)
@@ -1120,7 +1129,7 @@ class histogram (object):
 
 		return hists
 
-	def _temp_dmu_extrap_2(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_dmu, double cutoff=10.0, override=False, skip_mom=False):
+	def _temp_dmu_extrap_2(self, double target_beta, np.ndarray[np.double_t, ndim=1] target_dmu, double cutoff=10.0, bool override=False, bool skip_mom=False, bool first_order_mom=False):
 		"""
 		Extrapolate the histogam in temperature and dMu using second order corrections.
 
@@ -1136,6 +1145,8 @@ class histogram (object):
 			Override warnings about inaccuracies in lnPI (default=False)
 		skip_mom : bool
 			Skip extrapolation of moments (default=False)
+		first_order_mom : bool
+			If True, only use first order extrapolation to extrapolate moments (default=False)
 
 		"""
 
@@ -1174,7 +1185,8 @@ class histogram (object):
 							for q in xrange(self.data['nspec']):
 								self.data['mom'][i,j,k,m,p] += xi[q]*dm[q,i,j,k,m,p] # 1st order corrections
 								x[q,:] = np.dot(xi, H_mom[:,q,i,j,k,m,p,:])*xi[q] # 2nd order corrections
-							self.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
+							if (not first_order_mom):
+								self.data['mom'][i,j,k,m,p] += 0.5*np.sum(x, axis=0)
 
 	def _gc_fluct_vv(self, a, b):
 		"""
