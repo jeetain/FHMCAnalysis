@@ -314,7 +314,37 @@ class histogram (object):
 		self.data['ln(PI)_maxima_idx'] = argrelextrema(self.data['ln(PI)'], np.greater, 0, self.metadata['smooth'], 'clip')[0]
 		self.data['ln(PI)_minima_idx'] = argrelextrema(self.data['ln(PI)'], np.less, 0, self.metadata['smooth'], 'clip')[0]
 
-		# argrelextrema does NOT include endpoints even if ln(PI) is a "straight" line, so manually include the bounds as well - for now, just compare neighbors
+		# argrelextrema does NOT include endpoints even if ln(PI) is a "straight" line, so manually include the bounds as well
+
+		if (len(self.data['ln(PI)_maxima_idx']) > 0 and len(self.data['ln(PI)_minima_idx']) > 0):
+			# Found some max and min
+			if (0 not in self.data['ln(PI)_maxima_idx'] and 0 not in self.data['ln(PI)_minima_idx']):
+				# Force "alternation" based on what occurs first (max or min?)
+				if (self.data['ln(PI)_maxima_idx'][0] < self.data['ln(PI)_minima_idx'][0]):
+					self.data['ln(PI)_minima_idx'] = np.append(0, self.data['ln(PI)_minima_idx'])
+				elif (self.data['ln(PI)_maxima_idx'][0] > self.data['ln(PI)_minima_idx'][0]):
+					self.data['ln(PI)_maxima_idx'] = np.append(0, self.data['ln(PI)_maxima_idx'])
+				else:
+					raise Exception ('Bad relative extrema calculation')
+
+			if (last_idx not in self.data['ln(PI)_maxima_idx'] and last_idx not in self.data['ln(PI)_minima_idx']):
+				# Force "alternation" based on what occured last (max or min?)
+				if (self.data['ln(PI)_maxima_idx'][len(self.data['ln(PI)_maxima_idx'])-1] < self.data['ln(PI)_minima_idx'][len(self.data['ln(PI)_minima_idx'])-1]):
+					self.data['ln(PI)_maxima_idx'] = np.append(self.data['ln(PI)_maxima_idx'], last_idx)
+				elif (self.data['ln(PI)_maxima_idx'][len(self.data['ln(PI)_maxima_idx'])-1] > self.data['ln(PI)_minima_idx'][len(self.data['ln(PI)_minima_idx'])-1]):
+					self.data['ln(PI)_minima_idx'] = np.append(self.data['ln(PI)_minima_idx'], last_idx)
+				else:
+					raise Exception ('Bad relative extrema calculation')
+		elif (len(self.data['ln(PI)_maxima_idx']) > 0 and len(self.data['ln(PI)_minima_idx']) == 0):
+			# Found a max, but no min (e.g. supercritical with one peak in the middle and local minima at edges which are not detected by argrelextrema)
+			# Therefore, assign minima indices to endpoints
+			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
+		else:
+			# Found a min, but no maxima. Therefore assign maxima to endpoints
+			self.data['ln(PI)_maxima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
+
+		"""
+		# For now, just compare neighbors
 		if (0 not in self.data['ln(PI)_maxima_idx'] and 0 not in self.data['ln(PI)_minima_idx']):
 			if (self.data['ln(PI)'][0] < self.data['ln(PI)'][1]):
 				self.data['ln(PI)_minima_idx'] = np.append(0, self.data['ln(PI)_minima_idx'])
@@ -325,17 +355,18 @@ class histogram (object):
 				self.data['ln(PI)_minima_idx'] = np.append(self.data['ln(PI)_minima_idx'], last_idx)
 			else:
 				self.data['ln(PI)_maxima_idx'] = np.append(self.data['ln(PI)_maxima_idx'], last_idx)
+		"""
 
-		# check that maxima and minima alternate
+		# Check that maxima and minima alternate
 		assert (np.abs(len(self.data['ln(PI)_maxima_idx']) - len(self.data['ln(PI)_minima_idx'])) <= 1), 'There are '+str(len(self.data['ln(PI)_maxima_idx']))+' local maxima and '+str(len(self.data['ln(PI)_minima_idx']))+' local minima, so cannot be alternating, try adjusting the value of smooth'
-		order = np.zeros(len(self.data['ln(PI)_maxima_idx'])+len(self.data['ln(PI)_minima_idx']))
+		order = np.zeros(len(self.data['ln(PI)_maxima_idx']) + len(self.data['ln(PI)_minima_idx']))
 		if (self.data['ln(PI)_maxima_idx'][0] < self.data['ln(PI)_minima_idx'][0]):
 			order[::2] = self.data['ln(PI)_maxima_idx']
 			order[1::2] = self.data['ln(PI)_minima_idx']
 		else:
 			order[::2] = self.data['ln(PI)_minima_idx']
 			order[1::2] = self.data['ln(PI)_maxima_idx']
-		assert(np.all([order[i] <= order[i+1] for i in xrange(len(order)-1)])), 'Local maxima and minima not sorted correctly, try adjusting the value of smooth'
+		assert(np.all([order[i] <= order[i+1] for i in xrange(len(order)-1)])), 'Local maxima and minima not sorted correctly, try adjusting the value of smooth (max,min) = '+str(self.data['ln(PI)_maxima_idx'])+', '+str(self.data['ln(PI)_minima_idx'])
 
 	def coexisting (self, rtol=1.0e-3):
 		"""
@@ -393,9 +424,14 @@ class histogram (object):
 		if (not complete):
 			try:
 				self.normalize()
+			except Exception as e:
+				raise Exception ('Unable to normalize ln(PI) : '+str(e))
+
+			try:
 				self.relextrema()
 			except Exception as e:
-				raise Exception ('Unable to find relative extrema and normalize ln(PI) : '+str(e))
+				raise Exception ('Unable to find relative extrema : '+str(e))
+
 			nphases = len(self.data['ln(PI)_maxima_idx'])
 		else:
 			self.normalize()
