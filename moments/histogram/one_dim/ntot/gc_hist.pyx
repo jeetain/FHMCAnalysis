@@ -350,7 +350,7 @@ class histogram (object):
 			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
 			if (ave_q1 < ave_q2):
 				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][len(self.data['ln(PI)']/2):] == np.max(self.data['ln(PI)'][len(self.data['ln(PI)']/2):]))[0]
-			else
+			else:
 				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][:len(self.data['ln(PI)']/2)] == np.max(self.data['ln(PI)'][:len(self.data['ln(PI)']/2)]))[0]
 
 		"""
