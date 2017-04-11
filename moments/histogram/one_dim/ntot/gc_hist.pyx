@@ -306,6 +306,7 @@ class histogram (object):
 	def relextrema(self):
 		"""
 		Analyze the surface for locations of the local extrema.
+		Always returns local maxima within [1, len()-2], so it excludes the bounds.
 
 		"""
 
@@ -395,7 +396,7 @@ class histogram (object):
 			order[1::2] = self.data['ln(PI)_maxima_idx']
 
 		if (not (np.all([order[i] <= order[i+1] for i in xrange(len(order)-1)]))):
-			raise Exception ('Local maxima and minima not sorted correctly, try adjusting the value of smooth (max,min) = '+str(self.data['ln(PI)_maxima_idx'])+', '+str(self.data['ln(PI)_minima_idx']))
+			raise Exception ('Local maxima and minima not sorted correctly, try adjusting the value of smooth (max,min) = '+str(self.data['ln(PI)_maxima_idx'])+', '+str(self.data['ln(PI)_minima_idx'])+' : '+str(order.tolist()))
 
 	def coexisting (self, rtol=1.0e-3):
 		"""

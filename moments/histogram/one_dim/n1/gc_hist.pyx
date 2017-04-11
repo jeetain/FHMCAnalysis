@@ -380,7 +380,9 @@ class histogram (object):
 		"""
 
 		# Check that maxima and minima alternate
-		assert (np.abs(len(self.data['ln(PI)_maxima_idx']) - len(self.data['ln(PI)_minima_idx'])) <= 1), 'There are '+str(len(self.data['ln(PI)_maxima_idx']))+' local maxima and '+str(len(self.data['ln(PI)_minima_idx']))+' local minima, so cannot be alternating, try adjusting the value of smooth'
+		if (not (np.abs(len(self.data['ln(PI)_maxima_idx']) - len(self.data['ln(PI)_minima_idx'])) <= 1)):
+			raise Exception('There are '+str(len(self.data['ln(PI)_maxima_idx']))+' local maxima and '+str(len(self.data['ln(PI)_minima_idx']))+' local minima, so cannot be alternating, try adjusting the value of smooth')
+
 		order = np.zeros(len(self.data['ln(PI)_maxima_idx'])+len(self.data['ln(PI)_minima_idx']))
 		if (self.data['ln(PI)_maxima_idx'][0] < self.data['ln(PI)_minima_idx'][0]):
 			order[::2] = self.data['ln(PI)_maxima_idx']
@@ -388,7 +390,9 @@ class histogram (object):
 		else:
 			order[::2] = self.data['ln(PI)_minima_idx']
 			order[1::2] = self.data['ln(PI)_maxima_idx']
-		assert(np.all([order[i] <= order[i+1] for i in xrange(len(order)-1)])), 'Local maxima and minima not sorted correctly, try adjusting the value of smooth'
+
+		if (not (np.all([order[i] <= order[i+1] for i in xrange(len(order)-1)]))):
+			raise Exception ('Local maxima and minima not sorted correctly, try adjusting the value of smooth (max,min) = '+str(self.data['ln(PI)_maxima_idx'])+', '+str(self.data['ln(PI)_minima_idx'])+' : '+str(order.tolist()))
 
 	def coexisting (self, rtol=1.0e-3):
 		"""
