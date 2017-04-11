@@ -309,7 +309,11 @@ class histogram (object):
 
 		"""
 
-		cdef int last_idx = len(self.data['ln(PI)'])-1
+		cdef int last_idx = len(self.data['ln(PI)'])-1, pos
+		cdef double ave_q1, ave_q2
+
+		if (last_idx <= 1):
+			raise Exception ('ln(PI) not long enough to analyze for relative extrema')
 
 		self.data['ln(PI)_maxima_idx'] = argrelextrema(self.data['ln(PI)'], np.greater, 0, self.metadata['smooth'], 'clip')[0]
 		self.data['ln(PI)_minima_idx'] = argrelextrema(self.data['ln(PI)'], np.less, 0, self.metadata['smooth'], 'clip')[0]
@@ -343,15 +347,26 @@ class histogram (object):
 			self.data['ln(PI)_maxima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
 		else:
 			# Skewed strongly one way or the other ("straight line")
-			# self.is_safe() will throw error, but for now assume the user actually wants this calculation
+			# self.is_safe() will throw error if positive "slope", but for now assume the user actually wants this calculation or has negative slope, i.e. mu --> -inf
 			# As a "hack" - assigned "minima" to bounds, and maxima to be the "interior" max on the largest "side"
+			# If that should occur at one of the ends, move "maxima" to the "inside"
 			ave_q1 = np.mean(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2])
 			ave_q2 = np.mean(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:])
 			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
 			if (ave_q1 < ave_q2):
-				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:] == np.max(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:]))[0]
+				pos = np.where(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:] == np.max(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:]))[0]
+				if (pos == 0):
+					pos += 1
+				if (pos == last_idx):
+					pos -= 1
+				self.data['ln(PI)_maxima_idx'] = np.array([pos])
 			else:
-				self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2] == np.max(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2]))[0]
+				pos = np.where(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2] == np.max(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2]))[0]
+				if (pos == 0):
+					pos += 1
+				if (pos == last_idx):
+					pos -= 1
+				self.data['ln(PI)_maxima_idx'] = np.array([pos])
 
 		"""
 		# For now, just compare neighbors
@@ -448,7 +463,10 @@ class histogram (object):
 
 			nphases = len(self.data['ln(PI)_maxima_idx'])
 		else:
-			self.normalize()
+			try:
+				self.normalize()
+			except Exception as e:
+				raise Exception ('Unable to normalize ln(PI) : '+str(e))
 			nphases = 1
 
 		phase = {}

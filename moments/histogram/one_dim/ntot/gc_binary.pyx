@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy, cython, types, operator, bisect, json
 import scipy.ndimage
+import sys
 
 cimport cython
 cimport numpy as np
@@ -264,6 +265,9 @@ class isopleth (object):
 						h_m.thermo()
 					except Exception as e:
 						print 'Error during mixing and calculation : '+str(e)
+
+						sys.exit()
+
 						pass
 					else:
 						if (h_m.is_safe()):
