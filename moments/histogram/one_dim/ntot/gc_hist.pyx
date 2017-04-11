@@ -309,7 +309,7 @@ class histogram (object):
 
 		"""
 
-		cdef int last_idx = len(self.data['ln(PI)'])-1, pos
+		cdef int last_idx = len(self.data['ln(PI)'])-1, pos, i, l, r, lrmin, lrmax
 		cdef double ave_q1, ave_q2
 
 		if (last_idx <= 1):
@@ -339,12 +339,35 @@ class histogram (object):
 				else:
 					raise Exception ('Bad relative extrema calculation')
 		elif (len(self.data['ln(PI)_maxima_idx']) > 0 and len(self.data['ln(PI)_minima_idx']) == 0):
-			# Found a max, but no min (e.g. supercritical with one peak in the middle and local minima at edges which are not detected by argrelextrema)
-			# Therefore, assign minima indices to endpoints
-			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
+			# Found at least one max, but no minima (e.g. supercritical with one peak in the middle and local minima at edges which are not detected by argrelextrema)
+			# Therefore, assign minima indices to endpoints and between any local maxima missed because of "over smoothing"
+			if (len(self.data['ln(PI)_maxima_idx']) > 1):
+				added_minima = [0]
+				for i in range(len(self.data['ln(PI)_maxima_idx'])-1):
+					l = self.data['ln(PI)_maxima_idx'][i]
+					r = self.data['ln(PI)_maxima_idx'][i+1]
+					lmin = np.where(self.data['ln(PI)'][l:r] == np.min(self.data['ln(PI)'][l:r]))[0] + l
+					added_minima.append(lmin)
+				added_minima.append(len(self.data['ln(PI)'])-1)
+				self.data['ln(PI)_minima_idx'] = np.array(added_minima)
+			else:
+				# Only one local maxima in the interior of ln(PI)
+				self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
 		elif (len(self.data['ln(PI)_maxima_idx']) == 0 and len(self.data['ln(PI)_minima_idx']) > 0):
-			# Found a min, but no maxima. Therefore assign maxima to endpoints
-			self.data['ln(PI)_maxima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
+			# Found at least one minima, but no maxima.
+			# Therefore, assign maxima indices to endpoints and between any local minima missed because of "over smoothing"
+			if (len(self.data['ln(PI)_minima_idx']) > 1):
+				added_maxima = [0]
+				for i in range(len(self.data['ln(PI)_minima_idx'])-1):
+					l = self.data['ln(PI)_minima_idx'][i]
+					r = self.data['ln(PI)_minima_idx'][i+1]
+					lmax = np.where(self.data['ln(PI)'][l:r] == np.max(self.data['ln(PI)'][l:r]))[0] + l
+					added_maxima.append(lmax)
+				added_maxima.append(len(self.data['ln(PI)'])-1)
+				self.data['ln(PI)_maxima_idx'] = np.array(added_maxima)
+			else:
+				# Only one local minima in the interior of ln(PI)
+				self.data['ln(PI)_maxima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
 		else:
 			# Skewed strongly one way or the other ("straight line")
 			# self.is_safe() will throw error if positive "slope", but for now assume the user actually wants this calculation or has negative slope, i.e. mu --> -inf
@@ -533,6 +556,10 @@ class histogram (object):
 			except KeyError:
 				try:
 					self.normalize()
+				except Exception as e:
+					raise Exception ('Unable to normalize ln(PI) : '+str(e))
+
+				try:
 					self.relextrema()
 				except Exception as e:
 					raise Exception ('Unable to find relative extrema in ln(PI) : '+str(e))
