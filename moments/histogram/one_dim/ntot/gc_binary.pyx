@@ -265,9 +265,6 @@ class isopleth (object):
 						h_m.thermo()
 					except Exception as e:
 						print 'Error during mixing and calculation : '+str(e)
-
-						sys.exit()
-
 						pass
 					else:
 						if (h_m.is_safe()):
