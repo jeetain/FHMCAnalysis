@@ -306,7 +306,6 @@ class histogram (object):
 	def relextrema(self):
 		"""
 		Analyze the surface for locations of the local extrema.
-		Always returns local maxima within [1, len()-2], so it excludes the bounds.
 
 		"""
 
@@ -349,25 +348,8 @@ class histogram (object):
 		else:
 			# Skewed strongly one way or the other ("straight line")
 			# self.is_safe() will throw error if positive "slope", but for now assume the user actually wants this calculation or has negative slope, i.e. mu --> -inf
-			# As a "hack" - assigned "minima" to bounds, and maxima to be the "interior" max on the largest "side"
-			# If that should occur at one of the ends, move "maxima" to the "inside"
-			ave_q1 = np.mean(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2])
-			ave_q2 = np.mean(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:])
-			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
-			if (ave_q1 < ave_q2):
-				pos = np.where(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:] == np.max(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:]))[0]
-				if (pos == 0):
-					pos += 1
-				if (pos == last_idx):
-					pos -= 1
-				self.data['ln(PI)_maxima_idx'] = np.array([pos])
-			else:
-				pos = np.where(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2] == np.max(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2]))[0]
-				if (pos == 0):
-					pos += 1
-				if (pos == last_idx):
-					pos -= 1
-				self.data['ln(PI)_maxima_idx'] = np.array([pos])
+			self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'] == np.max(self.data['ln(PI)']))[0]
+			self.data['ln(PI)_minima_idx'] = np.where(self.data['ln(PI)'] == np.min(self.data['ln(PI)']))[0]
 
 		"""
 		# For now, just compare neighbors

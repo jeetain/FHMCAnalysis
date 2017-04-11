@@ -345,25 +345,9 @@ class histogram (object):
 			self.data['ln(PI)_maxima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
 		else:
 			# Skewed strongly one way or the other ("straight line")
-			# self.is_safe() will throw error, but for now assume the user actually wants this calculation
-			# As a "hack" - assigned "minima" to bounds, and maxima to be the "interior" max on the largest "side"
-			ave_q1 = np.mean(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2])
-			ave_q2 = np.mean(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:])
-			self.data['ln(PI)_minima_idx'] = np.array([0, len(self.data['ln(PI)'])-1])
-			if (ave_q1 < ave_q2):
-				pos = np.where(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:] == np.max(self.data['ln(PI)'][len(self.data['ln(PI)'])/2:]))[0]
-				if (pos == 0):
-					pos += 1
-				if (pos == last_idx):
-					pos -= 1
-				self.data['ln(PI)_maxima_idx'] = np.array([pos])
-			else:
-				pos = np.where(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2] == np.max(self.data['ln(PI)'][:len(self.data['ln(PI)'])/2]))[0]
-				if (pos == 0):
-					pos += 1
-				if (pos == last_idx):
-					pos -= 1
-				self.data['ln(PI)_maxima_idx'] = np.array([pos])
+			# self.is_safe() will throw error if positive "slope", but for now assume the user actually wants this calculation or has negative slope, i.e. mu --> -inf
+			self.data['ln(PI)_maxima_idx'] = np.where(self.data['ln(PI)'] == np.max(self.data['ln(PI)']))[0]
+			self.data['ln(PI)_minima_idx'] = np.where(self.data['ln(PI)'] == np.min(self.data['ln(PI)']))[0]
 
 		"""
 		# For now, just compare neighbors
