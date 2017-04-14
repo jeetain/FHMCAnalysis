@@ -108,7 +108,7 @@ cdef int _get_most_stable_phase (hist):
 
 class isopleth (object):
 	"""
-	Class to compute the isopleths from a series of (mu1, dMu2) histograms
+	Class to compute the isopleths from a series of (mu1, dMu2) histograms.
 
 	"""
 
@@ -127,7 +127,7 @@ class isopleth (object):
 
 		"""
 
-		cdef double dmu2
+		cdef double dmu2, t_ = -1.0
 
 		if (not isinstance(histograms, (list, np.ndarray))): raise Exception ('Expects an array of histograms to construct isopleths')
 		for h in histograms:
@@ -152,6 +152,11 @@ class isopleth (object):
 			if (len(h.data['curr_mu']) != 2): raise Exception ('Only expects 2 chemical potentials, one for each component, cannot construct isopleth')
 			dmu2 = float(h.data['curr_mu'][1] - h.data['curr_mu'][0])
 			dummy[dmu2] = h
+			if (t_ > 0):
+				if (fabs(h.metadata['beta_ref'] - t_) > self.meta['tol']): raise Exception ('Expects all histograms to be performed at the same temperature')
+			else:
+				if (h.metadata['beta_ref'] <= 0): raise Exception ('Illegal temperature in histograms')
+				t_ = h.metadata['beta_ref']
 		dummy_sorted = sorted(dummy.items(), key=operator.itemgetter(0)) # Dictionary of {dmu2:histogram}
 
 		self.data['dmu2'] = np.array([x[0] for x in dummy_sorted])
