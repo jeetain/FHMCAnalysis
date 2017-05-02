@@ -170,7 +170,7 @@ class isopleth (object):
 
 		self.data = {}
 
-	def make_grid_multi (self, mu1_bounds, dmu2_bounds, delta, float p=2.5):
+	def make_grid_multi (self, mu1_bounds, dmu2_bounds, delta, float m=2.5):
 		"""
 		Compute the discretized 2D (mu_1, dmu_2) isopleth surface in "chunks".
 
@@ -182,7 +182,7 @@ class isopleth (object):
 			min, max of dmu_2 to consider
 		delta : array-like
 			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid. Usually ~ 0.2 is good balance between speed and accuracy.
-		p : float
+		m : float
 			Exponent to mix histograms with (default=2.5)
 
 		Returns
@@ -194,7 +194,7 @@ class isopleth (object):
 
 		"""
 
-		cdef int i, j, m, n, left, right
+		cdef int i, j, mm, n, left, right
 
 		if (not isinstance(mu1_bounds, (list, np.ndarray, tuple))): raise Exception ('Expects an array of mu1 bounds to construct isopleths')
 		if (not isinstance(dmu2_bounds, (list, np.ndarray, tuple))): raise Exception ('Expects an array of dmu2 bounds to construct isopleths')
@@ -228,8 +228,8 @@ class isopleth (object):
 			lr_matrix[i][0], lr_matrix[i][1] = _find_left_right(self.data['dmu2'], dmu2_v[i], True)
 
 			# Mix these histograms
-			dl = fabs(self.data['dmu2'][lr_matrix[i][0]] - dmu2_v[i])**p
-			dr = fabs(self.data['dmu2'][lr_matrix[i][1]] - dmu2_v[i])**p
+			dl = fabs(self.data['dmu2'][lr_matrix[i][0]] - dmu2_v[i])**m
+			dr = fabs(self.data['dmu2'][lr_matrix[i][1]] - dmu2_v[i])**m
 			if (dl + dr < 1.0e-9):
 				# Have landed "exactly" on a dmu2 simulations so that left == right (or have gone past edge)
 				assert (lr_matrix[i][0] == lr_matrix[i][1]), 'Unknown mixing distance error'
@@ -242,7 +242,7 @@ class isopleth (object):
 		# Consider all of mu1 space, one value at a time
 		for i in range(len(mu1_v)):
 			# Reweight all histograms first
-			h_safe = np.array([True for m in range(len(self.data['histograms']))])
+			h_safe = np.array([True for mm in range(len(self.data['histograms']))])
 			for j in range(len(self.data['histograms'])):
 				try:
 					self.data['histograms'][j].reweight(mu1_v[i])
@@ -250,7 +250,7 @@ class isopleth (object):
 					h_safe[j] = False
 
 			# Extrapolate the histograms which are necessary (usually all of them) if they were safely reweighted
-			h_matrix = np.array([[None for m in range(lr_matrix.shape[1])] for n in range(lr_matrix.shape[0])])
+			h_matrix = np.array([[None for mm in range(lr_matrix.shape[1])] for n in range(lr_matrix.shape[0])])
 			for j in np.unique(lr_matrix):
 				if (h_safe[j]):
 					loc = np.where(lr_matrix == j)
@@ -280,7 +280,7 @@ class isopleth (object):
 
 		return self.data['Z'], (self.data['X'], self.data['Y'])
 
-	def get_hist (self, mu1, dmu2, double p=2.5):
+	def get_hist (self, mu1, dmu2, double m=2.5):
 		"""
 		Get (a copy of) the "interpolated" histogram for a given (mu1, dmu_2).
 
@@ -290,7 +290,7 @@ class isopleth (object):
 			Chemical potential of species 1
 		dmu2 : double
 			Delta mu2
-		p : double
+		m : double
 			Exponent to mix histograms with (default=2.5)
 
 		Returns
@@ -335,15 +335,15 @@ class isopleth (object):
 				raise Exception ('Unable to get histogram : '+str(e))
 			else:
 				# Mix these histograms
-				dl = fabs(self.data['dmu2'][left] - dmu2)**p
-				dr = fabs(self.data['dmu2'][right] - dmu2)**p
+				dl = fabs(self.data['dmu2'][left] - dmu2)**m
+				dr = fabs(self.data['dmu2'][right] - dmu2)**m
 				wl = dr/(dr+dl) # Weights are "complementary" to distances
 				wr = dl/(dr+dl) # Weights are "complementary" to distances
 				h_m = h_l.mix(h_r, [wl, wr])
 
 		return h_m
 
-	def make_grid (self, mu1_bounds, dmu2_bounds, delta, float p=2.5):
+	def make_grid (self, mu1_bounds, dmu2_bounds, delta, float m=2.5):
 		"""
 		Compute the discretized 2D (mu_1, dmu_2) isopleth surface.
 
@@ -355,7 +355,7 @@ class isopleth (object):
 			min, max of dmu_2 to consider
 		delta : array-like
 			Approximate width of mu bins to use in each (mu_1, dmu_2) dimension on a discrete grid
-		p : float
+		m : float
 			Exponent to mix histograms with (default=2.5)
 
 		Returns
@@ -441,8 +441,8 @@ class isopleth (object):
 						print 'Error at (mu_1,dmu_2) = ('+str(mu1)+','+str(dmu2)+') : '+str(e)+', continuing on...'
 					else:
 						# Mix these histograms
-						dl = fabs(self.data['dmu2'][left] - dmu2)**p
-						dr = fabs(self.data['dmu2'][right] - dmu2)**p
+						dl = fabs(self.data['dmu2'][left] - dmu2)**m
+						dr = fabs(self.data['dmu2'][right] - dmu2)**m
 						wl = dr/(dr+dl) # Weights are "complementary" to distances
 						wr = dl/(dr+dl) # Weights are "complementary" to distances
 
