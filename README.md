@@ -78,7 +78,7 @@ if (hist.is_safe()): # check that max(lnPI) is far enough from the edge
 
 # Search for phase coexistence
 # lnZ_tol = error between free energies of each phase
-equil_hist = hist.find_phase_eq(lnZ_tol=1.0e-5, mu_guess=1.234, beta=beta_ref) # search for phase equilibrium at this temperature
+equil_hist = hist.find_phase_eq(lnZ_tol=1.0e-5, mu_guess=1.234, beta=1.0) # search for phase equilibrium at this temperature
 if (equil_hist.is_safe()): # check that max(lnPI) is far enough from the edge
     hist.thermo() # compute thermodynamic properties
     print hist.data['thermo'] # results are stored here ...
