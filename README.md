@@ -12,7 +12,7 @@ Status
 
 ## Installation:
 
-```
+```bash
 $ git clone https://github.com/mahynski/FHMCAnalysis.git
 $ cd FHMCAnalysis
 $ python install.py
@@ -22,7 +22,7 @@ $ python install.py
 
 ## Unittesting
 
-```
+```bash
 $ cd unittests
 $ python run_tests.py
 ```
@@ -39,7 +39,7 @@ $ python run_tests.py
 
 Alternatively, I highly recommend simply installing anaconda python (https://www.continuum.io/downloads), and installing netCDF4 and Cython libraries through conda. For example:
 
-```
+```bash
 $ cd ~/Downloads/
 $ wget https://repo.continuum.io/archive/Anaconda2-4.2.0-MacOSX-x86_64.pkg
 $ bash Anaconda2-4.2.0-MacOSX-x86_64.sh
