@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy, cython, types, operator, bisect, json
 import scipy.ndimage
-import sys
+import sys, gc
 
 cimport cython
 cimport numpy as np
@@ -241,6 +241,9 @@ class isopleth (object):
 
 		# Consider all of mu1 space, one value at a time
 		for i in range(len(mu1_v)):
+			# Garbage collect before each loop
+			gc.collect()
+
 			# Reweight all histograms first
 			h_safe = np.array([True for mm in range(len(self.data['histograms']))])
 			for j in range(len(self.data['histograms'])):
@@ -252,6 +255,9 @@ class isopleth (object):
 			# Extrapolate the histograms which are necessary (usually all of them) if they were safely reweighted
 			h_matrix = np.array([[None for mm in range(lr_matrix.shape[1])] for n in range(lr_matrix.shape[0])])
 			for j in np.unique(lr_matrix):
+				# Garbage collect before each loop
+				gc.collect()
+
 				if (h_safe[j]):
 					loc = np.where(lr_matrix == j)
 					try:
@@ -264,6 +270,9 @@ class isopleth (object):
 
 			# Mix histograms that were successfully reweighted and extapolated, the compute x1
 			for j in range(lr_matrix.shape[0]):
+				# Garbage collect before each loop
+				gc.collect()
+
 				if (not (h_matrix[j][0] is None or h_matrix[j][1] is None)):
 					try:
 						h_m = h_matrix[j][0].mix(h_matrix[j][1], lr_weights[j])
@@ -395,7 +404,11 @@ class isopleth (object):
 		self.data['F.E./kT'] = np.zeros(self.data['X'].shape, dtype=np.float64)
 
 		for i in range(self.data['X'].shape[0]):
+			gc.collect()
+
 			for j in range(self.data['X'].shape[1]):
+				gc.collect()
+				
 				mu1 = self.data['X'][i,j]
 				dmu2 = self.data['Y'][i,j]
 
@@ -483,6 +496,32 @@ class isopleth (object):
 		json.dump(info, f, sort_keys=True, indent=4)
 		f.close()
 
+	def load (self, fname):
+		"""
+		Load surface from a json file.
+
+		Parameters
+		----------
+		fname : str
+			Filename to read data from
+
+		"""
+
+		f = open(fname, 'r')
+		info = json.load(f)
+		f.close()
+
+		self.data['X'] = np.array(info['mu_1'], dtype=np.float64)
+		self.data['Y'] = np.array(info['dmu_2'], dtype=np.float64)
+		self.data['Z'] = np.array(info['x_1'], dtype=np.float64)
+		self.data['density'] = np.array(info['density'], dtype=np.float64)
+		self.data['F.E./kT'] = np.array(info['F.E./kT'], dtype=np.float64)
+
+		assert (self.data['X'].shape == self.data['Y'].shape, "Shape mismatch in "+fname)
+		assert (self.data['X'].shape == self.data['Z'].shape, "Shape mismatch in "+fname)
+		assert (self.data['X'].shape == self.data['density'].shape, "Shape mismatch in "+fname)
+		assert (self.data['X'].shape == self.data['F.E./kT'].shape, "Shape mismatch in "+fname)
+
 	def zoom (self, factor, order=3, inplace=False):
 		"""
 		Resample the surface using cubic splines to smooth the isopleth. Does not change original values within the class.
@@ -524,7 +563,7 @@ class isopleth (object):
 
 		return zz, (zx, zy), rho, fe
 
-def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_p, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2):
+def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.double_t, ndim=2] grid_x1, np.ndarray[np.double_t, ndim=2] grid_p, np.ndarray[np.double_t, ndim=2] grid_mu1, np.ndarray[np.double_t, ndim=2] grid_dmu2, int k=3, float s=0.0):
 	"""
 	Compute the deviation from the Gibbs-Duhem equation.  For a binary system, only need to compute for 1 species.
 	This assumes the provided grids have been obtained at some fixed temperature.
@@ -541,6 +580,10 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 		2D array of mu_1 at each "pixel"
 	grid_dmu2 : ndarray
 		2D array of dmu_2 at each "pixel"
+	k : int
+		Order of spline to use when estimating mu_i(x_1). Should avoid even numbers (default=3).
+	s : float
+		Smoothing parameter (s=0 instructs spline to go through each point, default).  Larger s means more smoothing.
 
 	Returns
 	-------
@@ -569,8 +612,8 @@ def check_gibbs_duhem(np.ndarray[np.double_t, ndim=1] isobars, np.ndarray[np.dou
 			pts = np.array([(a[1], a[0]) for a in mu_vals_isobar])
 			x1_vals = interp(pts)
 
-			mu1_x1 = interpolate.splrep(x1_vals, [a[0] for a in mu_vals_isobar], s=0, k=3)
-			mu2_x1 = interpolate.splrep(x1_vals, [a[1]+a[0] for a in mu_vals_isobar], s=0, k=3)
+			mu1_x1 = interpolate.splrep(x1_vals, [a[0] for a in mu_vals_isobar], s=s, k=k)
+			mu2_x1 = interpolate.splrep(x1_vals, [a[1]+a[0] for a in mu_vals_isobar], s=s, k=k)
 
 			error_p = []
 			x1_t = []

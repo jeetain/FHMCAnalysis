@@ -803,8 +803,8 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 		isum = spec_exp (isum, histograms[end].lnPI[i])
 	isum = exp(isum)
 
-	if (np.fabs(isum - 1.0) > 2.0e-12):
-		raise Exception("Failed to patch: composite PI sums to "+str(sum)+" which differs from 1 by "+str(np.fabs(sum - 1.0)))
+	if (np.fabs(isum - 1.0) > 1.0e-10):
+		raise Exception("Failed to patch: composite PI sums to "+str(isum)+" which differs from 1 by "+str(np.fabs(isum - 1.0)))
 
 	# print composite
 	histograms[end].to_nc(out_fname)
@@ -814,7 +814,7 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cpdef get_patch_sequence (idir, int cP=-1, int min_cp=1, long unsigned int bound=1000000):
+def get_patch_sequence (idir, **kwargs):
 	"""
 	Look through local windows (numbered) to find the histograms to patch.
 
@@ -824,12 +824,13 @@ cpdef get_patch_sequence (idir, int cP=-1, int min_cp=1, long unsigned int bound
 	----------
 	idir : str
 		Directory to look for windows in (directories: 1, 2, 3...)
-	cP : int
-		Checkpoint to use for each window (default=-1, means used last available)
-	min_cp : int
-		Minimum TMMC checkpoint a window must reach to be considered. Only matters if cP=-1. (default=1)
-	bound : int
-		Last window to use (default=1000000)
+	Keyword Arguments :
+		cP : int
+			Checkpoint to use for each window (default=-1, means used last available)
+		min_cp : int
+			Minimum TMMC checkpoint a window must reach to be considered. Only matters if cP=-1. (default=1)
+		bound : int
+			Last window to use (default=1000000)
 
 	Returns
 	-------
@@ -837,6 +838,10 @@ cpdef get_patch_sequence (idir, int cP=-1, int min_cp=1, long unsigned int bound
 		Ordered list of filenames: (lnPI_fname, mom_fname, ehist_fname, pkhist_prefix)
 
 	"""
+
+	cdef int cP = kwargs.get('cP', -1)
+	cdef int min_cp = kwargs.get('min_cp', 1)
+	cdef long unsigned int bound = kwargs.get('bound', 1000000)
 
 	# trim trailing '/'
 	if (idir[len(idir)-1] == '/'):

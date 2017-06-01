@@ -156,15 +156,26 @@ class histogram (object):
 		self.data['ub'] = self.data['ntot'][len(self.data['ntot'])-1]
 		assert(self.data['lb'] < self.data['ub']), 'Error, bad bounds for N_tot'
 		self.data['pk_hist'] = {}
-		self.data['pk_hist']['hist'] = np.array(dataset.variables["P_{N_i}(N_{tot})"][:])
-		self.data['pk_hist']['lb'] = np.array(dataset.variables["P_{N_i}(N_{tot})_{lb}"][:])
-		self.data['pk_hist']['ub'] = np.array(dataset.variables["P_{N_i}(N_{tot})_{ub}"][:])
-		self.data['pk_hist']['bw'] = np.array(dataset.variables["P_{N_i}(N_{tot})_{bw}"][:])
+
+		# check if pk hist data is available, but ok if not
+		try:
+			self.data['pk_hist']['hist'] = np.array(dataset.variables["P_{N_i}(N_{tot})"][:])
+			self.data['pk_hist']['lb'] = np.array(dataset.variables["P_{N_i}(N_{tot})_{lb}"][:])
+			self.data['pk_hist']['ub'] = np.array(dataset.variables["P_{N_i}(N_{tot})_{ub}"][:])
+			self.data['pk_hist']['bw'] = np.array(dataset.variables["P_{N_i}(N_{tot})_{bw}"][:])
+		except:
+			pass
+
+		# check if energy hist data is available, but ok if not
 		self.data['e_hist'] = {}
-		self.data['e_hist']['hist'] = np.array(dataset.variables["P_{U}(N_{tot})"][:])
-		self.data['e_hist']['lb'] = np.array(dataset.variables["P_{U}(N_{tot})_{lb}"][:])
-		self.data['e_hist']['ub'] = np.array(dataset.variables["P_{U}(N_{tot})_{ub}"][:])
-		self.data['e_hist']['bw'] = np.array(dataset.variables["P_{U}(N_{tot})_{bw}"][:])
+		try:
+			self.data['e_hist']['hist'] = np.array(dataset.variables["P_{U}(N_{tot})"][:])
+			self.data['e_hist']['lb'] = np.array(dataset.variables["P_{U}(N_{tot})_{lb}"][:])
+			self.data['e_hist']['ub'] = np.array(dataset.variables["P_{U}(N_{tot})_{ub}"][:])
+			self.data['e_hist']['bw'] = np.array(dataset.variables["P_{U}(N_{tot})_{bw}"][:])
+		except:
+			pass
+
 		self.data['mom'] = np.array(dataset.variables["N_{i}^{j}*N_{k}^{m}*U^{p}"][:])
 		assert(self.data['mom'].shape == (self.data['nspec'],self.data['max_order']+1,self.data['nspec'],self.data['max_order']+1,self.data['max_order']+1,len(self.data['ntot'])))
 
@@ -411,7 +422,7 @@ class histogram (object):
 		Parameters
 		----------
 		rtol : double
-			Relative olerance of F.E./kT to define being equal (default=1.0e-3 or 0.1%)
+			Relative tolerance of F.E./kT to define being equal (default=1.0e-3 or 0.1%)
 
 		Returns
 		-------

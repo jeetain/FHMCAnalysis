@@ -2,7 +2,7 @@
 @brief Tools for patching windows (Nmin < N < Nmax) together to build a single flat histogram from FHMCSimulation simulations using their checkpoints
 @author Nathan A. Mahynski
 @date 03/15/2017
-@filename checkpt_patch.pyx
+@filename chkpt_patch.pyx
 """
 
 import operator, sys, re, os, cython, types, copy, time, json
@@ -464,8 +464,11 @@ class window (object):
 		shift, err2 = patch_window_pair (self, other)
 		self.lnPI += shift
 
+		assert (self.max_order == other.max_order), 'Unequal maximum orders between windows, cannot merge'
+		assert (self.V == other.V), 'Unequal volumes between windows, cannot merge'
+		assert (self.op_name == other.op_name), 'Different order parameters between windows, cannot merge'
 		assert (self.lb > other.lb), 'Can only patch from high '+self.op_name+' to lower'
-		assert (self.offset == other.offset), 'Cannot patch, inconsistent offsets'
+		assert (self.offset == other.offset), 'Cannot patch, inconsistent offsets between windows'
 		assert (self.offset >= 1), 'Invalid offset found during merge'
 		cdef int index = other.ub - self.lb + 1, i
 		self.lb = other.lb
@@ -677,7 +680,7 @@ cdef patch_window_pair (window_hist1, window_hist2, double ftol=0.000001):
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log", offset=2, smooth=False, tol=np.inf, skip_hist=False, last_safe_idx=-1):
+def patch_all_windows (fnames, **kwargs):
 	"""
 	Take a series of filenames for files containing the raw histogram data for different windows
 	and iteratively patch neighbors.
@@ -688,20 +691,21 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 	----------
 	fnames : list
 		List of (lnPI_fname, moment_fname, ehist_fname, pkhist_prefix) filenames to create window_hist's
-	out_fname : str
-		Name of final composite histogram (default=composite.nc)
-	log_fname : str
-		Filename to store the shifts of each lnPI histogram in (default=patch.log)
-	offset : double
-		The amount to trim off the edge of window overlap when patching (default=2)
-	smooth : bool
-		Smooth the overlapping lnPI and N1, etc.? (default=False)
-	tol : double
-		Max error tolerance for mean err^2 in ln(PI) patching. (default=np.inf)
-	skip_hist : bool
-		Whether to disregard pk and U histograms (default=False)
-	last_safe_idx : int
-		Index of sorted histogram that is safe to patch into (i.e. below threshold).  By default this is -1 (test all), but routine will recursively call itself to locate this properly.  Do not specify yourself.
+	Keyword Arguments :
+		out_fname : str
+			Name of final composite histogram (default=composite.nc)
+		log_fname : str
+			Filename to store the shifts of each lnPI histogram in (default=patch.log)
+		offset : double
+			The amount to trim off the edge of window overlap when patching (default=2)
+		smooth : bool
+			Smooth the overlapping lnPI and N1, etc.? (default=False)
+		tol : double
+			Max error tolerance for mean err^2 in ln(PI) patching. (default=np.inf)
+		skip_hist : bool
+			Whether to disregard pk and U histograms (default=False)
+		last_safe_idx : int
+			Index of sorted histogram that is safe to patch into (i.e. below threshold).  By default this is -1 (test all), but routine will recursively call itself to locate this properly.  DO NOT specify yourself.
 
 	Returns
 	-------
@@ -709,6 +713,14 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 		Name of the histogram responsible for the worst patching error, Value of the worst normalized, squared patching error
 
 	"""
+
+	out_fname = kwargs.get('out_fname', "composite.nc")
+	log_fname = kwargs.get('log_fname', "patch.log")
+	offset = kwargs.get('offset', 2)
+	smooth = kwargs.get('smooth', False)
+	tol = kwargs.get('tol', np.inf)
+	skip_hist = kwargs.get('skip_hist', False)
+	last_safe_idx = kwargs.get('last_safe_idx', -1)
 
 	cdef int i, next, end = 0, start
 
@@ -753,7 +765,7 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 	for i in xrange(end):
 		if (err_vals[str(histograms[i])] > tol):
 			#f.write('ln(PI) error tolerance exceeded for '+str(histograms[i])+', repatching below this: '+str(err_vals[str(histograms[i])])+' > '+str(tol)+'\n')
-			patch_all_windows(fnames, out_fname, log_fname, offset, smooth, tol, skip_hist, i)
+			patch_all_windows(fnames, out_fname=out_fname, log_fname=log_fname, offset=offset, smooth=smooth, tol=tol, skip_hist=skip_hist, last_safe_idx=i)
 	f.close()
 
 	# Normalize overall histogram
@@ -769,8 +781,8 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 		isum = spec_exp (isum, histograms[end].lnPI[i])
 	isum = exp(isum)
 
-	if (np.fabs(isum - 1.0) > 2.0e-12):
-		raise Exception("Failed to patch: composite PI sums to "+str(sum)+" which differs from 1 by "+str(np.fabs(sum - 1.0)))
+	if (np.fabs(isum - 1.0) > 1.0e-10):
+		raise Exception("Failed to patch: composite PI sums to "+str(isum)+" which differs from 1 by "+str(np.fabs(isum - 1.0)))
 
 	# Print composite
 	histograms[end].to_nc(out_fname)
@@ -780,7 +792,7 @@ cpdef patch_all_windows (fnames, out_fname="composite.nc", log_fname="patch.log"
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cpdef get_patch_sequence (idir):
+def get_patch_sequence (idir, **kwargs):
 	"""
 	Look through local windows (numbered) to find the histograms to patch, based on their checkpoints (/checkpt directory)
 
@@ -790,6 +802,13 @@ cpdef get_patch_sequence (idir):
 	----------
 	idir : str
 		Directory to look for windows in (directories: 1, 2, 3...)
+	Keyword Arguments :
+		cP : int
+			Checkpoint to use for each window (default=-1, means used last available)
+		min_cp : int
+			Minimum TMMC checkpoint a window must reach to be considered. Only matters if cP=-1. (default=1)
+		bound : int
+			Last window to use (default=1000000)
 
 	Returns
 	-------
@@ -797,6 +816,10 @@ cpdef get_patch_sequence (idir):
 		Ordered list of filenames: (lnPI_fname, mom_fname, ehist_fname, pkhist_prefix)
 
 	"""
+
+	cdef int cP = kwargs.get('cP', -1)
+	cdef int min_cp = kwargs.get('min_cp', 1)
+	cdef long unsigned int bound = kwargs.get('bound', 1000000)
 
 	# Trim trailing '/'
 	if (idir[len(idir)-1] == '/'):
@@ -855,7 +878,7 @@ cpdef get_patch_sequence (idir):
 	return zip(lnPI_fname, mom_fname, ehist_fname, pkhist_prefix)
 
 if __name__ == '__main__':
-	print "checkpt_patch.pyx"
+	print "chkpt_patch.pyx"
 
 	"""
 
