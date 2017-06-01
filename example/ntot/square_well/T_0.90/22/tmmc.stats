@@ -1,0 +1,14 @@
+Time: 05/01/2017 07:45:39
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	0.00609147
+delete0 (from M = 0)	0.00609101
+translate0 (from M = 0)	14.6991
+------------------------------------ 
+Time: 05/01/2017 10:32:20
+---------- Move Statistics --------- 
+Move	% Success
+insert0 (from M = 0)	0.00597955
+delete0 (from M = 0)	0.00597869
+translate0 (from M = 0)	14.6706
+------------------------------------ 

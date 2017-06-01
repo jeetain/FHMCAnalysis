@@ -1,0 +1,228 @@
+04/01/2017 10:45:07 : Beginning simulation
+04/01/2017 10:45:07 : Parsed JSON file input.json
+04/01/2017 10:45:07 : Setting up cell list for interactions between type 0 and 0
+04/01/2017 10:45:07 : Creating Cell list with r_cut = 1.5
+04/01/2017 10:45:07 : System from input.json passed bounds checks
+04/01/2017 10:45:07 : No barriers to initialize
+04/01/2017 10:45:07 : Successfully read valid parameters from input.json
+04/01/2017 10:45:07 : Parsed JSON file input.json
+04/01/2017 10:45:07 : Automatically generating the initial configuration
+04/01/2017 10:45:07 : Setting up cell list for interactions between type 0 and 0
+04/01/2017 10:45:07 : Creating Cell list with r_cut = 1.5
+04/01/2017 10:45:07 : No barriers to initialize
+04/01/2017 10:45:07 : Initializing species 0 configurations
+04/01/2017 10:45:07 : Added translation moves for initialization of species 0
+04/01/2017 10:45:07 : Target number = 551 for species 1
+04/01/2017 10:45:09 : Reading initial configuration from auto-init.xyz
+04/01/2017 10:45:09 : Successfully loaded initial configuration from auto-init.xyz
+04/01/2017 10:45:09 : Beginning Wang-Landau
+04/01/2017 10:45:09 : Initial lnF = 1
+04/01/2017 10:45:09 : Starting from 0 moves
+04/01/2017 10:46:42 : Wang-Landau is now flat, new lnF = 0.5
+04/01/2017 10:48:11 : Wang-Landau is now flat, new lnF = 0.25
+04/01/2017 10:50:24 : Wang-Landau is now flat, new lnF = 0.125
+04/01/2017 10:53:34 : Wang-Landau is now flat, new lnF = 0.0625
+04/01/2017 10:56:34 : Wang-Landau is now flat, new lnF = 0.03125
+04/01/2017 10:59:22 : Wang-Landau is now flat, new lnF = 0.015625
+04/01/2017 11:01:50 : Wang-Landau is now flat, new lnF = 0.0078125
+04/01/2017 11:06:00 : Wang-Landau is now flat, new lnF = 0.00390625
+04/01/2017 11:09:01 : Wang-Landau is now flat, new lnF = 0.001953125
+04/01/2017 11:10:34 : Wang-Landau is now flat, new lnF = 0.0009765625
+04/01/2017 11:12:29 : Wang-Landau is now flat, new lnF = 0.00048828125
+04/01/2017 11:16:19 : Wang-Landau is now flat, new lnF = 0.000244140625
+04/01/2017 11:19:07 : Wang-Landau is now flat, new lnF = 0.0001220703125
+04/01/2017 11:21:14 : Wang-Landau is now flat, new lnF = 6.103515625e-05
+04/01/2017 11:23:29 : Wang-Landau is now flat, new lnF = 3.0517578125e-05
+04/01/2017 11:25:52 : Wang-Landau is now flat, new lnF = 1.52587890625e-05
+04/01/2017 11:28:16 : Wang-Landau is now flat, new lnF = 7.62939453125e-06
+04/01/2017 11:32:13 : Wang-Landau is now flat, new lnF = 3.814697265625e-06
+04/01/2017 11:33:25 : Wang-Landau is now flat, new lnF = 1.9073486328125e-06
+04/01/2017 11:36:56 : Wang-Landau is now flat, new lnF = 9.5367431640625e-07
+04/01/2017 11:40:41 : Wang-Landau is now flat, new lnF = 4.76837158203125e-07
+04/01/2017 11:42:51 : Wang-Landau is now flat, new lnF = 2.38418579101562e-07
+04/01/2017 11:47:00 : Wang-Landau is now flat, new lnF = 1.19209289550781e-07
+04/01/2017 11:52:17 : Wang-Landau is now flat, new lnF = 5.96046447753906e-08
+04/01/2017 12:06:58 : Wang-Landau is now flat, new lnF = 2.98023223876953e-08
+04/01/2017 12:25:16 : Wang-Landau is now flat, new lnF = 1.49011611938477e-08
+04/01/2017 12:33:30 : Wang-Landau is now flat, new lnF = 7.45058059692383e-09
+04/01/2017 12:33:30 : Passed number of species present check
+04/01/2017 12:33:30 : Passed sum of atoms consistency check with total counter
+04/01/2017 12:33:30 : Passed expanded ensemble state check for all atoms
+04/01/2017 12:33:30 : Passed, final scratch energy - incremental = 0
+04/01/2017 12:33:30 : Completed 2927000000 total MC steps as part of Wang-Landau stage
+04/01/2017 12:33:30 : Total MC steps taken in simulation: 2927000000
+04/01/2017 12:33:30 : Crossing over to build TMMC matrix
+04/01/2017 12:33:30 : Starting from lnF = 7.45058059692383e-09
+04/01/2017 12:33:30 : Starting from 0 moves in current sweep
+04/01/2017 12:33:30 : Starting from 0 out of 100 sweeps
+04/01/2017 12:38:08 : Wang-Landau is now flat, new lnF = 3.72529029846191e-09
+04/01/2017 12:38:55 : Times C fully visited = 1
+04/01/2017 12:42:45 : Times C fully visited = 2
+04/01/2017 12:45:35 : Wang-Landau is now flat, new lnF = 1.86264514923096e-09
+04/01/2017 12:51:40 : Times C fully visited = 3
+04/01/2017 12:56:05 : Times C fully visited = 4
+04/01/2017 12:57:13 : Wang-Landau is now flat, new lnF = 9.31322574615479e-10
+04/01/2017 13:01:46 : Times C fully visited = 5
+04/01/2017 13:08:09 : Times C fully visited = 6
+04/01/2017 13:12:15 : Times C fully visited = 7
+04/01/2017 13:13:00 : Wang-Landau is now flat, new lnF = 4.65661287307739e-10
+04/01/2017 13:17:46 : Times C fully visited = 8
+04/01/2017 13:24:19 : Times C fully visited = 9
+04/01/2017 13:32:44 : Times C fully visited = 10
+04/01/2017 13:37:29 : Times C fully visited = 11
+04/01/2017 13:46:10 : Times C fully visited = 12
+04/01/2017 13:52:48 : Times C fully visited = 13
+04/01/2017 14:00:41 : Times C fully visited = 14
+04/01/2017 14:07:16 : Times C fully visited = 15
+04/01/2017 14:13:16 : Times C fully visited = 16
+04/01/2017 14:22:21 : Times C fully visited = 17
+04/01/2017 14:29:31 : Times C fully visited = 18
+04/01/2017 14:40:58 : Times C fully visited = 19
+04/01/2017 14:51:24 : Times C fully visited = 20
+04/01/2017 14:55:40 : Times C fully visited = 21
+04/01/2017 15:00:12 : Times C fully visited = 22
+04/01/2017 15:05:48 : Times C fully visited = 23
+04/01/2017 15:10:34 : Times C fully visited = 24
+04/01/2017 15:18:22 : Times C fully visited = 25
+04/01/2017 15:24:03 : Times C fully visited = 26
+04/01/2017 15:29:04 : Times C fully visited = 27
+04/01/2017 15:32:38 : Times C fully visited = 28
+04/01/2017 15:40:23 : Times C fully visited = 29
+04/01/2017 15:48:19 : Times C fully visited = 30
+04/01/2017 15:56:55 : Times C fully visited = 31
+04/01/2017 16:01:30 : Times C fully visited = 32
+04/01/2017 16:07:59 : Times C fully visited = 33
+04/01/2017 16:14:30 : Times C fully visited = 34
+04/01/2017 16:19:22 : Times C fully visited = 35
+04/01/2017 16:26:15 : Times C fully visited = 36
+04/01/2017 16:28:38 : Wang-Landau is now flat, new lnF = 2.3283064365387e-10
+04/01/2017 16:32:42 : Times C fully visited = 37
+04/01/2017 16:37:00 : Times C fully visited = 38
+04/01/2017 16:38:24 : Wang-Landau is now flat, new lnF = 1.16415321826935e-10
+04/01/2017 16:47:02 : Times C fully visited = 39
+04/01/2017 16:51:41 : Times C fully visited = 40
+04/01/2017 17:01:15 : Times C fully visited = 41
+04/01/2017 17:06:32 : Times C fully visited = 42
+04/01/2017 17:11:51 : Times C fully visited = 43
+04/01/2017 17:16:07 : Wang-Landau is now flat, new lnF = 5.82076609134674e-11
+04/01/2017 17:16:29 : Times C fully visited = 44
+04/01/2017 17:21:14 : Wang-Landau is now flat, new lnF = 2.91038304567337e-11
+04/01/2017 17:21:16 : Times C fully visited = 45
+04/01/2017 17:28:29 : Times C fully visited = 46
+04/01/2017 17:38:30 : Times C fully visited = 47
+04/01/2017 17:49:41 : Times C fully visited = 48
+04/01/2017 17:58:10 : Times C fully visited = 49
+04/01/2017 18:05:15 : Times C fully visited = 50
+04/01/2017 18:19:52 : Times C fully visited = 51
+04/01/2017 18:23:29 : Times C fully visited = 52
+04/01/2017 18:34:11 : Times C fully visited = 53
+04/01/2017 18:40:10 : Times C fully visited = 54
+04/01/2017 18:45:01 : Times C fully visited = 55
+04/01/2017 18:52:02 : Times C fully visited = 56
+04/01/2017 18:58:47 : Times C fully visited = 57
+04/01/2017 19:08:00 : Times C fully visited = 58
+04/01/2017 19:25:31 : Times C fully visited = 59
+04/01/2017 19:31:35 : Times C fully visited = 60
+04/01/2017 19:37:19 : Times C fully visited = 61
+04/01/2017 19:42:00 : Times C fully visited = 62
+04/01/2017 19:48:50 : Times C fully visited = 63
+04/01/2017 19:59:02 : Times C fully visited = 64
+04/01/2017 20:06:27 : Times C fully visited = 65
+04/01/2017 20:13:56 : Times C fully visited = 66
+04/01/2017 20:23:06 : Times C fully visited = 67
+04/01/2017 20:29:10 : Times C fully visited = 68
+04/01/2017 20:35:02 : Times C fully visited = 69
+04/01/2017 20:41:37 : Times C fully visited = 70
+04/01/2017 20:50:44 : Times C fully visited = 71
+04/01/2017 20:54:58 : Times C fully visited = 72
+04/01/2017 21:01:42 : Times C fully visited = 73
+04/01/2017 21:09:30 : Times C fully visited = 74
+04/01/2017 21:18:11 : Times C fully visited = 75
+04/01/2017 21:27:56 : Times C fully visited = 76
+04/01/2017 21:33:33 : Times C fully visited = 77
+04/01/2017 21:40:15 : Times C fully visited = 78
+04/01/2017 21:50:34 : Times C fully visited = 79
+04/01/2017 21:56:03 : Times C fully visited = 80
+04/01/2017 22:02:08 : Times C fully visited = 81
+04/01/2017 22:06:16 : Times C fully visited = 82
+04/01/2017 22:11:51 : Times C fully visited = 83
+04/01/2017 22:21:38 : Times C fully visited = 84
+04/01/2017 22:25:16 : Times C fully visited = 85
+04/01/2017 22:32:25 : Times C fully visited = 86
+04/01/2017 22:37:20 : Times C fully visited = 87
+04/01/2017 22:45:46 : Times C fully visited = 88
+04/01/2017 22:54:18 : Times C fully visited = 89
+04/01/2017 22:58:56 : Times C fully visited = 90
+04/01/2017 23:07:57 : Times C fully visited = 91
+04/01/2017 23:12:37 : Times C fully visited = 92
+04/01/2017 23:18:36 : Times C fully visited = 93
+04/01/2017 23:23:06 : Times C fully visited = 94
+04/01/2017 23:32:32 : Times C fully visited = 95
+04/01/2017 23:38:54 : Times C fully visited = 96
+04/01/2017 23:43:38 : Times C fully visited = 97
+04/01/2017 23:49:55 : Times C fully visited = 98
+04/01/2017 23:54:14 : Times C fully visited = 99
+04/01/2017 23:58:40 : Times C fully visited = 100
+04/01/2017 23:58:40 : Switching over to TMMC completely, ending Wang-Landau
+04/01/2017 23:58:40 : Passed number of species present check
+04/01/2017 23:58:40 : Passed sum of atoms consistency check with total counter
+04/01/2017 23:58:40 : Passed expanded ensemble state check for all atoms
+04/01/2017 23:58:40 : Passed, final scratch energy - incremental = 0
+04/01/2017 23:58:40 : Completed 18978000000 total MC steps as part of crossover stage
+04/01/2017 23:58:40 : Total MC steps taken in simulation: 21905000000
+04/01/2017 23:58:40 : Beginning TMMC
+04/01/2017 23:58:40 : Starting progress stage from 0/100
+04/01/2017 23:58:40 : Starting from 0/1000 total TMMC sweeps
+05/01/2017 00:11:40 : Finished 1/1000 total TMMC sweeps
+05/01/2017 00:21:42 : Finished 2/1000 total TMMC sweeps
+05/01/2017 00:35:09 : Finished 3/1000 total TMMC sweeps
+05/01/2017 00:48:26 : Finished 4/1000 total TMMC sweeps
+05/01/2017 00:59:21 : Finished 5/1000 total TMMC sweeps
+05/01/2017 01:12:06 : Finished 6/1000 total TMMC sweeps
+05/01/2017 01:23:40 : Finished 7/1000 total TMMC sweeps
+05/01/2017 01:37:34 : Finished 8/1000 total TMMC sweeps
+05/01/2017 01:46:10 : Finished 9/1000 total TMMC sweeps
+05/01/2017 01:55:58 : Finished 10/1000 total TMMC sweeps
+05/01/2017 02:13:11 : Finished 11/1000 total TMMC sweeps
+05/01/2017 02:30:50 : Finished 12/1000 total TMMC sweeps
+05/01/2017 02:40:32 : Finished 13/1000 total TMMC sweeps
+05/01/2017 02:53:46 : Finished 14/1000 total TMMC sweeps
+05/01/2017 03:05:53 : Finished 15/1000 total TMMC sweeps
+05/01/2017 03:22:22 : Finished 16/1000 total TMMC sweeps
+05/01/2017 03:39:02 : Finished 17/1000 total TMMC sweeps
+05/01/2017 03:54:52 : Finished 18/1000 total TMMC sweeps
+05/01/2017 04:06:09 : Finished 19/1000 total TMMC sweeps
+05/01/2017 04:20:02 : Finished 20/1000 total TMMC sweeps
+05/01/2017 04:29:36 : Finished 21/1000 total TMMC sweeps
+05/01/2017 04:40:29 : Finished 22/1000 total TMMC sweeps
+05/01/2017 04:49:09 : Finished 23/1000 total TMMC sweeps
+05/01/2017 05:01:55 : Finished 24/1000 total TMMC sweeps
+05/01/2017 05:10:21 : Finished 25/1000 total TMMC sweeps
+05/01/2017 05:19:45 : Finished 26/1000 total TMMC sweeps
+05/01/2017 05:27:58 : Finished 27/1000 total TMMC sweeps
+05/01/2017 05:39:05 : Finished 28/1000 total TMMC sweeps
+05/01/2017 05:50:33 : Finished 29/1000 total TMMC sweeps
+05/01/2017 06:01:16 : Finished 30/1000 total TMMC sweeps
+05/01/2017 06:10:28 : Finished 31/1000 total TMMC sweeps
+05/01/2017 06:19:49 : Finished 32/1000 total TMMC sweeps
+05/01/2017 06:36:00 : Finished 33/1000 total TMMC sweeps
+05/01/2017 06:51:21 : Finished 34/1000 total TMMC sweeps
+05/01/2017 07:10:28 : Finished 35/1000 total TMMC sweeps
+05/01/2017 07:18:33 : Finished 36/1000 total TMMC sweeps
+05/01/2017 07:30:10 : Finished 37/1000 total TMMC sweeps
+05/01/2017 07:37:24 : Finished 38/1000 total TMMC sweeps
+05/01/2017 07:54:07 : Finished 39/1000 total TMMC sweeps
+05/01/2017 08:03:13 : Finished 40/1000 total TMMC sweeps
+05/01/2017 08:12:55 : Finished 41/1000 total TMMC sweeps
+05/01/2017 08:26:09 : Finished 42/1000 total TMMC sweeps
+05/01/2017 08:39:13 : Finished 43/1000 total TMMC sweeps
+05/01/2017 08:46:50 : Finished 44/1000 total TMMC sweeps
+05/01/2017 08:58:57 : Finished 45/1000 total TMMC sweeps
+05/01/2017 09:08:41 : Finished 46/1000 total TMMC sweeps
+05/01/2017 09:18:18 : Finished 47/1000 total TMMC sweeps
+05/01/2017 09:30:12 : Finished 48/1000 total TMMC sweeps
+05/01/2017 09:39:28 : Finished 49/1000 total TMMC sweeps
+05/01/2017 09:56:12 : Finished 50/1000 total TMMC sweeps
+05/01/2017 10:14:17 : Finished 51/1000 total TMMC sweeps
+05/01/2017 10:23:08 : Finished 52/1000 total TMMC sweeps
+05/01/2017 10:34:26 : Finished 53/1000 total TMMC sweeps
