@@ -448,7 +448,7 @@ class histogram (object):
 
 			return eq
 
-	def thermo(self, bool props=True, bool complete=False):
+	def thermo(self, bool props=True, bool complete=False, collect=None):
 		"""
 		Integrate the lnPI distribution, etc. and compute average thermodynamic properties of each phase identified.
 
@@ -461,6 +461,9 @@ class histogram (object):
 			If True then computes the extensive properties, otherwise just integrates lnPI (free energy) for each phase (default=True)
 		complete : bool
 			If True then compute properties of entire distribution, ignoring phase segmentation of lnPI surface (default=False)
+		collect : function (histogram)
+			Function that will "collect" maxima and minima into phases if each peak does not represent a phase, which takes a keyword argument "hist" to accept this class.
+			This function must modify the class.
 
 		"""
 
@@ -477,6 +480,9 @@ class histogram (object):
 				self.relextrema()
 			except Exception as e:
 				raise Exception ('Unable to find relative extrema : '+str(e))
+
+			if (collect is not None):
+				collect(hist=self)
 
 			nphases = len(self.data['ln(PI)_maxima_idx'])
 		else:
