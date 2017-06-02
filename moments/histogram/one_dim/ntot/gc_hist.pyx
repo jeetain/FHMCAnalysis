@@ -463,7 +463,7 @@ class histogram (object):
 			If True then compute properties of entire distribution, ignoring phase segmentation of lnPI surface (default=False)
 		collect : function (histogram)
 			Function that will "collect" maxima and minima into phases if each peak does not represent a phase, which takes a keyword argument "hist" to accept this class.
-			This function must modify the class.
+			This function must modify the class and report a maxima, boudned by minima, for each resulting phase. See example function in collect.py called janus_collect(). (default=None)
 
 		"""
 
@@ -481,6 +481,7 @@ class histogram (object):
 			except Exception as e:
 				raise Exception ('Unable to find relative extrema : '+str(e))
 
+			# collect extrema if necessary
 			if (collect is not None):
 				collect(hist=self)
 
@@ -594,7 +595,7 @@ class histogram (object):
 			else:
 				return True
 
-	def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object dMu=[], int extrap_order=1, double cutoff=10.0, bool override=False, bool reterr=False, bool first_order_mom=False):
+	def find_phase_eq(self, double lnZ_tol, double mu_guess, double beta=0.0, object dMu=[], int extrap_order=1, double cutoff=10.0, bool override=False, bool reterr=False, bool first_order_mom=False, collect=None):
 		"""
 		Search for coexistence between two phases which have a "width" of at least the size of self.metadata['smooth'].
 
@@ -620,6 +621,9 @@ class histogram (object):
 			Return the error associated with numerical optimization. (default=False)
 		first_order_mom : bool
 			If True, only use first order extrapolation to extrapolate moments when using higher order extrapolation of ln(PI) (default=False)
+		collect : function (histogram)
+			Function that will "collect" maxima and minima into phases if each peak does not represent a phase, which takes a keyword argument "hist" to accept this class.
+			This function must modify the class and report a maxima, boudned by minima, for each resulting phase. See example function in collect.py called janus_collect(). (default=None)
 
 		Returns
 		-------
@@ -645,7 +649,7 @@ class histogram (object):
 
 		# Search for equilibrium
 		tmp_hist.normalize()
-		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_dMu,extrap_order,cutoff,True,tmp_hist.metadata['smooth'],), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
+		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_dMu,extrap_order,cutoff,True,tmp_hist.metadata['smooth'],collect=collect), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
 		if (full_out[:][4] != 0): # full_out[:][4] = warning flag
 			raise Exception ('Error, unable to locate phase coexistence : '+str(full_out))
 
@@ -653,7 +657,7 @@ class histogram (object):
 			tmp_hist.reweight(full_out[0][0])
 			if (beta != self.data['curr_beta'] or np.all(new_dMu == curr_dMu) == False):
 				tmp_hist.temp_dmu_extrap(beta, new_dMu, extrap_order, cutoff, override, False, False, first_order_mom)
-			tmp_hist.thermo()
+			tmp_hist.thermo(collect=collect)
 		except Exception as e:
 			raise Exception ('Found coexistence, but unable to compute properties afterwards: '+str(e))
 
@@ -2562,7 +2566,7 @@ histogram._cy_reweight = types.MethodType(_cython_reweight, None, histogram)
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] dMu, int order, double cutoff, bool override, int min_width):
+cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] dMu, int order, double cutoff, bool override, int min_width, collect=None):
 	"""
 	Compute the difference between the area under the lnPI distribution (free energy/kT) for different phases at a given chemical potential of species 1.
 
@@ -2586,6 +2590,9 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 		Override warnings about inaccuracies in lnPI after temperature extrapolation
 	min_width : int
 		Minimum width of a phase to be considered a "real" one instead of background noise
+	collect : function (histogram)
+		Function that will "collect" maxima and minima into phases if each peak does not represent a phase, which takes a keyword argument "hist" to accept this class.
+		This function must modify the class and report a maxima, boudned by minima, for each resulting phase. See example function in collect.py called janus_collect(). (default=None)
 
 	Returns
 	-------
@@ -2601,7 +2608,7 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 	curr_dMu = np.array([hist.data['curr_mu'][i] - hist.data['curr_mu'][0] for i in xrange(1, hist.data['nspec'])])
 	if (beta != orig_hist.data['curr_beta'] or np.all(curr_dMu == dMu) == False):
 		hist.temp_dmu_extrap(beta, dMu, order, cutoff, override, False, True)
-	hist.thermo(False)
+	hist.thermo(props=False, collect=collect)
 
 	cdef double default = 100.0 # 10.0**2
 	cdef int counter = 0, num_phases = len(hist.data['thermo'])
@@ -2642,6 +2649,7 @@ if __name__ == '__main__':
 	2. Reweight to desired chemical potential (mu1)
 	3. Call histogram = temp_extrap() with the appropriate flag set to either modify self or create a copy / use temp_dmu_extrap() if extrapolating in temperature and dMu
 	4. histogram.thermo()
+		Note that a collection function can be specified to gather peaks into "macrophases" as necessary
 	5. histogram.is_safe()
 
 	* Notes:
