@@ -7,7 +7,7 @@
 
 import numpy as np
 
-def check_order_ (hist):
+def check_order_(hist):
 	"""
 	Check that the order alternates correctly.
 
@@ -27,9 +27,9 @@ def check_order_ (hist):
 		order[1::2] = hist.data['ln(PI)_maxima_idx']
 
 	if (not (np.all([order[i] <= order[i+1] for i in xrange(len(order)-1)]))):
-		raise Exception ('Local maxima and minima not sorted correctly after collection')
+		raise Exception('Local maxima and minima not sorted correctly after collection')
 
-def janus_collect (hist, **kwargs):
+def janus_collect(hist, **kwargs):
 	"""
 	Collect last maxima as a single (isotropic liquid) phase, and all others as a micellar gas.
 
@@ -40,6 +40,8 @@ def janus_collect (hist, **kwargs):
 
 	"""
 
+	dummy = kwargs.get("dummy", None) # Get keyword arguments
+
 	# Check ln(PI) has been segmented first
 	if ('ln(PI)_maxima_idx' not in hist.data):
 		raise Exception('Histogram has not been segmented yet')
@@ -47,7 +49,7 @@ def janus_collect (hist, **kwargs):
 		raise Exception('Histogram has not been segmented yet')
 
 	# Also double check for correct order
-	check_order_ (hist)
+	check_order_(hist)
 
 	# Reassigned maxima and minima indices as desired if and only if there are more than 2 peaks.
 	# Otherwise, take these two peaks to correspond to each phase correctly.
@@ -71,7 +73,7 @@ def janus_collect (hist, **kwargs):
 			min_idx.append(hist.data['ln(PI)_minima_idx'][-1])
 
 	# Check that new order alternates correctly
-	check_order_ (hist)
+	check_order_(hist)
 
 	# Assign to the histogam
 	hist.data['ln(PI)_maxima_idx'] = max_idx
