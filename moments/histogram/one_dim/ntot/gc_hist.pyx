@@ -2628,7 +2628,6 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 
 	return err2
 
-
 if __name__ == '__main__':
 	print "gc_hist.pyx"
 
