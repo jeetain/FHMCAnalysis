@@ -649,7 +649,8 @@ class histogram (object):
 
 		# Search for equilibrium
 		tmp_hist.normalize()
-		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_dMu,extrap_order,cutoff,True,tmp_hist.metadata['smooth'],collect=collect), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
+		min_width = tmp_hist.metadata['smooth']*2 # somewhat arbitrary choice
+		full_out = fmin(phase_eq_error, mu_guess, ftol=lnZ_tol, args=(tmp_hist,beta,new_dMu,extrap_order,cutoff,True,min_width,collect), maxfun=100000, maxiter=100000, full_output=True, disp=True, retall=True)
 		if (full_out[:][4] != 0): # full_out[:][4] = warning flag
 			raise Exception ('Error, unable to locate phase coexistence : '+str(full_out))
 
@@ -2566,7 +2567,7 @@ histogram._cy_reweight = types.MethodType(_cython_reweight, None, histogram)
 
 @cython.boundscheck(False)
 @cython.cdivision(True)
-cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] dMu, int order, double cutoff, bool override, int min_width, collect=None):
+cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.ndarray[np.double_t, ndim=1] dMu, int order, double cutoff, bool override, int min_width, collect):
 	"""
 	Compute the difference between the area under the lnPI distribution (free energy/kT) for different phases at a given chemical potential of species 1.
 
@@ -2592,7 +2593,7 @@ cdef double phase_eq_error (double mu_guess, object orig_hist, double beta, np.n
 		Minimum width of a phase to be considered a "real" one instead of background noise
 	collect : function (histogram)
 		Function that will "collect" maxima and minima into phases if each peak does not represent a phase, which takes a keyword argument "hist" to accept this class.
-		This function must modify the class and report a maxima, boudned by minima, for each resulting phase. See example function in collect.py called janus_collect(). (default=None)
+		This function must modify the class and report a maxima, boudned by minima, for each resulting phase. See example function in collect.py called janus_collect().
 
 	Returns
 	-------
